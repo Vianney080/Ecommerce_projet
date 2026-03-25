@@ -1,12 +1,21 @@
 import axios from "axios";
 
-const NAV_HOST =
-  typeof window !== "undefined" && window.location?.hostname
-    ? window.location.hostname
-    : "localhost";
+/**
+ * Ne jamais dériver l'URL API du hostname du front (ex. *.vercel.app) :
+ * les images /uploads/... iraient vers le mauvais serveur.
+ */
+function normaliserBaseApi(urlBrut: string): string {
+  const url = urlBrut.trim();
+  if (!url) return "http://localhost:5000/api";
+  const sansSlashFin = url.replace(/\/+$/, "");
+  if (/\/api$/i.test(sansSlashFin)) return sansSlashFin;
+  return `${sansSlashFin}/api`;
+}
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || `http://${NAV_HOST}:5000/api`;
-export const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, "");
+const API_BASE_URL = normaliserBaseApi(
+  typeof import.meta.env.VITE_API_URL === "string" ? import.meta.env.VITE_API_URL : ""
+);
+export const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/i, "");
 
 export const api = axios.create({
   baseURL: API_BASE_URL,

@@ -344,7 +344,6 @@ function App() {
   const [itemsPanier, setItemsPanier] = useState<ItemPanier[]>([]);
   const [totalPanier, setTotalPanier] = useState(0);
   const [slideActif, setSlideActif] = useState(0);
-  const [carouselTick, setCarouselTick] = useState(0);
   const [panierOuvert, setPanierOuvert] = useState(false);
   const [menuMobileOuvert, setMenuMobileOuvert] = useState(false);
   const [messagePanier, setMessagePanier] = useState<PanierFeedback | null>(null);
@@ -612,13 +611,6 @@ function App() {
     const id = window.setInterval(() => {
       setSlideActif((i) => (i + 1) % SLIDES.length);
     }, 4500);
-    return () => window.clearInterval(id);
-  }, []);
-
-  useEffect(() => {
-    const id = window.setInterval(() => {
-      setCarouselTick((tick) => tick + 1);
-    }, 2800);
     return () => window.clearInterval(id);
   }, []);
 
@@ -976,8 +968,8 @@ function App() {
                 ].filter(Boolean)
               )
             );
-            const imageActiveIndex =
-              imagesCarte.length > 1 ? carouselTick % imagesCarte.length : 0;
+            /* Image principale stable (pas de carrousel global qui faisait « sauter » toutes les cartes) */
+            const imageActiveIndex = 0;
             const imageActive = imagesCarte[imageActiveIndex] || "";
             const stockDisponible = Number(produit.quantite);
             const ruptureStock = Number.isFinite(stockDisponible) && stockDisponible <= 0;
@@ -1014,14 +1006,9 @@ function App() {
                     <div className="product-image" aria-hidden="true" />
                   )}
                   {imagesCarte.length > 1 && (
-                    <div className="product-image-carousel-dots" aria-hidden="true">
-                      {imagesCarte.map((_, idx) => (
-                        <span
-                          key={`${produit.id}-dot-${idx}`}
-                          className={`product-image-dot ${idx === imageActiveIndex ? "is-active" : ""}`}
-                        />
-                      ))}
-                    </div>
+                    <span className="product-image-multi-badge" title={`${imagesCarte.length} photos`}>
+                      +{imagesCarte.length - 1}
+                    </span>
                   )}
                 </div>
                 <div className="product-content">

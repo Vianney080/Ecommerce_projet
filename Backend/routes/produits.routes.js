@@ -4,6 +4,7 @@ const Produit = require("../models/Produit");
 const verifierToken = require("../middleware/verifierToken");
 const uploadImage = require("../config/uploadImage");
 const { stockerImage } = require("../services/imageStorage");
+const { basePubliqueDepuisReq, produitImagesAbsolues } = require("../utils/publicImageUrl");
 
 const MOTS_VIDES_RECHERCHE = new Set([
   "a",
@@ -105,7 +106,7 @@ function normaliserImagesExistantes(brut) {
       liste
         .filter(
           (v) =>
-            /^\/uploads\/.+\.(png|jpe?g)$/i.test(v) ||
+            /^\/uploads\/.+\.(png|jpe?g|webp|gif)$/i.test(v) ||
             /^https?:\/\/.+/i.test(v)
         )
     )
@@ -204,7 +205,8 @@ router.get("/", async (req, res) => {
     if (tri === "prix_desc") triObjet = { prixUnitaire: -1 };
 
     const produits = await Produit.find(filtre).sort(triObjet);
-    res.json(produits);
+    const base = basePubliqueDepuisReq(req);
+    res.json(produits.map((p) => produitImagesAbsolues(p, base)));
   } catch (erreur) {
     res.status(500).json({ message: "Erreur serveur", erreur: erreur.message });
   }
@@ -215,7 +217,8 @@ router.get("/:id", async (req, res) => {
   try {
     const produit = await Produit.findById(req.params.id);
     if (!produit) return res.status(404).json({ message: "Produit introuvable" });
-    res.json(produit);
+    const base = basePubliqueDepuisReq(req);
+    res.json(produitImagesAbsolues(produit, base));
   } catch (erreur) {
     res.status(400).json({ message: "ID invalide", erreur: erreur.message });
   }

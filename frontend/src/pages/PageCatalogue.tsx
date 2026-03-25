@@ -122,7 +122,6 @@ export function PageCatalogue() {
   const [erreur, setErreur] = useState<string | null>(null);
   const [messagePanier, setMessagePanier] = useState<PanierFeedback | null>(null);
   const [pageCourante, setPageCourante] = useState(1);
-  const [carouselTick, setCarouselTick] = useState(0);
   const [suggestionsRechercheOuvertes, setSuggestionsRechercheOuvertes] = useState(false);
 
   async function chargerProduits() {
@@ -169,13 +168,6 @@ export function PageCatalogue() {
     chargerProduits();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recherche, categorie, stockBas, tri]);
-
-  useEffect(() => {
-    const id = window.setInterval(() => {
-      setCarouselTick((tick) => tick + 1);
-    }, 2800);
-    return () => window.clearInterval(id);
-  }, []);
 
   async function ajouterAuPanier(produitId: string) {
     setMessagePanier(null);
@@ -500,8 +492,7 @@ export function PageCatalogue() {
                     [p.imageUrls?.[0], ...(p.imageUrls || []), p.imageUrl].filter(Boolean)
                   )
                 );
-                const imageActiveIndex =
-                  imagesCarte.length > 1 ? carouselTick % imagesCarte.length : 0;
+                const imageActiveIndex = 0;
                 const imageActive = imagesCarte[imageActiveIndex];
                 return (
                   <article key={p._id} className="catalogue-card">
@@ -517,14 +508,9 @@ export function PageCatalogue() {
                         <div className="catalogue-card-image catalogue-card-image-placeholder" />
                       )}
                       {imagesCarte.length > 1 && (
-                        <div className="catalogue-image-carousel-dots" aria-hidden="true">
-                          {imagesCarte.map((_, idx) => (
-                            <span
-                              key={`${p._id}-dot-${idx}`}
-                              className={`catalogue-image-dot ${idx === imageActiveIndex ? "is-active" : ""}`}
-                            />
-                          ))}
-                        </div>
+                        <span className="product-image-multi-badge" title={`${imagesCarte.length} photos`}>
+                          +{imagesCarte.length - 1}
+                        </span>
                       )}
                     </div>
                     <div className="catalogue-card-content">

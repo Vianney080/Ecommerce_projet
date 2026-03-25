@@ -2,7 +2,9 @@ const mongoose = require("mongoose");
 
 function estCheminImageValide(valeur) {
   const texte = String(valeur || "").trim();
-  return /^\/uploads\/.+\.(png|jpe?g)$/i.test(texte) || /^https?:\/\/.+/i.test(texte);
+  return (
+    /^\/uploads\/.+\.(png|jpe?g|webp|gif)$/i.test(texte) || /^https?:\/\/.+/i.test(texte)
+  );
 }
 
 const produitSchema = new mongoose.Schema(
