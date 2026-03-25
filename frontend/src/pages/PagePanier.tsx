@@ -318,11 +318,16 @@ export function PagePanier() {
     }
   }
 
+  /** Meme comportement que le bouton « Se connecter pour commander » (transfert panier invite + retour panier apres login). */
+  function allerConnexionPourCommanderInvite() {
+    localStorage.setItem(CLE_TRANSFERT_PANIER_INVITE, "1");
+    setMessage("Connectez-vous pour finaliser la commande et recuperer votre panier invite.");
+    navigate("/connexion", { state: { from: "/panier" } });
+  }
+
   function commander() {
     if (!utilisateur) {
-      localStorage.setItem(CLE_TRANSFERT_PANIER_INVITE, "1");
-      setMessage("Connectez-vous pour finaliser la commande et recuperer votre panier invite.");
-      navigate("/connexion", { state: { from: "/panier" } });
+      allerConnexionPourCommanderInvite();
       return;
     }
     const champsObligatoires: Array<keyof AdresseLivraison> = [
@@ -497,7 +502,14 @@ export function PagePanier() {
             </p>
             {!utilisateur && (
               <p className="panier-auth-hint">
-                <Link to="/connexion">Connectez-vous</Link> pour commander avec votre compte.
+                <button
+                  type="button"
+                  className="panier-auth-hint-btn"
+                  onClick={allerConnexionPourCommanderInvite}
+                >
+                  Connectez-vous
+                </button>{" "}
+                pour commander avec votre compte.
               </p>
             )}
           </div>
