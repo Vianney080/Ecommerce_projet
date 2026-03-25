@@ -1468,6 +1468,28 @@ body {
   border-color: rgba(236, 72, 153, 0.7);
 }
 
+/*
+ * Grille 2 colonnes sur mobile : les règles .product-actions ci-dessus (1fr 1fr)
+ * viennent APRÈS le @media (max-width: 640px) et écrasaient l'empilement.
+ * On ré-applique l'empilement ici pour toute mise en page ≤ 2 cartes par ligne.
+ */
+@media (max-width: 900px) {
+  .product-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .product-card .btn-product {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+}
+
 .products-empty {
   font-size: 0.85rem;
   color: #94a3b8;
@@ -4295,6 +4317,22 @@ html.theme-dark .panier-field-helper-optional .field-helper-icon {
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .catalogue-actions {
+    align-items: stretch;
+  }
+
+  .catalogue-actions .catalogue-btn,
+  .catalogue-actions a.catalogue-btn {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
 }
 
 /* PAGE PRODUIT DETAIL */
