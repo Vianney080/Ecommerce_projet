@@ -1,5 +1,10 @@
 const mongoose = require("mongoose");
 
+function estCheminImageValide(valeur) {
+  const texte = String(valeur || "").trim();
+  return /^\/uploads\/.+\.(png|jpe?g)$/i.test(texte) || /^https?:\/\/.+/i.test(texte);
+}
+
 const produitSchema = new mongoose.Schema(
   {
     nom: { type: String, required: true, trim: true },
@@ -13,8 +18,8 @@ const produitSchema = new mongoose.Schema(
       required: true,
       trim: true,
       validate: {
-        validator: (valeur) => /^\/uploads\/.+\.(png|jpe?g)$/i.test(valeur || ""),
-        message: "L'image doit etre un fichier local PNG/JPG/JPEG."
+        validator: estCheminImageValide,
+        message: "L'image doit etre un chemin local /uploads ou une URL http(s) valide."
       }
     },
     imageUrls: {
@@ -23,8 +28,8 @@ const produitSchema = new mongoose.Schema(
       validate: {
         validator: (valeurs) =>
           Array.isArray(valeurs) &&
-          valeurs.every((v) => /^\/uploads\/.+\.(png|jpe?g)$/i.test((v || "").trim())),
-        message: "Chaque image doit etre un fichier local PNG/JPG/JPEG."
+          valeurs.every((v) => estCheminImageValide(v)),
+        message: "Chaque image doit etre un chemin local /uploads ou une URL http(s) valide."
       }
     }
   },

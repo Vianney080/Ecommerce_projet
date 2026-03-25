@@ -7,6 +7,7 @@ const crypto = require("crypto");
 const Utilisateur = require("../models/Utilisateur");
 const verifierToken = require("../middleware/verifierToken");
 const uploadImage = require("../config/uploadImage");
+const { stockerImage } = require("../services/imageStorage");
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,128}$/;
@@ -238,7 +239,7 @@ router.put("/me/avatar", verifierToken, (req, res, next) => {
       return res.status(404).json({ message: "Utilisateur introuvable" });
     }
 
-    utilisateur.avatarUrl = `/uploads/${req.file.filename}`;
+    utilisateur.avatarUrl = await stockerImage(req.file, { folder: "ecommerce/avatars" });
     await utilisateur.save();
 
     return res.json({

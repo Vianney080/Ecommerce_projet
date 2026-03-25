@@ -3,6 +3,7 @@ const router = express.Router();
 const Produit = require("../models/Produit");
 const verifierToken = require("../middleware/verifierToken");
 const uploadImage = require("../config/uploadImage");
+const { stockerImage } = require("../services/imageStorage");
 
 const MOTS_VIDES_RECHERCHE = new Set([
   "a",
@@ -102,7 +103,11 @@ function normaliserImagesExistantes(brut) {
   return Array.from(
     new Set(
       liste
-        .filter((v) => /^\/uploads\/.+\.(png|jpe?g)$/i.test(v))
+        .filter(
+          (v) =>
+            /^\/uploads\/.+\.(png|jpe?g)$/i.test(v) ||
+            /^https?:\/\/.+/i.test(v)
+        )
     )
   );
 }
@@ -123,13 +128,15 @@ function lireFichiersUpload(req) {
   return fichiers.filter((f) => Boolean(f?.filename));
 }
 
-function normaliserUploadsAvecCles(req) {
+async function normaliserUploadsAvecCles(req) {
   const fichiers = lireFichiersUpload(req);
   const cles = lireListeDepuisBody(req.body?.newFileKeys);
-  const uploads = fichiers.map((f, index) => ({
-    key: cles[index] || `upload-${index}`,
-    url: `/uploads/${f.filename}`
-  }));
+  const uploads = await Promise.all(
+    fichiers.map(async (f, index) => ({
+      key: cles[index] || `upload-${index}`,
+      url: await stockerImage(f, { folder: "ecommerce/produits" })
+    }))
+  );
 
   const map = new Map();
   uploads.forEach((item) => map.set(item.key, item.url));
@@ -272,7 +279,7 @@ router.post(
   ]),
   async (req, res) => {
     try {
-      const { uploads, map } = normaliserUploadsAvecCles(req);
+      const { uploads, map } = await normaliserUploadsAvecCles(req);
       const ordreTokens = lireListeDepuisBody(req.body?.imageOrder);
       const imageUrls = construireOrdreImages({
         ordreTokens,
@@ -335,7 +342,7 @@ router.put(
           ? imagesDemandees.filter((img) => imagesActuelles.includes(img))
           : imagesActuelles;
 
-      const { uploads, map } = normaliserUploadsAvecCles(req);
+      const { uploads, map } = await normaliserUploadsAvecCles(req);
       const ordreTokens = lireListeDepuisBody(req.body?.imageOrder);
       const imageUrls = construireOrdreImages({
         ordreTokens,
