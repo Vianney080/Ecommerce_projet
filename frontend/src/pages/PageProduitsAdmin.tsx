@@ -8,7 +8,7 @@ import {
   type FormEvent
 } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, API_ORIGIN } from "../api";
+import { api, resolveAssetUrl } from "../api";
 import "../styles.css";
 
 interface ProduitAdmin {
@@ -54,13 +54,6 @@ const FORM_INIT: ProduitForm = {
   prixUnitaire: "0",
   seuilMinimum: "1",
 };
-
-function imageProduitUrl(imageUrl?: string) {
-  if (!imageUrl) return "";
-  if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) return imageUrl;
-  if (imageUrl.startsWith("/")) return `${API_ORIGIN}${imageUrl}`;
-  return `${API_ORIGIN}/${imageUrl}`;
-}
 
 export function PageProduitsAdmin() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -127,7 +120,7 @@ export function PageProduitsAdmin() {
 
     return imagesExistantes.map((chemin) => ({
       id: `existing-${chemin}`,
-      url: imageProduitUrl(chemin),
+      url: resolveAssetUrl(chemin),
       source: "existing",
       orderToken: `existing:${chemin}`,
       rawPath: chemin,
@@ -696,7 +689,7 @@ export function PageProduitsAdmin() {
                         <td>
                           <div className="admin-table-image">
                             {(p.imageUrls?.[0] || p.imageUrl) ? (
-                              <img src={imageProduitUrl(p.imageUrls?.[0] || p.imageUrl)} alt={p.nom} />
+                              <img src={resolveAssetUrl(p.imageUrls?.[0] || p.imageUrl)} alt={p.nom} />
                             ) : (
                               <span>-</span>
                             )}

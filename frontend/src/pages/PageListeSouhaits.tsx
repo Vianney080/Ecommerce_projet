@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api, API_ORIGIN } from "../api";
+import { api, resolveAssetUrl } from "../api";
+import { ProductImage } from "../components/ProductImage";
 import { useAuth } from "../AuthContext";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
@@ -16,13 +17,6 @@ type ProduitApi = {
   imageUrl?: string;
   imageUrls?: string[];
 };
-
-function imageUrl(img?: string) {
-  if (!img) return "";
-  if (img.startsWith("http://") || img.startsWith("https://")) return img;
-  if (img.startsWith("/")) return `${API_ORIGIN}${img}`;
-  return `${API_ORIGIN}/${img}`;
-}
 
 export function PageListeSouhaits() {
   const { utilisateur } = useAuth();
@@ -126,12 +120,18 @@ export function PageListeSouhaits() {
         ) : (
           <section className="catalogue-grid">
             {produits.map((p) => {
-              const src = imageUrl(p.imageUrls?.[0] || p.imageUrl);
+              const src = resolveAssetUrl(p.imageUrls?.[0] || p.imageUrl);
               return (
                 <article key={p._id} className="catalogue-card">
                   <div className="catalogue-card-image-wrap">
                     {src ? (
-                      <img src={src} alt="" className="catalogue-card-image" loading="lazy" decoding="async" />
+                      <ProductImage
+                        src={src}
+                        alt={p.nom}
+                        className="catalogue-card-image"
+                        loading="lazy"
+                        decoding="async"
+                      />
                     ) : (
                       <div className="catalogue-card-image catalogue-card-image-placeholder" />
                     )}

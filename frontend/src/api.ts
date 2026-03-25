@@ -17,6 +17,37 @@ const API_BASE_URL = normaliserBaseApi(
 );
 export const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/i, "");
 
+/**
+ * URL finale pour images / fichiers (uploads, Cloudinary, etc.).
+ * - Chemins relatifs → préfixe API_ORIGIN (doit être VITE_API_URL en prod).
+ * - //domain → https (évite src invalides).
+ * - http sur page https → passage en https sauf localhost (évite le contenu mixte bloqué).
+ */
+export function resolveAssetUrl(raw: string | undefined | null): string {
+  let s = String(raw ?? "").trim();
+  if (!s) return "";
+  if (s.startsWith("//")) {
+    s = `https:${s}`;
+  }
+  if (/^https?:\/\//i.test(s)) {
+    if (typeof window !== "undefined" && window.location?.protocol === "https:") {
+      try {
+        const u = new URL(s);
+        const local = u.hostname === "localhost" || u.hostname === "127.0.0.1";
+        if (u.protocol === "http:" && !local) {
+          u.protocol = "https:";
+          return u.toString();
+        }
+      } catch {
+        /* garder s */
+      }
+    }
+    return s;
+  }
+  if (s.startsWith("/")) return `${API_ORIGIN}${s}`;
+  return `${API_ORIGIN}/${s}`;
+}
+
 export const api = axios.create({
   baseURL: API_BASE_URL,
 });

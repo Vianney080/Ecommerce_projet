@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "./AuthContext";
-import { api, API_ORIGIN } from "./api";
+import { api, resolveAssetUrl } from "./api";
+import { ProductImage } from "./components/ProductImage";
 import { ajouterAuPanierInvite, lirePanierInvite, totalPanierInvite } from "./cartInvite";
 import { Breadcrumb } from "./components/Breadcrumb";
 import { useDocumentTitle, useMetaDescription } from "./hooks/useDocumentTitle";
@@ -111,20 +112,6 @@ function extraireMotsClesRecherche(valeur: string) {
     .filter(Boolean)
     .filter((t) => t.length > 1 && !MOTS_VIDES_RECHERCHE.has(t));
   return Array.from(new Set(tokens));
-}
-
-function imageProduitUrl(imageUrl?: string) {
-  if (!imageUrl) return "";
-  if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) return imageUrl;
-  if (imageUrl.startsWith("/")) return `${API_ORIGIN}${imageUrl}`;
-  return `${API_ORIGIN}/${imageUrl}`;
-}
-
-function imageUtilisateurUrl(imageUrl?: string) {
-  if (!imageUrl) return "";
-  if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) return imageUrl;
-  if (imageUrl.startsWith("/")) return `${API_ORIGIN}${imageUrl}`;
-  return `${API_ORIGIN}/${imageUrl}`;
 }
 
 type Slide = {
@@ -505,13 +492,13 @@ function App() {
           seuilMinimum: p.seuilMinimum,
           imageUrl: p.imageUrl,
           imageUrls: p.imageUrls || [],
-          image: imageProduitUrl(imageSource),
+          image: resolveAssetUrl(imageSource),
           createdAt: p.createdAt,
         };
       });
       setProduitsBackend(mapped);
     } catch {
-      setProduitsBackend([]);
+      /* Ne pas vider le catalogue (erreur réseau / 502 Render) : évite images + textes « fantômes » */
     }
   }, []);
 
@@ -623,7 +610,7 @@ function App() {
   useEffect(() => {
     const intervalId = window.setInterval(() => {
       chargerProduitsBackend();
-    }, 15000);
+    }, 180000);
     return () => window.clearInterval(intervalId);
   }, [chargerProduitsBackend]);
 
@@ -685,7 +672,7 @@ function App() {
       .map((p) => p.charAt(0).toUpperCase())
       .join("");
   }, [utilisateur]);
-  const avatarUtilisateur = imageUtilisateurUrl(utilisateur?.avatarUrl);
+  const avatarUtilisateur = resolveAssetUrl(utilisateur?.avatarUrl);
 
   return (
     <div className="app" id="accueil">
@@ -963,14 +950,13 @@ function App() {
             const imagesCarte = Array.from(
               new Set(
                 [
-                  ...(produit.imageUrls || []).map((img) => imageProduitUrl(img)),
+                  ...(produit.imageUrls || []).map((img) => resolveAssetUrl(img)),
                   produit.image,
                 ].filter(Boolean)
               )
             );
             /* Image principale stable (pas de carrousel global qui faisait « sauter » toutes les cartes) */
-            const imageActiveIndex = 0;
-            const imageActive = imagesCarte[imageActiveIndex] || "";
+            const imageActive = imagesCarte[0] || "";
             const stockDisponible = Number(produit.quantite);
             const ruptureStock = Number.isFinite(stockDisponible) && stockDisponible <= 0;
 
@@ -995,15 +981,15 @@ function App() {
                   </button>
                   {ruptureStock && <span className="stock-out-badge">Rupture de stock</span>}
                   {imageActive ? (
-                    <img
+                    <ProductImage
                       src={imageActive}
-                      alt={`${produit.nom} - vue ${imageActiveIndex + 1}`}
+                      alt={produit.nom}
                       className="product-image"
                       loading="lazy"
                       decoding="async"
                     />
                   ) : (
-                    <div className="product-image" aria-hidden="true" />
+                    <div className="product-image product-image-fallback" aria-hidden="true" />
                   )}
                   {imagesCarte.length > 1 && (
                     <span className="product-image-multi-badge" title={`${imagesCarte.length} photos`}>

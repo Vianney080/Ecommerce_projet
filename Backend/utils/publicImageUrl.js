@@ -15,15 +15,16 @@ function basePubliqueDepuisReq(req) {
   const depuisEnv = basePubliqueDepuisEnv();
   if (depuisEnv) return depuisEnv;
   if (!req || !req.get) return "";
-  const proto = String(req.get("x-forwarded-proto") || req.protocol || "https").split(",")[0].trim();
+  const proto = String(req.get("x-forwarded-proto") || "https").split(",")[0].trim() || "https";
   const host = String(req.get("x-forwarded-host") || req.get("host") || "").split(",")[0].trim();
   if (!host) return "";
   return `${proto}://${host}`;
 }
 
 function absoluImage(chemin, base) {
-  const s = String(chemin || "").trim();
+  let s = String(chemin || "").trim();
   if (!s) return s;
+  if (s.startsWith("//")) s = `https:${s}`;
   if (/^https?:\/\//i.test(s)) return s;
   const b = String(base || "").replace(/\/+$/, "");
   if (!b) return s;

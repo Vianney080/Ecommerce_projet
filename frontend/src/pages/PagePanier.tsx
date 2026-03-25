@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { api, API_ORIGIN } from "../api";
+import { api, resolveAssetUrl } from "../api";
 import { useAuth } from "../AuthContext";
 import {
   lirePanierInvite,
@@ -156,13 +156,6 @@ export function PagePanier() {
     });
   }, [utilisateur]);
 
-  function imageProduitUrl(imageUrl?: string) {
-    if (!imageUrl) return "";
-    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) return imageUrl;
-    if (imageUrl.startsWith("/")) return `${API_ORIGIN}${imageUrl}`;
-    return `${API_ORIGIN}/${imageUrl}`;
-  }
-
   async function chargerPanier() {
     setLoading(true);
     setErreur(null);
@@ -195,7 +188,7 @@ export function PagePanier() {
       const mapLocalInviteParNom: Record<string, string> = {};
       if (!utilisateur) {
         for (const it of panierInvite) {
-          const url = imageProduitUrl(it.imageUrl);
+          const url = resolveAssetUrl(it.imageUrl);
           if (url) {
             mapLocalInvite[it.produitId] = url;
             mapLocalInviteParNom[normaliserNomProduit(it.nomProduit)] = url;
@@ -207,12 +200,20 @@ export function PagePanier() {
         _id: string;
         nom: string;
         imageUrl?: string;
+        imageUrls?: string[];
         prixUnitaire: number;
         quantite: number;
       }> = [];
       try {
         const res = await api.get<
-          Array<{ _id: string; nom: string; imageUrl?: string; prixUnitaire: number; quantite: number }>
+          Array<{
+          _id: string;
+          nom: string;
+          imageUrl?: string;
+          imageUrls?: string[];
+          prixUnitaire: number;
+          quantite: number;
+        }>
         >("/produits");
         tousProduits = res.data;
       } catch {
@@ -225,7 +226,7 @@ export function PagePanier() {
       const mapPrix: Record<string, number> = {};
       const mapPrixNom: Record<string, number> = {};
       for (const p of tousProduits) {
-        const url = imageProduitUrl(p.imageUrl);
+        const url = resolveAssetUrl(p.imageUrls?.[0] || p.imageUrl);
         const nomNormalise = normaliserNomProduit(p.nom);
         if (url) {
           mapId[p._id] = url;
@@ -403,7 +404,7 @@ export function PagePanier() {
       .map((p) => p.charAt(0).toUpperCase())
       .join("");
   }, [utilisateur]);
-  const avatarUtilisateur = imageProduitUrl(utilisateur?.avatarUrl);
+  const avatarUtilisateur = resolveAssetUrl(utilisateur?.avatarUrl);
   const profilAdressePrefill = useMemo(() => extraireAdresseDepuisProfil(utilisateur), [utilisateur]);
   const paysOptions = useMemo(() => getCountryOptions("fr-CA"), []);
   const provinceOptions = useMemo(() => getRegionOptions(adresse.pays), [adresse.pays]);

@@ -8,7 +8,8 @@ import {
   type TouchEvent,
 } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
-import { api, API_ORIGIN } from "../api";
+import { api, resolveAssetUrl } from "../api";
+import { ProductImage } from "../components/ProductImage";
 import { useAuth } from "../AuthContext";
 import { ajouterAuPanierInvite, lirePanierInvite } from "../cartInvite";
 import { Breadcrumb } from "../components/Breadcrumb";
@@ -87,13 +88,6 @@ function FeedbackIcon({ type }: { type: "success" | "error" }) {
   );
 }
 
-function imageProduitUrl(imageUrl?: string) {
-  if (!imageUrl) return "";
-  if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) return imageUrl;
-  if (imageUrl.startsWith("/")) return `${API_ORIGIN}${imageUrl}`;
-  return `${API_ORIGIN}/${imageUrl}`;
-}
-
 function formaterMontant(montant: number) {
   return `${montant.toFixed(2)} $`;
 }
@@ -124,6 +118,7 @@ export function PageProduitDetail() {
   const [texteAvis, setTexteAvis] = useState("");
   const [messageAvis, setMessageAvis] = useState<{ texte: string; type: "success" | "error" } | null>(null);
   const [soumissionAvis, setSoumissionAvis] = useState(false);
+  const [imagePrincipaleCassee, setImagePrincipaleCassee] = useState(false);
 
   const produitDepuisState = useMemo(() => {
     const state = (location.state || {}) as { produit?: ProduitState };
@@ -179,7 +174,7 @@ export function PageProduitDetail() {
   const imagesProduit = useMemo(() => {
     if (!produit) return [];
     const base = [...(produit.imageUrls || []), produit.imageUrl || ""].filter(Boolean);
-    return Array.from(new Set(base)).map((img) => imageProduitUrl(img));
+    return Array.from(new Set(base)).map((img) => resolveAssetUrl(img));
   }, [produit]);
 
   const imagePrincipale = imagesProduit[imageActiveIndex] || "";
@@ -188,7 +183,12 @@ export function PageProduitDetail() {
     setImageActiveIndex(0);
     setZoom(1.8);
     setOrigin({ x: 50, y: 50 });
+    setImagePrincipaleCassee(false);
   }, [produit?._id]);
+
+  useEffect(() => {
+    setImagePrincipaleCassee(false);
+  }, [imagePrincipale]);
 
   useEffect(() => {
     if (!messagePanier) return;
@@ -525,7 +525,7 @@ export function PageProduitDetail() {
                   {dansListeSouhaitsActif ? "♥" : "♡"}
                 </button>
                 {Number(produit.quantite) <= 0 && <span className="stock-out-badge">Rupture de stock</span>}
-                {imagePrincipale ? (
+                {imagePrincipale && !imagePrincipaleCassee ? (
                   <img
                     src={imagePrincipale}
                     alt={produit.nom}
@@ -534,9 +534,10 @@ export function PageProduitDetail() {
                       transform: `scale(${zoom})`,
                       transformOrigin: `${origin.x}% ${origin.y}%`,
                     }}
+                    onError={() => setImagePrincipaleCassee(true)}
                   />
                 ) : (
-                  <div className="produit-image-main produit-image-placeholder" />
+                  <div className="produit-image-main produit-image-placeholder" role="img" aria-label={produit.nom} />
                 )}
               </div>
               {imagesProduit.length > 1 && (
@@ -625,7 +626,7 @@ export function PageProduitDetail() {
                       _id: produit._id,
                       nom: produit.nom,
                       prixUnitaire: produit.prixUnitaire,
-                      imageUrl: imagePrincipale || imageProduitUrl(produit.imageUrl),
+                      imageUrl: imagePrincipale || resolveAssetUrl(produit.imageUrl),
                       quantite: produit.quantite,
                     })
                   }
@@ -737,7 +738,7 @@ export function PageProduitDetail() {
             ) : (
               <div className={`catalogue-grid ${produitsMemeCategorie.length < 4 ? "is-short-page" : ""}`}>
                 {produitsMemeCategorie.map((item, index) => {
-                  const imagePrincipaleCarte = imageProduitUrl(item.imageUrls?.[0] || item.imageUrl || "");
+                  const imagePrincipaleCarte = resolveAssetUrl(item.imageUrls?.[0] || item.imageUrl || "");
                   const ruptureStock = Number(item.quantite) <= 0;
                   return (
                     <article key={item._id} className="catalogue-card">
@@ -745,7 +746,7 @@ export function PageProduitDetail() {
                         {index === 0 && <span className="produit-related-badge">Produit recommande</span>}
                         {ruptureStock && <span className="stock-out-badge">Rupture de stock</span>}
                         {imagePrincipaleCarte ? (
-                          <img
+                          <ProductImage
                             src={imagePrincipaleCarte}
                             alt={item.nom}
                             className="catalogue-card-image"

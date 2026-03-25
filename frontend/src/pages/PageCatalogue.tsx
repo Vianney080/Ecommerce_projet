@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { api, API_ORIGIN } from "../api";
+import { api, resolveAssetUrl } from "../api";
+import { ProductImage } from "../components/ProductImage";
 import { useAuth } from "../AuthContext";
 import { ajouterAuPanierInvite, lirePanierInvite } from "../cartInvite";
 import { Breadcrumb } from "../components/Breadcrumb";
@@ -97,13 +98,6 @@ function FeedbackIcon({ type }: { type: "success" | "error" }) {
 }
 
 const PRODUITS_PAR_PAGE = 8;
-
-function imageProduitUrl(imageUrl?: string) {
-  if (!imageUrl) return "";
-  if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) return imageUrl;
-  if (imageUrl.startsWith("/")) return `${API_ORIGIN}${imageUrl}`;
-  return `${API_ORIGIN}/${imageUrl}`;
-}
 
 export function PageCatalogue() {
   const { utilisateur, deconnexion } = useAuth();
@@ -223,7 +217,7 @@ export function PageCatalogue() {
         .map((p) => p.charAt(0).toUpperCase())
         .join("")
     : "U";
-  const avatarUtilisateur = imageProduitUrl(utilisateur?.avatarUrl);
+  const avatarUtilisateur = resolveAssetUrl(utilisateur?.avatarUrl);
 
   const totalProduits = useMemo(() => produits.length, [produits]);
   const totalPages = useMemo(
@@ -492,17 +486,18 @@ export function PageCatalogue() {
                     [p.imageUrls?.[0], ...(p.imageUrls || []), p.imageUrl].filter(Boolean)
                   )
                 );
-                const imageActiveIndex = 0;
-                const imageActive = imagesCarte[imageActiveIndex];
+                const imageActive = resolveAssetUrl(imagesCarte[0]);
                 return (
                   <article key={p._id} className="catalogue-card">
                     <div className="catalogue-card-image-wrap">
                       {ruptureStock && <span className="stock-out-badge">Rupture de stock</span>}
                       {imageActive ? (
-                        <img
-                        src={imageProduitUrl(imageActive)}
-                        alt={`${p.nom} - vue ${imageActiveIndex + 1}`}
+                        <ProductImage
+                          src={imageActive}
+                          alt={p.nom}
                           className="catalogue-card-image"
+                          loading="lazy"
+                          decoding="async"
                         />
                       ) : (
                         <div className="catalogue-card-image catalogue-card-image-placeholder" />
