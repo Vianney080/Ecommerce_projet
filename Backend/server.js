@@ -1,0 +1,63 @@
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const path = require("path");
+const routesProduits = require("./routes/produits.routes");
+const routesTableauDeBord = require("./routes/tableauDeBord.routes");
+const routesAuth = require("./routes/auth.routes");
+const routesCategories = require("./routes/categories.routes");
+const routesCommandes = require("./routes/commandes.routes");
+const routesPanier = require("./routes/panier.routes");
+const routesAdmin = require("./routes/admin.routes");
+require("dotenv").config();
+
+const app = express();
+const corsOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const corsOptions = {
+  origin(origin, callback) {
+    // Autorise les appels sans Origin (Postman, curl, checks Render, etc.)
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+
+    // Si aucune origin n'est configuree, on reste permissif (dev local)
+    if (corsOrigins.length === 0 || corsOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error("Origin non autorisee par CORS"));
+  },
+  credentials: true
+};
+
+// Middleware
+app.use(cors(corsOptions));
+app.use(express.json());
+app.use("/api/auth", routesAuth);
+app.use("/api/categories", routesCategories);
+app.use("/api/commandes", routesCommandes);
+app.use("/api/produits", routesProduits);
+app.use("/api/tableau-de-bord", routesTableauDeBord);
+app.use("/api/panier", routesPanier);
+app.use("/api/admin", routesAdmin);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Connexion MongoDB
+mongoose.connect(process.env.MONGO_URI)
+.then(() => console.log("MongoDB connecté"))
+.catch(err => console.log(err));
+
+app.get("/", (req, res) => {
+    res.send("API Ecommerce fonctionne ");
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`Serveur lancé sur le port ${PORT}`);
+});

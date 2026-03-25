@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="700" viewBox="0 0 1600 700">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#f7e7f1"/>
+      <stop offset="0.6" stop-color="#efe9ff"/>
+      <stop offset="1" stop-color="#f8fafc"/>
+    </linearGradient>
+    <linearGradient id="prod" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#ff5bb7"/>
+      <stop offset="0.55" stop-color="#111827"/>
+      <stop offset="1" stop-color="#f8c07a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="700" fill="url(#bg)"/>
+  <circle cx="1150" cy="250" r="340" fill="#ffffff" opacity="0.45"/>
+  <circle cx="1200" cy="280" r="250" fill="#ffffff" opacity="0.25"/>
+  <rect x="330" y="80" width="280" height="540" rx="26" fill="url(#prod)"/>
+  <rect x="330" y="520" width="280" height="100" rx="0" fill="#d4af37" opacity="0.65"/>
+  <text x="870" y="190" font-family="Georgia, serif" font-size="54" fill="#c026d3" opacity="0.9">VICTORIA'S SECRET</text>
+  <text x="910" y="350" font-family="Brush Script MT, cursive" font-size="92" fill="#a21caf">La séduction</text>
+  <text x="980" y="440" font-family="Brush Script MT, cursive" font-size="88" fill="#ffffff" opacity="0.9">Pure</text>
+  <rect x="980" y="500" width="360" height="66" rx="14" fill="#7c3aed" opacity="0.9"/>
+  <text x="1045" y="545" font-family="Arial, sans-serif" font-size="28" fill="#ffffff">Découvrez maintenant</text>
+</svg>

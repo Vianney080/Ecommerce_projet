@@ -1,0 +1,592 @@
+import { useEffect, useMemo, useRef, useState, type MouseEvent, type TouchEvent } from "react";
+import { Link, useLocation, useParams } from "react-router-dom";
+import { api, API_ORIGIN } from "../api";
+import { useAuth } from "../AuthContext";
+import { ajouterAuPanierInvite, lirePanierInvite } from "../cartInvite";
+import "../styles.css";
+
+type ProduitDetail = {
+  _id: string;
+  nom: string;
+  description?: string;
+  categorie: string;
+  quantite: number;
+  prixUnitaire: number;
+  seuilMinimum: number;
+  imageUrl?: string;
+  imageUrls?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+type ProduitState = Partial<ProduitDetail> & {
+  id?: string | number;
+  backendId?: string;
+  prix?: number;
+  image?: string;
+  imageUrls?: string[];
+};
+
+type PanierFeedback = {
+  texte: string;
+  type: "success" | "error";
+};
+
+function FeedbackIcon({ type }: { type: "success" | "error" }) {
+  if (type === "error") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.72 3h16.92a2 2 0 0 0 1.72-3L13.71 3.86a2 2 0 0 0-3.42 0Z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M20 7 10 17l-6-6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function imageProduitUrl(imageUrl?: string) {
+  if (!imageUrl) return "";
+  if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) return imageUrl;
+  if (imageUrl.startsWith("/")) return `${API_ORIGIN}${imageUrl}`;
+  return `${API_ORIGIN}/${imageUrl}`;
+}
+
+function formaterMontant(montant: number) {
+  return `${montant.toFixed(2)} $`;
+}
+
+export function PageProduitDetail() {
+  const { id } = useParams();
+  const { utilisateur } = useAuth();
+  const location = useLocation();
+  const [loading, setLoading] = useState(true);
+  const [erreur, setErreur] = useState<string | null>(null);
+  const [produit, setProduit] = useState<ProduitDetail | null>(null);
+  const [produitsMemeCategorie, setProduitsMemeCategorie] = useState<ProduitDetail[]>([]);
+  const [chargementMemeCategorie, setChargementMemeCategorie] = useState(false);
+  const [messagePanier, setMessagePanier] = useState<PanierFeedback | null>(null);
+  const [imageActiveIndex, setImageActiveIndex] = useState(0);
+  const [zoom, setZoom] = useState(1.8);
+  const [origin, setOrigin] = useState({ x: 50, y: 50 });
+  const touchRef = useRef<{ x: number; y: number; distance: number | null }>({
+    x: 0,
+    y: 0,
+    distance: null,
+  });
+
+  const produitDepuisState = useMemo(() => {
+    const state = (location.state || {}) as { produit?: ProduitState };
+    return state.produit || null;
+  }, [location.state]);
+
+  useEffect(() => {
+    let annule = false;
+
+    async function chargerProduit() {
+      if (!id) {
+        setErreur("Produit introuvable.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await api.get<ProduitDetail>(`/produits/${id}`);
+        if (!annule) {
+          setProduit(res.data);
+          setErreur(null);
+        }
+      } catch {
+        if (!annule) {
+          if (produitDepuisState && String(produitDepuisState.id || produitDepuisState.backendId) === String(id)) {
+            setProduit({
+              _id: String(produitDepuisState.backendId || produitDepuisState.id || id),
+              nom: produitDepuisState.nom || "Produit",
+              description: produitDepuisState.description || "",
+              categorie: produitDepuisState.categorie || "Non classé",
+              quantite: Number(produitDepuisState.quantite || 0),
+              prixUnitaire: Number(produitDepuisState.prixUnitaire || produitDepuisState.prix || 0),
+              seuilMinimum: Number(produitDepuisState.seuilMinimum || 0),
+              imageUrl: produitDepuisState.imageUrl || produitDepuisState.image || "",
+              imageUrls: produitDepuisState.imageUrls || [],
+            });
+            setErreur(null);
+          } else {
+            setErreur("Impossible de charger les détails du produit.");
+          }
+        }
+      } finally {
+        if (!annule) setLoading(false);
+      }
+    }
+
+    chargerProduit();
+    return () => {
+      annule = true;
+    };
+  }, [id, produitDepuisState]);
+
+  const imagesProduit = useMemo(() => {
+    if (!produit) return [];
+    const base = [...(produit.imageUrls || []), produit.imageUrl || ""].filter(Boolean);
+    return Array.from(new Set(base)).map((img) => imageProduitUrl(img));
+  }, [produit]);
+
+  const imagePrincipale = imagesProduit[imageActiveIndex] || "";
+
+  useEffect(() => {
+    setImageActiveIndex(0);
+    setZoom(1.8);
+    setOrigin({ x: 50, y: 50 });
+  }, [produit?._id]);
+
+  useEffect(() => {
+    if (!messagePanier) return;
+    const idTimeout = window.setTimeout(() => setMessagePanier(null), 3200);
+    return () => window.clearTimeout(idTimeout);
+  }, [messagePanier]);
+
+  useEffect(() => {
+    let annule = false;
+
+    async function chargerProduitsMemeCategorie() {
+      if (!produit?._id || !produit.categorie) {
+        if (!annule) setProduitsMemeCategorie([]);
+        return;
+      }
+
+      setChargementMemeCategorie(true);
+      try {
+        const res = await api.get<ProduitDetail[]>("/produits", {
+          params: { categorie: produit.categorie },
+        });
+        if (annule) return;
+
+        const similaires = (res.data || [])
+          .filter((item) => String(item._id) !== String(produit._id))
+          .slice(0, 4);
+        setProduitsMemeCategorie(similaires);
+      } catch {
+        if (!annule) setProduitsMemeCategorie([]);
+      } finally {
+        if (!annule) setChargementMemeCategorie(false);
+      }
+    }
+
+    chargerProduitsMemeCategorie();
+    return () => {
+      annule = true;
+    };
+  }, [produit?._id, produit?.categorie]);
+
+  async function ajouterAuPanier(cible: {
+    _id: string;
+    nom: string;
+    prixUnitaire: number;
+    imageUrl?: string;
+    quantite?: number;
+  }) {
+    setMessagePanier(null);
+
+    if (!utilisateur) {
+      const dejaPresent = lirePanierInvite().some((it) => it.produitId === cible._id);
+      const ok = ajouterAuPanierInvite(
+        {
+          produitId: cible._id,
+          nomProduit: cible.nom,
+          prixUnitaire: cible.prixUnitaire,
+          imageUrl: cible.imageUrl,
+        },
+        1,
+        Math.max(0, Number(cible.quantite) || 0)
+      );
+      if (!ok) {
+        setMessagePanier({
+          texte: `Stock insuffisant pour ${cible.nom}.`,
+          type: "error",
+        });
+        return;
+      }
+      setMessagePanier({
+        texte: dejaPresent
+          ? "Quantité mise à jour dans votre panier."
+          : "Article ajouté au panier avec succès.",
+        type: "success",
+      });
+      return;
+    }
+
+    try {
+      const res = await api.post("/panier/ajouter", { produitId: cible._id, quantite: 1 });
+      setMessagePanier({
+        texte: res.data?.message || "Article ajouté au panier avec succès.",
+        type: "success",
+      });
+    } catch (err: any) {
+      const message = err?.response?.data?.message || "Erreur lors de l'ajout au panier";
+      setMessagePanier({ texte: message, type: "error" });
+    }
+  }
+
+  function gererMouvementImage(e: MouseEvent<HTMLDivElement>) {
+    if (zoom <= 1 || !e.currentTarget) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setOrigin({
+      x: Math.max(0, Math.min(100, x)),
+      y: Math.max(0, Math.min(100, y)),
+    });
+  }
+
+  function calculerDistanceTouches(
+    t1: { clientX: number; clientY: number },
+    t2: { clientX: number; clientY: number }
+  ) {
+    const dx = t1.clientX - t2.clientX;
+    const dy = t1.clientY - t2.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  function gererTouchStart(e: TouchEvent<HTMLDivElement>) {
+    if (e.touches.length === 2) {
+      touchRef.current.distance = calculerDistanceTouches(e.touches[0], e.touches[1]);
+      return;
+    }
+    if (e.touches.length === 1) {
+      touchRef.current.x = e.touches[0].clientX;
+      touchRef.current.y = e.touches[0].clientY;
+      touchRef.current.distance = null;
+    }
+  }
+
+  function gererTouchMove(e: TouchEvent<HTMLDivElement>) {
+    if (!e.currentTarget) return;
+
+    if (e.touches.length === 2) {
+      const distance = calculerDistanceTouches(e.touches[0], e.touches[1]);
+      const precedente = touchRef.current.distance;
+      if (precedente !== null) {
+        const delta = distance - precedente;
+        setZoom((z) => Math.max(1, Math.min(3, z + delta * 0.01)));
+      }
+      touchRef.current.distance = distance;
+
+      const rect = e.currentTarget.getBoundingClientRect();
+      const centreX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const centreY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      const x = ((centreX - rect.left) / rect.width) * 100;
+      const y = ((centreY - rect.top) / rect.height) * 100;
+      setOrigin({
+        x: Math.max(0, Math.min(100, x)),
+        y: Math.max(0, Math.min(100, y)),
+      });
+      return;
+    }
+
+    if (e.touches.length === 1 && zoom > 1) {
+      const touche = e.touches[0];
+      const dx = touche.clientX - touchRef.current.x;
+      const dy = touche.clientY - touchRef.current.y;
+      setOrigin((o) => ({
+        x: Math.max(0, Math.min(100, o.x - dx * 0.12)),
+        y: Math.max(0, Math.min(100, o.y - dy * 0.12)),
+      }));
+      touchRef.current.x = touche.clientX;
+      touchRef.current.y = touche.clientY;
+      touchRef.current.distance = null;
+    }
+  }
+
+  function gererTouchEnd(e: TouchEvent<HTMLDivElement>) {
+    if (e.touches.length < 2) {
+      touchRef.current.distance = null;
+    }
+    if (e.touches.length === 1) {
+      touchRef.current.x = e.touches[0].clientX;
+      touchRef.current.y = e.touches[0].clientY;
+    }
+  }
+
+  return (
+    <div className="produit-page">
+      <nav className="nav">
+        <div className="nav-inner">
+          <div className="nav-left">
+            <div className="nav-logo">
+              <span className="nav-logo-icon">💄</span>
+              <div className="nav-logo-text">
+                <span className="nav-logo-title">CosmétiShop</span>
+                <span className="nav-logo-subtitle">Détails du produit</span>
+              </div>
+            </div>
+          </div>
+          <div className="nav-center">
+            <Link to="/" className="nav-link">
+              Accueil
+            </Link>
+            <Link to="/catalogue" className="nav-link">
+              Catalogue
+            </Link>
+          </div>
+          <div className="nav-right">
+            {utilisateur ? (
+              <Link to="/panier" className="nav-auth-btn nav-auth-link">
+                Voir panier
+              </Link>
+            ) : (
+              <Link to="/connexion" className="nav-auth-btn nav-auth-link">
+                Se connecter
+              </Link>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {messagePanier && (
+        <div className="top-feedback-wrap is-right is-floating">
+          <div className={`top-feedback ${messagePanier.type === "error" ? "top-feedback-error" : "top-feedback-success"}`}>
+            <span className="top-feedback-icon">
+              <FeedbackIcon type={messagePanier.type} />
+            </span>
+            <span>{messagePanier.texte}</span>
+          </div>
+        </div>
+      )}
+
+      <main className="produit-shell">
+        {loading ? (
+          <p className="produit-state">Chargement du produit...</p>
+        ) : erreur || !produit ? (
+          <div className="produit-alert produit-alert-error">
+            <p>{erreur || "Produit indisponible."}</p>
+            <Link to="/catalogue" className="catalogue-btn produit-back-btn">
+              Retour au catalogue
+            </Link>
+          </div>
+        ) : (
+          <section className="produit-detail-card">
+            <div className="produit-gallery">
+              <div
+                className="produit-image-stage"
+                onMouseMove={gererMouvementImage}
+                onMouseLeave={() => setOrigin({ x: 50, y: 50 })}
+                onTouchStart={gererTouchStart}
+                onTouchMove={gererTouchMove}
+                onTouchEnd={gererTouchEnd}
+              >
+                {Number(produit.quantite) <= 0 && <span className="stock-out-badge">Rupture de stock</span>}
+                {imagePrincipale ? (
+                  <img
+                    src={imagePrincipale}
+                    alt={produit.nom}
+                    className="produit-image-main"
+                    style={{
+                      transform: `scale(${zoom})`,
+                      transformOrigin: `${origin.x}% ${origin.y}%`,
+                    }}
+                  />
+                ) : (
+                  <div className="produit-image-main produit-image-placeholder" />
+                )}
+              </div>
+              {imagesProduit.length > 1 && (
+                <div className="produit-thumbnails">
+                  {imagesProduit.map((img, idx) => (
+                    <button
+                      key={`${img}-${idx}`}
+                      type="button"
+                      className={`produit-thumb ${idx === imageActiveIndex ? "is-active" : ""}`}
+                      onClick={() => {
+                        setImageActiveIndex(idx);
+                        setZoom(1.8);
+                        setOrigin({ x: 50, y: 50 });
+                      }}
+                    >
+                      <img src={img} alt={`${produit.nom} vue ${idx + 1}`} />
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="produit-zoom-controls">
+                <button type="button" className="produit-zoom-btn" onClick={() => setZoom((z) => Math.max(1, z - 0.2))}>
+                  Zoom -
+                </button>
+                <button type="button" className="produit-zoom-btn" onClick={() => setZoom((z) => Math.min(3, z + 0.2))}>
+                  Zoom +
+                </button>
+                <button
+                  type="button"
+                  className="produit-zoom-btn"
+                  onClick={() => {
+                    setZoom(1.8);
+                    setOrigin({ x: 50, y: 50 });
+                  }}
+                >
+                  Reinitialiser
+                </button>
+              </div>
+              <p className="produit-zoom-hint">
+                Souris: déplacez pour explorer. Mobile: pinch pour zoomer et glisser pour explorer.
+              </p>
+            </div>
+
+            <div className="produit-infos">
+              <p className="produit-kicker">{produit.categorie}</p>
+              <h1 className="produit-title">{produit.nom}</h1>
+              <p className="produit-price">{formaterMontant(produit.prixUnitaire)}</p>
+
+              <p className="produit-description">
+                {produit.description?.trim()
+                  ? produit.description
+                  : "Aucune description detaillee n'est disponible pour cet article pour le moment."}
+              </p>
+
+              <div className="produit-meta-grid">
+                <div className="produit-meta-item">
+                  <span className="produit-meta-label">Categorie</span>
+                  <strong>{produit.categorie}</strong>
+                </div>
+                <div className="produit-meta-item">
+                  <span className="produit-meta-label">Livraison</span>
+                  <strong>Rapide et securisee</strong>
+                </div>
+                <div className="produit-meta-item">
+                  <span className="produit-meta-label">Reference</span>
+                  <strong>{produit._id.slice(-8).toUpperCase()}</strong>
+                </div>
+                <div className="produit-meta-item">
+                  <span className="produit-meta-label">Paiement</span>
+                  <strong>100% securise</strong>
+                </div>
+              </div>
+
+              <div className="produit-actions">
+                <button
+                  type="button"
+                  className="catalogue-btn"
+                  onClick={() =>
+                    ajouterAuPanier({
+                      _id: produit._id,
+                      nom: produit.nom,
+                      prixUnitaire: produit.prixUnitaire,
+                      imageUrl: imagePrincipale || imageProduitUrl(produit.imageUrl),
+                      quantite: produit.quantite,
+                    })
+                  }
+                  disabled={Number(produit.quantite) <= 0}
+                >
+                  {Number(produit.quantite) <= 0 ? "Rupture de stock" : "Ajouter au panier"}
+                </button>
+                <Link to="/catalogue" className="catalogue-btn produit-secondary-btn">
+                  Retour catalogue
+                </Link>
+                <Link to="/panier" className="catalogue-btn produit-secondary-btn">
+                  Voir panier
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {!loading && !erreur && produit && (
+          <section className="produit-related-section">
+            <div className="produit-related-head">
+              <h2 className="produit-related-title">Produits de la meme categorie</h2>
+              <p className="produit-related-subtitle">
+                Decouvrez d&apos;autres articles similaires dans la categorie <strong>{produit.categorie}</strong>.
+              </p>
+            </div>
+
+            {chargementMemeCategorie ? (
+              <p className="produit-state">Chargement des produits similaires...</p>
+            ) : produitsMemeCategorie.length === 0 ? (
+              <p className="produit-related-empty">Aucun autre produit similaire disponible pour le moment.</p>
+            ) : (
+              <div className={`catalogue-grid ${produitsMemeCategorie.length < 4 ? "is-short-page" : ""}`}>
+                {produitsMemeCategorie.map((item, index) => {
+                  const imagePrincipaleCarte = imageProduitUrl(item.imageUrls?.[0] || item.imageUrl || "");
+                  const ruptureStock = Number(item.quantite) <= 0;
+                  return (
+                    <article key={item._id} className="catalogue-card">
+                      <div className="catalogue-card-image-wrap">
+                        {index === 0 && <span className="produit-related-badge">Produit recommande</span>}
+                        {ruptureStock && <span className="stock-out-badge">Rupture de stock</span>}
+                        {imagePrincipaleCarte ? (
+                          <img src={imagePrincipaleCarte} alt={item.nom} className="catalogue-card-image" />
+                        ) : (
+                          <div className="catalogue-card-image catalogue-card-image-placeholder" aria-hidden="true" />
+                        )}
+                      </div>
+                      <div className="catalogue-card-content">
+                        <p className="catalogue-card-category">{item.categorie}</p>
+                        <h3 className="catalogue-card-title">{item.nom}</h3>
+                        <p className="catalogue-card-price">{formaterMontant(item.prixUnitaire)}</p>
+                        <div className="catalogue-actions">
+                          <button
+                            type="button"
+                            className="catalogue-btn"
+                            onClick={() =>
+                              ajouterAuPanier({
+                                _id: item._id,
+                                nom: item.nom,
+                                prixUnitaire: item.prixUnitaire,
+                                imageUrl: imagePrincipaleCarte,
+                                quantite: item.quantite,
+                              })
+                            }
+                            disabled={ruptureStock}
+                          >
+                            {ruptureStock ? "Rupture de stock" : "Ajouter au panier"}
+                          </button>
+                          <Link
+                            to={`/produit/${item._id}`}
+                            className="catalogue-btn catalogue-btn-secondary"
+                            state={{
+                              produit: {
+                                _id: item._id,
+                                id: item._id,
+                                nom: item.nom,
+                                description: item.description || "",
+                                categorie: item.categorie,
+                                prixUnitaire: item.prixUnitaire,
+                                quantite: item.quantite,
+                                seuilMinimum: item.seuilMinimum,
+                                imageUrl: item.imageUrl,
+                                imageUrls: item.imageUrls || [],
+                              },
+                            }}
+                          >
+                            Voir produit
+                          </Link>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        )}
+      </main>
+    </div>
+  );
+}
+

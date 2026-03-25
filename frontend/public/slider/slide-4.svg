@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="700" viewBox="0 0 1600 700">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fbf7ff"/>
+      <stop offset="0.55" stop-color="#efe2d2"/>
+      <stop offset="1" stop-color="#f8fafc"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="700" fill="url(#bg)"/>
+  <rect x="180" y="140" width="560" height="420" rx="28" fill="#ffffff" opacity="0.6"/>
+  <rect x="820" y="160" width="520" height="110" rx="0" fill="#8b5cf6" opacity="0.75"/>
+  <text x="890" y="235" font-family="Georgia, serif" font-size="60" fill="#fefce8">VIOLET GLOW</text>
+  <text x="900" y="410" font-family="Arial Black, Arial, sans-serif" font-size="92" fill="#b48b2a">La gamme complète</text>
+  <rect x="980" y="470" width="360" height="66" rx="14" fill="#7c3aed" opacity="0.5"/>
+  <text x="1045" y="515" font-family="Arial, sans-serif" font-size="28" fill="#ffffff">Découvrez maintenant</text>
+  <text x="980" y="600" font-family="Arial, sans-serif" font-size="28" fill="#111827" opacity="0.75">Choisissez la beauté chez nous</text>
+</svg>
