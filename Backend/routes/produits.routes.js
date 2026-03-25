@@ -113,6 +113,30 @@ function normaliserImagesExistantes(brut) {
   );
 }
 
+/** Compare chemins relatifs (/uploads/...) et URLs absolues (API ou Cloudinary) */
+function cheminImagePourComparaison(u) {
+  const s = String(u || "").trim();
+  if (!s) return "";
+  if (/^https?:\/\//i.test(s)) {
+    try {
+      const p = new URL(s).pathname.replace(/\/+$/, "");
+      return p.toLowerCase();
+    } catch {
+      return s.toLowerCase();
+    }
+  }
+  return s.replace(/\/+$/, "").toLowerCase();
+}
+
+function imagesMemeFichier(a, b) {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  const pa = cheminImagePourComparaison(a);
+  const pb = cheminImagePourComparaison(b);
+  if (pa && pb && pa === pb) return true;
+  return String(a).endsWith(String(b)) || String(b).endsWith(String(a));
+}
+
 function lireFichiersUpload(req) {
   const fichiers = [];
 
@@ -144,10 +168,11 @@ async function normaliserUploadsAvecCles(req) {
   return { uploads, map };
 }
 
-function construireOrdreImages({ ordreTokens, imagesExistantes, uploads, uploadsMap }) {
+function construireOrdreImages({ ordreTokens, imagesExistantes, uploads, uploadsMap, imagesReferenceDb = [] }) {
   const resultat = [];
   const deja = new Set();
   const setExistantes = new Set(imagesExistantes);
+  const refDb = Array.isArray(imagesReferenceDb) && imagesReferenceDb.length ? imagesReferenceDb : imagesExistantes;
 
   const pushUnique = (valeur) => {
     if (!valeur || deja.has(valeur)) return;
@@ -155,10 +180,17 @@ function construireOrdreImages({ ordreTokens, imagesExistantes, uploads, uploads
     resultat.push(valeur);
   };
 
+  function resoudreCheminExistant(pathClient) {
+    const dansBase = [...setExistantes].find((ex) => imagesMemeFichier(ex, pathClient));
+    if (dansBase) return dansBase;
+    return refDb.find((ex) => imagesMemeFichier(ex, pathClient)) || "";
+  }
+
   ordreTokens.forEach((token) => {
     if (token.startsWith("existing:")) {
-      const path = token.slice("existing:".length);
-      if (setExistantes.has(path)) pushUnique(path);
+      const pathClient = token.slice("existing:".length);
+      const canonique = resoudreCheminExistant(pathClient);
+      if (canonique) pushUnique(canonique);
       return;
     }
     if (token.startsWith("new:")) {
@@ -342,7 +374,7 @@ router.put(
       const baseExistantes = !garderExistantes
         ? []
         : imagesDemandees.length > 0
-          ? imagesDemandees.filter((img) => imagesActuelles.includes(img))
+          ? imagesDemandees.filter((dem) => imagesActuelles.some((st) => imagesMemeFichier(st, dem)))
           : imagesActuelles;
 
       const { uploads, map } = await normaliserUploadsAvecCles(req);
@@ -351,7 +383,8 @@ router.put(
         ordreTokens,
         imagesExistantes: baseExistantes,
         uploads,
-        uploadsMap: map
+        uploadsMap: map,
+        imagesReferenceDb: imagesActuelles
       });
 
       if (imageUrls.length === 0) {

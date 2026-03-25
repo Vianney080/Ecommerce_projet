@@ -44,6 +44,8 @@ interface AdminImagePreview {
   orderToken: string;
   rawPath?: string;
   fileKey?: string;
+  /** Fichier local (ajouts multiples cumulables) */
+  file?: File;
 }
 
 const FORM_INIT: ProduitForm = {
@@ -68,11 +70,11 @@ export function PageProduitsAdmin() {
 
   const [editionId, setEditionId] = useState<string | null>(null);
   const [form, setForm] = useState<ProduitForm>(FORM_INIT);
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<AdminImagePreview[]>([]);
   const [garderImagesExistantes, setGarderImagesExistantes] = useState(true);
   const [dragPreviewId, setDragPreviewId] = useState<string | null>(null);
   const objectUrlsRef = useRef<string[]>([]);
+  const [fileInputKey, setFileInputKey] = useState(0);
 
   const [nouvelleCategorie, setNouvelleCategorie] = useState("");
   const [categorieEditionId, setCategorieEditionId] = useState<string | null>(null);
@@ -114,12 +116,17 @@ export function PageProduitsAdmin() {
 
   function construirePreviewsExistantes(produit?: ProduitAdmin | null): AdminImagePreview[] {
     if (!produit) return [];
-    const imagesExistantes = Array.from(
-      new Set([...(produit.imageUrls || []), produit.imageUrl || ""])
-    ).filter(Boolean);
+    const urls = [...(produit.imageUrls || [])]
+      .map((u) => String(u || "").trim())
+      .filter(Boolean);
+    const principal = String(produit.imageUrl || "").trim();
+    if (principal && !urls.includes(principal)) {
+      urls.unshift(principal);
+    }
+    const imagesExistantes = Array.from(new Set(urls));
 
-    return imagesExistantes.map((chemin) => ({
-      id: `existing-${chemin}`,
+    return imagesExistantes.map((chemin, idx) => ({
+      id: `existing-${idx}-${chemin.slice(0, 120)}`,
       url: resolveAssetUrl(chemin),
       source: "existing",
       orderToken: `existing:${chemin}`,
@@ -132,9 +139,9 @@ export function PageProduitsAdmin() {
     objectUrlsRef.current = [];
     setEditionId(null);
     setForm(FORM_INIT);
-    setImageFiles([]);
     setImagePreviews([]);
     setGarderImagesExistantes(true);
+    setFileInputKey((k) => k + 1);
   }
 
   function preRemplirEdition(p: ProduitAdmin) {
@@ -149,9 +156,9 @@ export function PageProduitsAdmin() {
       prixUnitaire: String(p.prixUnitaire ?? 0),
       seuilMinimum: String(p.seuilMinimum ?? 1),
     });
-    setImageFiles([]);
     setImagePreviews(construirePreviewsExistantes(p));
     setGarderImagesExistantes(true);
+    setFileInputKey((k) => k + 1);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -165,40 +172,47 @@ export function PageProduitsAdmin() {
   function handleImageChange(e: ChangeEvent<HTMLInputElement>) {
     const fichiers = Array.from(e.target.files || []);
     if (fichiers.length === 0) {
-      setImageFiles([]);
-      if (!editionId || !garderImagesExistantes) setImagePreviews([]);
+      if (!editionId || !garderImagesExistantes) {
+        if (!editionId) setImagePreviews([]);
+      }
       return;
     }
 
     const invalide = fichiers.find((fichier) => {
-      const extensionValide = /\.(png|jpe?g)$/i.test(fichier.name);
-      const mimeValide = fichier.type === "image/png" || fichier.type === "image/jpeg";
+      const extensionValide = /\.(png|jpe?g|webp)$/i.test(fichier.name);
+      const mimeValide =
+        fichier.type === "image/png" ||
+        fichier.type === "image/jpeg" ||
+        fichier.type === "image/webp";
       return !extensionValide || !mimeValide;
     });
     if (invalide) {
-      setErreur("Image invalide. Utilisez uniquement des fichiers .png, .jpg ou .jpeg.");
-      setImageFiles([]);
+      setErreur("Image invalide. Utilisez .png, .jpg, .jpeg ou .webp.");
       return;
     }
 
-    objectUrlsRef.current.forEach((u) => URL.revokeObjectURL(u));
-    objectUrlsRef.current = [];
-    const previewsNouvelles = fichiers.map((f) => URL.createObjectURL(f));
-    objectUrlsRef.current = previewsNouvelles;
-
     setErreur(null);
-    setImageFiles(fichiers);
-    const nouvellesAvecMeta: AdminImagePreview[] = fichiers.map((f, idx) => ({
-      id: `new-${idx}-${cleFichier(f)}`,
-      url: previewsNouvelles[idx],
-      source: "new",
-      orderToken: `new:${cleFichier(f)}`,
-      fileKey: cleFichier(f),
-    }));
-    const previewsExistantes = editionId && garderImagesExistantes
-      ? imagePreviews.filter((img) => img.source === "existing")
-      : [];
-    setImagePreviews([...previewsExistantes, ...nouvellesAvecMeta]);
+
+    const previewsExistantes =
+      editionId && garderImagesExistantes ? imagePreviews.filter((img) => img.source === "existing") : [];
+    const dejaNouvelles = imagePreviews.filter((img) => img.source === "new");
+
+    const nouvellesAvecMeta: AdminImagePreview[] = fichiers.map((f, idx) => {
+      const url = URL.createObjectURL(f);
+      objectUrlsRef.current.push(url);
+      const fk = `${cleFichier(f)}-${performance.now()}-${idx}`;
+      return {
+        id: `new-${fk}`,
+        url,
+        source: "new",
+        orderToken: `new:${fk}`,
+        fileKey: fk,
+        file: f,
+      };
+    });
+
+    setImagePreviews([...previewsExistantes, ...dejaNouvelles, ...nouvellesAvecMeta]);
+    e.target.value = "";
   }
 
   function supprimerPreviewImage(previewId: string) {
@@ -210,7 +224,6 @@ export function PageProduitsAdmin() {
         URL.revokeObjectURL(cible.url);
       }
       objectUrlsRef.current = objectUrlsRef.current.filter((u) => u !== cible.url);
-      setImageFiles((prev) => prev.filter((f) => cleFichier(f) !== cible.fileKey));
     }
 
     setImagePreviews((prev) => prev.filter((img) => img.id !== previewId));
@@ -257,12 +270,19 @@ export function PageProduitsAdmin() {
       setErreur("Le nom et la categorie sont obligatoires.");
       return;
     }
-    if (!editionId && imageFiles.length === 0) {
-      setErreur("L'image est obligatoire (.png, .jpg ou .jpeg).");
+    const nbNouvelles = imagePreviews.filter((p) => p.source === "new").length;
+    const nbExistantes = imagePreviews.filter((p) => p.source === "existing").length;
+
+    if (!editionId && nbNouvelles === 0) {
+      setErreur("Ajoutez au moins une image (.png, .jpg, .jpeg ou .webp).");
       return;
     }
-    if (editionId && !garderImagesExistantes && imageFiles.length === 0) {
-      setErreur("Ajoutez au moins une image si vous choisissez de remplacer les images actuelles.");
+    if (editionId && !garderImagesExistantes && nbNouvelles === 0) {
+      setErreur("Ajoutez au moins une image si vous remplacez les images actuelles.");
+      return;
+    }
+    if (editionId && garderImagesExistantes && nbExistantes === 0 && nbNouvelles === 0) {
+      setErreur("Conservez ou ajoutez au moins une image.");
       return;
     }
     if (!Number.isFinite(quantite) || quantite < 0) {
@@ -298,7 +318,12 @@ export function PageProduitsAdmin() {
         .map((img) => img.fileKey as string);
       payload.append("newFileKeys", JSON.stringify(ordreNouvelles));
 
-      const fichiersParCle = new Map(imageFiles.map((fichier) => [cleFichier(fichier), fichier]));
+      const fichiersParCle = new Map<string, File>();
+      for (const img of imagePreviews) {
+        if (img.source === "new" && img.fileKey && img.file) {
+          fichiersParCle.set(img.fileKey, img.file);
+        }
+      }
       ordreNouvelles.forEach((cle) => {
         const fichier = fichiersParCle.get(cle);
         if (fichier) payload.append("images", fichier);
@@ -500,14 +525,14 @@ export function PageProduitsAdmin() {
               </div>
 
               <label>
-                Images produit (.png, .jpg, .jpeg)
+                Images (.png, .jpg, .webp) — en modification, facultatif si vous conservez les vignettes
                 <input
+                  key={fileInputKey}
                   className="admin-search admin-input"
                   type="file"
-                  accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+                  accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
                   multiple
                   onChange={handleImageChange}
-                  required={!editionId}
                 />
               </label>
 
