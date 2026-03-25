@@ -20,6 +20,8 @@ import { PagePaiement } from "./pages/PagePaiement.tsx";
 import { PageCommandeSucces } from "./pages/PageCommandeSucces.tsx";
 import { PageProduitsAdmin } from "./pages/PageProduitsAdmin.tsx";
 import { PageProduitDetail } from "./pages/PageProduitDetail.tsx";
+import { PageListeSouhaits } from "./pages/PageListeSouhaits.tsx";
+import { PageSuiviCommande } from "./pages/PageSuiviCommande.tsx";
 import { PageProfilClient } from "./pages/PageProfilClient.tsx";
 import { PagePolitiqueConfidentialite } from "./pages/PagePolitiqueConfidentialite.tsx";
 import { PageMentionsLegales } from "./pages/PageMentionsLegales.tsx";
@@ -78,6 +80,8 @@ createRoot(document.getElementById('root')!).render(
             path="/catalogue"
             element={<PageCatalogue />}
           />
+          <Route path="/liste-souhaits" element={<PageListeSouhaits />} />
+          <Route path="/suivi-commande" element={<PageSuiviCommande />} />
           <Route
             path="/produit/:id"
             element={<PageProduitDetail />}

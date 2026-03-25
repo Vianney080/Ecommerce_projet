@@ -3,7 +3,12 @@ import { Link } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { api, API_ORIGIN } from "./api";
 import { ajouterAuPanierInvite, lirePanierInvite, totalPanierInvite } from "./cartInvite";
+import { Breadcrumb } from "./components/Breadcrumb";
+import { useDocumentTitle, useMetaDescription } from "./hooks/useDocumentTitle";
+import { basculerListeSouhaits, estDansListeSouhaits } from "./wishlistInvite";
 import "./styles.css";
+
+type TriAccueil = "recent" | "nom" | "prix_asc" | "prix_desc";
 
 type Produit = {
   id: string | number;
@@ -17,6 +22,7 @@ type Produit = {
   seuilMinimum?: number;
   imageUrl?: string;
   imageUrls?: string[];
+  createdAt?: string;
 };
 
 type ItemPanier = {
@@ -343,6 +349,8 @@ function App() {
   const [menuMobileOuvert, setMenuMobileOuvert] = useState(false);
   const [messagePanier, setMessagePanier] = useState<PanierFeedback | null>(null);
   const [pageCourante, setPageCourante] = useState(1);
+  const [triAccueil, setTriAccueil] = useState<TriAccueil>("recent");
+  const [, setWishlistTick] = useState(0);
   const [suggestionsRechercheOuvertes, setSuggestionsRechercheOuvertes] = useState(false);
   const sectionProduitsRef = useRef<HTMLElement | null>(null);
   const rechercheActivePrecedenteRef = useRef(false);
@@ -362,7 +370,18 @@ function App() {
     return ["Toutes", ...Array.from(new Set(produitsSource.map((p) => p.categorie)))];
   }, [produitsSource]);
 
-  const produitsAffiches = useMemo(() => {
+  useDocumentTitle("Accueil");
+  useMetaDescription(
+    "CosmétiShop : cosmétiques et soins en ligne. Parcourez le catalogue, liste d'envies et commande sécurisée."
+  );
+
+  useEffect(() => {
+    const handler = () => setWishlistTick((n) => n + 1);
+    window.addEventListener("wishlist-updated", handler);
+    return () => window.removeEventListener("wishlist-updated", handler);
+  }, []);
+
+  const produitsFiltres = useMemo(() => {
     return produitsSource.filter((p) => {
       const nom = normaliserRecherche(p.nom);
       const cat = normaliserRecherche(p.categorie);
@@ -376,6 +395,25 @@ function App() {
       return okRecherche && okCategorie;
     });
   }, [produitsSource, motsClesRecherche, categorie]);
+
+  const produitsAffiches = useMemo(() => {
+    const arr = [...produitsFiltres];
+    switch (triAccueil) {
+      case "nom":
+        return arr.sort((a, b) => a.nom.localeCompare(b.nom, "fr", { sensitivity: "base" }));
+      case "prix_asc":
+        return arr.sort((a, b) => (Number(a.prix) || 0) - (Number(b.prix) || 0));
+      case "prix_desc":
+        return arr.sort((a, b) => (Number(b.prix) || 0) - (Number(a.prix) || 0));
+      case "recent":
+      default:
+        return arr.sort((a, b) => {
+          const ta = a.createdAt ? new Date(a.createdAt).getTime() : Number(a.id) || 0;
+          const tb = b.createdAt ? new Date(b.createdAt).getTime() : Number(b.id) || 0;
+          return tb - ta;
+        });
+    }
+  }, [produitsFiltres, triAccueil]);
 
   const totalPagesProduits = useMemo(() => {
     return Math.max(1, Math.ceil(produitsAffiches.length / PRODUITS_PAR_PAGE));
@@ -452,6 +490,7 @@ function App() {
           seuilMinimum: number;
           imageUrl?: string;
           imageUrls?: string[];
+          createdAt?: string;
         }>
       >("/produits");
       const mapped = res.data.map((p) => {
@@ -468,6 +507,7 @@ function App() {
           imageUrl: p.imageUrl,
           imageUrls: p.imageUrls || [],
           image: imageProduitUrl(imageSource),
+          createdAt: p.createdAt,
         };
       });
       setProduitsBackend(mapped);
@@ -614,7 +654,7 @@ function App() {
 
   useEffect(() => {
     setPageCourante(1);
-  }, [motsClesRecherche, categorie]);
+  }, [motsClesRecherche, categorie, triAccueil]);
 
   useEffect(() => {
     setPageCourante((page) => Math.min(page, totalPagesProduits));
@@ -692,6 +732,9 @@ function App() {
             </Link>
             <Link to="/catalogue" className="nav-link" onClick={fermerMenuMobile}>
               Catalogue
+            </Link>
+            <Link to="/liste-souhaits" className="nav-link" onClick={fermerMenuMobile}>
+              Liste d&apos;envies
             </Link>
             {utilisateur && (
               <Link to="/commandes" className="nav-link" onClick={fermerMenuMobile}>
@@ -829,8 +872,28 @@ function App() {
               </option>
             ))}
           </select>
+          <select
+            value={triAccueil}
+            onChange={(e) => setTriAccueil(e.target.value as TriAccueil)}
+            className="products-select products-select-tri"
+            aria-label="Trier les produits"
+          >
+            <option value="recent">Plus recents</option>
+            <option value="nom">Nom (A-Z)</option>
+            <option value="prix_asc">Prix croissant</option>
+            <option value="prix_desc">Prix decroissant</option>
+          </select>
         </div>
       </nav>
+
+      <div className="breadcrumb-wrap">
+        <Breadcrumb
+          items={[
+            { label: "Accueil", to: "/" },
+            { label: "Boutique" },
+          ]}
+        />
+      </div>
 
       {messagePanier && (
         <div className="top-feedback-wrap is-right is-floating">
@@ -919,15 +982,33 @@ function App() {
             const stockDisponible = Number(produit.quantite);
             const ruptureStock = Number.isFinite(stockDisponible) && stockDisponible <= 0;
 
+            const idListe = String(produit.backendId || produit.id);
             return (
               <article key={produit.id} className="product-card">
                 <div className="product-image-wrapper">
+                  <button
+                    type="button"
+                    className="product-wishlist-btn"
+                    aria-label={
+                      estDansListeSouhaits(idListe)
+                        ? "Retirer de la liste d'envies"
+                        : "Ajouter a la liste d'envies"
+                    }
+                    onClick={() => {
+                      basculerListeSouhaits(idListe);
+                      setWishlistTick((t) => t + 1);
+                    }}
+                  >
+                    {estDansListeSouhaits(idListe) ? "♥" : "♡"}
+                  </button>
                   {ruptureStock && <span className="stock-out-badge">Rupture de stock</span>}
                   {imageActive ? (
                     <img
                       src={imageActive}
                       alt={`${produit.nom} - vue ${imageActiveIndex + 1}`}
                       className="product-image"
+                      loading="lazy"
+                      decoding="async"
                     />
                   ) : (
                     <div className="product-image" aria-hidden="true" />
@@ -967,11 +1048,11 @@ function App() {
               </article>
             );
           })}
-          {produitsAffiches.length === 0 && (
+          {produitsFiltres.length === 0 && (
             <p className="products-empty">Aucun produit ne correspond à votre recherche.</p>
           )}
         </div>
-        {produitsAffiches.length > 0 && totalPagesProduits > 1 && (
+        {produitsFiltres.length > 0 && totalPagesProduits > 1 && (
           <div className="products-pagination">
             <p className="products-pagination-info">
               Page {pageCourante} sur {totalPagesProduits}

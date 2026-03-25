@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { api, API_ORIGIN } from "../api";
 import { useAuth } from "../AuthContext";
 import { ajouterAuPanierInvite, lirePanierInvite } from "../cartInvite";
+import { Breadcrumb } from "../components/Breadcrumb";
+import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
 
 interface Categorie {
@@ -105,6 +107,10 @@ function imageProduitUrl(imageUrl?: string) {
 
 export function PageCatalogue() {
   const { utilisateur, deconnexion } = useAuth();
+  useDocumentTitle("Catalogue");
+  useMetaDescription(
+    "Catalogue CosmétiShop : parcourez les cosmétiques par catégorie, filtrez et ajoutez au panier."
+  );
   const [produits, setProduits] = useState<Produit[]>([]);
   const [categories, setCategories] = useState<Categorie[]>([]);
   const [rechercheInput, setRechercheInput] = useState("");
@@ -323,6 +329,9 @@ export function PageCatalogue() {
             <Link to="/panier" className="nav-link">
               Panier
             </Link>
+            <Link to="/liste-souhaits" className="nav-link">
+              Liste d&apos;envies
+            </Link>
             {utilisateur && (
               <Link to="/commandes" className="nav-link">
                 Commandes
@@ -379,6 +388,14 @@ export function PageCatalogue() {
       )}
 
       <main className="catalogue-shell">
+        <div className="breadcrumb-wrap">
+          <Breadcrumb
+            items={[
+              { label: "Accueil", to: "/" },
+              { label: "Catalogue" },
+            ]}
+          />
+        </div>
         <section className="catalogue-hero">
           <div className="catalogue-hero-text">
             <p className="catalogue-kicker">Catalogue premium</p>

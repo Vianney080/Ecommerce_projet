@@ -49,6 +49,7 @@ export function SiteFooter() {
             <p className="footer-column-title">Boutique</p>
             <Link to="/">Accueil</Link>
             <Link to="/catalogue">Catalogue</Link>
+            <Link to="/liste-souhaits">Liste d&apos;envies</Link>
             <Link to="/espace-client">Espace client</Link>
           </div>
 
@@ -56,7 +57,8 @@ export function SiteFooter() {
             <p className="footer-column-title">Compte</p>
             <Link to="/connexion">Se connecter</Link>
             <Link to="/inscription">Creer un compte</Link>
-            <Link to="/commandes">Suivi commande</Link>
+            <Link to="/suivi-commande">Suivi commande</Link>
+            <Link to="/commandes">Mes commandes</Link>
           </div>
 
           <div className="footer-column">

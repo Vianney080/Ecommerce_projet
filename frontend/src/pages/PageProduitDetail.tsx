@@ -1,8 +1,19 @@
-import { useEffect, useMemo, useRef, useState, type MouseEvent, type TouchEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+  type MouseEvent,
+  type TouchEvent,
+} from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { api, API_ORIGIN } from "../api";
 import { useAuth } from "../AuthContext";
 import { ajouterAuPanierInvite, lirePanierInvite } from "../cartInvite";
+import { Breadcrumb } from "../components/Breadcrumb";
+import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
+import { basculerListeSouhaits, estDansListeSouhaits } from "../wishlistInvite";
 import "../styles.css";
 
 type ProduitDetail = {
@@ -30,6 +41,20 @@ type ProduitState = Partial<ProduitDetail> & {
 type PanierFeedback = {
   texte: string;
   type: "success" | "error";
+};
+
+type EntreeAvis = {
+  _id: string;
+  note: number;
+  commentaire: string;
+  createdAt: string;
+  auteur: string;
+};
+
+type ReponseAvisApi = {
+  moyenne: number;
+  nombre: number;
+  avis: EntreeAvis[];
 };
 
 function FeedbackIcon({ type }: { type: "success" | "error" }) {
@@ -91,6 +116,14 @@ export function PageProduitDetail() {
     y: 0,
     distance: null,
   });
+
+  const [wishlistTick, setWishlistTick] = useState(0);
+  const [blocAvis, setBlocAvis] = useState<ReponseAvisApi | null>(null);
+  const [chargementAvis, setChargementAvis] = useState(false);
+  const [noteAvis, setNoteAvis] = useState(5);
+  const [texteAvis, setTexteAvis] = useState("");
+  const [messageAvis, setMessageAvis] = useState<{ texte: string; type: "success" | "error" } | null>(null);
+  const [soumissionAvis, setSoumissionAvis] = useState(false);
 
   const produitDepuisState = useMemo(() => {
     const state = (location.state || {}) as { produit?: ProduitState };
@@ -195,6 +228,76 @@ export function PageProduitDetail() {
       annule = true;
     };
   }, [produit?._id, produit?.categorie]);
+
+  useEffect(() => {
+    const h = () => setWishlistTick((t) => t + 1);
+    window.addEventListener("wishlist-updated", h);
+    return () => window.removeEventListener("wishlist-updated", h);
+  }, []);
+
+  const descriptionMeta = useMemo(() => {
+    const d = produit?.description?.trim();
+    if (!d) {
+      return "Fiche produit CosmétiShop : détails, avis clients et ajout au panier.";
+    }
+    return d.slice(0, 160);
+  }, [produit?.description]);
+
+  useDocumentTitle(!loading && produit ? produit.nom : null);
+  useMetaDescription(!loading && produit ? descriptionMeta : null);
+
+  useEffect(() => {
+    const pid = produit?._id;
+    if (!pid) {
+      setBlocAvis(null);
+      return;
+    }
+    let annule = false;
+    async function chargerAvis() {
+      setChargementAvis(true);
+      try {
+        const res = await api.get<ReponseAvisApi>(`/avis/produit/${pid}`);
+        if (!annule) setBlocAvis(res.data);
+      } catch {
+        if (!annule) setBlocAvis({ moyenne: 0, nombre: 0, avis: [] });
+      } finally {
+        if (!annule) setChargementAvis(false);
+      }
+    }
+    chargerAvis();
+    return () => {
+      annule = true;
+    };
+  }, [produit?._id]);
+
+  async function publierAvisFormulaire(e: FormEvent) {
+    e.preventDefault();
+    if (!utilisateur || !produit) return;
+    setMessageAvis(null);
+    setSoumissionAvis(true);
+    try {
+      await api.post("/avis", {
+        produitId: produit._id,
+        note: noteAvis,
+        commentaire: texteAvis.trim(),
+      });
+      setMessageAvis({ texte: "Merci, votre avis a été enregistré.", type: "success" });
+      const res = await api.get<ReponseAvisApi>(`/avis/produit/${produit._id}`);
+      setBlocAvis(res.data);
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        "Impossible d'enregistrer l'avis.";
+      setMessageAvis({ texte: msg, type: "error" });
+    } finally {
+      setSoumissionAvis(false);
+    }
+  }
+
+  const dansListeSouhaitsActif = useMemo(
+    () => (produit ? estDansListeSouhaits(produit._id) : false),
+    [produit?._id, wishlistTick]
+  );
 
   async function ajouterAuPanier(cible: {
     _id: string;
@@ -345,6 +448,9 @@ export function PageProduitDetail() {
             <Link to="/catalogue" className="nav-link">
               Catalogue
             </Link>
+            <Link to="/liste-souhaits" className="nav-link">
+              Liste d&apos;envies
+            </Link>
           </div>
           <div className="nav-right">
             {utilisateur ? (
@@ -359,6 +465,18 @@ export function PageProduitDetail() {
           </div>
         </div>
       </nav>
+
+      {!loading && produit && (
+        <div className="breadcrumb-wrap">
+          <Breadcrumb
+            items={[
+              { label: "Accueil", to: "/" },
+              { label: "Catalogue", to: "/catalogue" },
+              { label: produit.nom },
+            ]}
+          />
+        </div>
+      )}
 
       {messagePanier && (
         <div className="top-feedback-wrap is-right is-floating">
@@ -392,6 +510,20 @@ export function PageProduitDetail() {
                 onTouchMove={gererTouchMove}
                 onTouchEnd={gererTouchEnd}
               >
+                <button
+                  type="button"
+                  className="product-wishlist-btn"
+                  aria-label={
+                    dansListeSouhaitsActif ? "Retirer de la liste d'envies" : "Ajouter à la liste d'envies"
+                  }
+                  onClick={(ev) => {
+                    ev.stopPropagation();
+                    basculerListeSouhaits(produit._id);
+                    setWishlistTick((t) => t + 1);
+                  }}
+                >
+                  {dansListeSouhaitsActif ? "♥" : "♡"}
+                </button>
                 {Number(produit.quantite) <= 0 && <span className="stock-out-badge">Rupture de stock</span>}
                 {imagePrincipale ? (
                   <img
@@ -453,6 +585,12 @@ export function PageProduitDetail() {
               <h1 className="produit-title">{produit.nom}</h1>
               <p className="produit-price">{formaterMontant(produit.prixUnitaire)}</p>
 
+              <p className="produit-delivery-banner">
+                <strong>Livraison rapide</strong>
+                Préparation sous 24–48 h ouvrables. Confirmation par email et suivi disponible depuis la page{" "}
+                <Link to="/suivi-commande">Suivi de commande</Link> après votre achat.
+              </p>
+
               <p className="produit-description">
                 {produit.description?.trim()
                   ? produit.description
@@ -503,6 +641,83 @@ export function PageProduitDetail() {
                 </Link>
               </div>
             </div>
+
+            <section className="produit-avis-section" aria-labelledby="avis-titre">
+              <div className="produit-avis-head">
+                <h2 id="avis-titre" className="produit-avis-title">
+                  Avis clients
+                </h2>
+                <p className="produit-avis-moyenne">
+                  {chargementAvis
+                    ? "Chargement des avis…"
+                    : blocAvis && blocAvis.nombre > 0
+                      ? `Note moyenne : ${blocAvis.moyenne}/5 (${blocAvis.nombre} avis)`
+                      : "Pas encore d'avis — partagez votre expérience."}
+                </p>
+              </div>
+              {blocAvis && blocAvis.avis.length > 0 && (
+                <ul className="produit-avis-liste">
+                  {blocAvis.avis.map((a) => {
+                    const n = Math.min(5, Math.max(1, Math.round(Number(a.note) || 0)));
+                    return (
+                      <li key={a._id} className="produit-avis-carte">
+                        <div className="produit-avis-carte-entete">
+                          <span className="produit-avis-auteur">{a.auteur}</span>
+                          <span className="produit-avis-note" aria-label={`${n} sur 5`}>
+                            {"★".repeat(n)}
+                            {"☆".repeat(5 - n)}
+                          </span>
+                          <span className="produit-avis-date">
+                            {new Date(a.createdAt).toLocaleDateString("fr-CA", { dateStyle: "medium" })}
+                          </span>
+                        </div>
+                        {a.commentaire ? <p className="produit-avis-texte">{a.commentaire}</p> : null}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+              {utilisateur ? (
+                <form className="produit-avis-form" onSubmit={publierAvisFormulaire}>
+                  <h3>Donner votre avis</h3>
+                  <label htmlFor="avis-note-detail">Note</label>
+                  <select
+                    id="avis-note-detail"
+                    value={noteAvis}
+                    onChange={(ev) => setNoteAvis(Number(ev.target.value))}
+                  >
+                    {[5, 4, 3, 2, 1].map((n) => (
+                      <option key={n} value={n}>
+                        {n} / 5
+                      </option>
+                    ))}
+                  </select>
+                  <label htmlFor="avis-texte-detail">Commentaire (optionnel)</label>
+                  <textarea
+                    id="avis-texte-detail"
+                    value={texteAvis}
+                    onChange={(ev) => setTexteAvis(ev.target.value)}
+                    maxLength={2000}
+                    placeholder="Qualité, tenue, emballage…"
+                  />
+                  {messageAvis && (
+                    <p
+                      className={`produit-avis-msg ${messageAvis.type === "error" ? "is-error" : "is-ok"}`}
+                      role="status"
+                    >
+                      {messageAvis.texte}
+                    </p>
+                  )}
+                  <button type="submit" className="catalogue-btn" disabled={soumissionAvis}>
+                    {soumissionAvis ? "Envoi…" : "Publier mon avis"}
+                  </button>
+                </form>
+              ) : (
+                <p className="produit-avis-moyenne">
+                  <Link to="/connexion">Connectez-vous</Link> pour laisser un avis sur ce produit.
+                </p>
+              )}
+            </section>
           </section>
         )}
 
@@ -530,7 +745,13 @@ export function PageProduitDetail() {
                         {index === 0 && <span className="produit-related-badge">Produit recommande</span>}
                         {ruptureStock && <span className="stock-out-badge">Rupture de stock</span>}
                         {imagePrincipaleCarte ? (
-                          <img src={imagePrincipaleCarte} alt={item.nom} className="catalogue-card-image" />
+                          <img
+                            src={imagePrincipaleCarte}
+                            alt={item.nom}
+                            className="catalogue-card-image"
+                            loading="lazy"
+                            decoding="async"
+                          />
                         ) : (
                           <div className="catalogue-card-image catalogue-card-image-placeholder" aria-hidden="true" />
                         )}

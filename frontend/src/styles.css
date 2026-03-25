@@ -1149,6 +1149,351 @@ body {
   background: white;
 }
 
+.products-select-tri {
+  min-width: 8.75rem;
+  max-width: 100%;
+}
+
+@media (max-width: 640px) {
+  .nav-filters .products-select-tri {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
+.breadcrumb-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0.35rem 1.25rem 0;
+}
+
+.breadcrumb-nav {
+  font-size: 0.78rem;
+}
+
+.breadcrumb-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem 0.35rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.breadcrumb-sep {
+  color: #94a3b8;
+  user-select: none;
+}
+
+.breadcrumb-link {
+  color: #64748b;
+  text-decoration: none;
+}
+
+.breadcrumb-link:hover {
+  color: #7c3aed;
+  text-decoration: underline;
+}
+
+.breadcrumb-current {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.product-wishlist-btn {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.45rem;
+  z-index: 4;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 999px;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+  cursor: pointer;
+  font-size: 1.05rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.product-wishlist-btn:hover {
+  transform: scale(1.06);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.14);
+}
+
+.produit-delivery-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.75rem 0.95rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  background: linear-gradient(120deg, rgba(236, 253, 245, 0.95), rgba(240, 253, 250, 0.98));
+  font-size: 0.84rem;
+  color: #065f46;
+  margin: 0;
+}
+
+.produit-delivery-banner strong {
+  display: block;
+  font-size: 0.88rem;
+  color: #047857;
+  margin-bottom: 0.15rem;
+}
+
+.produit-delivery-banner a {
+  color: #047857;
+  font-weight: 600;
+  text-underline-offset: 2px;
+}
+
+.produit-avis-section {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.produit-detail-card > .produit-avis-section {
+  grid-column: 1 / -1;
+  margin-top: 0.5rem;
+}
+
+.produit-avis-head {
+  margin-bottom: 1rem;
+}
+
+.produit-avis-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+}
+
+.produit-avis-moyenne {
+  margin: 0;
+  font-size: 0.86rem;
+  color: #64748b;
+}
+
+.produit-avis-liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.produit-avis-carte {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  background: #fafafa;
+}
+
+.produit-avis-carte-entete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+
+.produit-avis-auteur {
+  font-weight: 600;
+  font-size: 0.86rem;
+}
+
+.produit-avis-date {
+  font-size: 0.76rem;
+  color: #94a3b8;
+}
+
+.produit-avis-note {
+  color: #d97706;
+  font-size: 0.88rem;
+  letter-spacing: 0.06em;
+}
+
+.produit-avis-texte {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: #334155;
+}
+
+.produit-avis-form {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.produit-avis-form h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.produit-avis-form label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.produit-avis-form select,
+.produit-avis-form textarea {
+  width: 100%;
+  border-radius: 0.55rem;
+  border: 1px solid #cbd5e1;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+}
+
+.produit-avis-form textarea {
+  min-height: 5rem;
+  resize: vertical;
+}
+
+.produit-avis-msg {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.produit-avis-msg.is-error {
+  color: #b91c1c;
+}
+
+.produit-avis-msg.is-ok {
+  color: #047857;
+}
+
+.suivi-commande-shell .breadcrumb-wrap {
+  padding-top: 0.75rem;
+}
+
+.suivi-commande-form {
+  max-width: 32rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.suivi-commande-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.suivi-commande-input {
+  border-radius: 0.65rem;
+  border: 1px solid #cbd5e1;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.88rem;
+}
+
+.suivi-commande-submit {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+}
+
+.suivi-commande-erreur {
+  color: #b91c1c;
+  font-size: 0.88rem;
+  margin: 0 0 1rem;
+}
+
+.suivi-commande-resultat {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.9rem;
+  padding: 1.1rem 1.25rem;
+  background: #fafafa;
+  max-width: 40rem;
+}
+
+.suivi-commande-resultat-head {
+  margin-bottom: 1rem;
+}
+
+.suivi-commande-resultat-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.1rem;
+}
+
+.suivi-commande-resultat-meta,
+.suivi-commande-resultat-date {
+  margin: 0.25rem 0 0;
+  font-size: 0.84rem;
+  color: #475569;
+}
+
+.suivi-commande-items {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+
+.suivi-commande-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.86rem;
+}
+
+.suivi-commande-item:last-child {
+  border-bottom: none;
+}
+
+.suivi-commande-item-nom {
+  font-weight: 500;
+}
+
+.suivi-commande-item-qty {
+  color: #64748b;
+}
+
+.suivi-commande-item-prix {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.suivi-commande-totaux p {
+  margin: 0.2rem 0;
+  font-size: 0.86rem;
+}
+
+.suivi-commande-total {
+  margin-top: 0.5rem !important;
+  font-size: 0.95rem !important;
+}
+
+.suivi-commande-adresse {
+  margin: 0.85rem 0 0;
+  font-size: 0.84rem;
+  color: #475569;
+}
+
 .products-grid {
   display: flex;
   flex-wrap: wrap;

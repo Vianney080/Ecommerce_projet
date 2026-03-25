@@ -10,6 +10,8 @@ import {
   viderPanierInvite,
 } from "../cartInvite";
 import { getCountryOptions, getRegionOptions, resolveCountryCode } from "../locationData";
+import { Breadcrumb } from "../components/Breadcrumb";
+import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
 
 interface ItemPanier {
@@ -115,6 +117,8 @@ function extraireAdresseDepuisProfil(utilisateur: any): Partial<AdresseLivraison
 export function PagePanier() {
   const { utilisateur, deconnexion } = useAuth();
   const navigate = useNavigate();
+  useDocumentTitle("Panier");
+  useMetaDescription("Votre panier CosmétiShop : articles, adresse de livraison et passage en caisse.");
   const [panier, setPanier] = useState<Panier | null>(null);
   const [panierInvite, setPanierInvite] = useState<ItemPanierInvite[]>([]);
   const [imagesProduits, setImagesProduits] = useState<Record<string, string>>({});
@@ -443,6 +447,9 @@ export function PagePanier() {
             <Link to="/panier" className="nav-link">
               Panier
             </Link>
+            <Link to="/liste-souhaits" className="nav-link">
+              Liste d&apos;envies
+            </Link>
             {utilisateur && (
               <Link to="/commandes" className="nav-link">
                 Commandes
@@ -488,6 +495,14 @@ export function PagePanier() {
       </nav>
 
       <main className="panier-shell">
+        <div className="breadcrumb-wrap">
+          <Breadcrumb
+            items={[
+              { label: "Accueil", to: "/" },
+              { label: "Panier" },
+            ]}
+          />
+        </div>
         <section className="panier-hero">
           <div>
             <p className="panier-kicker">Votre espace achat</p>

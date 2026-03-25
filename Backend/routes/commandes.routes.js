@@ -134,6 +134,59 @@ router.post("/", verifierToken, async (req, res) => {
 });
 
 /**
+ * GET /api/commandes/suivi-public/:id?email=
+ * Suivi minimal sans compte (email doit correspondre au compte ayant passe la commande)
+ */
+router.get("/suivi-public/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const email = String(req.query.email || "")
+      .trim()
+      .toLowerCase();
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ message: "Email requis pour consulter le suivi." });
+    }
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Numero de commande invalide." });
+    }
+
+    const commande = await Commande.findById(id).populate("utilisateurId", "email");
+    if (!commande) {
+      return res.status(404).json({ message: "Commande introuvable." });
+    }
+
+    const emailCommande = String(commande.utilisateurId?.email || "").toLowerCase();
+    if (!emailCommande || emailCommande !== email) {
+      return res.status(404).json({ message: "Commande introuvable." });
+    }
+
+    return res.json({
+      _id: commande._id,
+      numeroFacture: commande.numeroFacture,
+      statut: commande.statut,
+      statutPaiement: commande.statutPaiement,
+      total: commande.total,
+      taxe: commande.taxe,
+      sousTotal: commande.sousTotal,
+      createdAt: commande.createdAt,
+      items: commande.items.map((it) => ({
+        nomProduit: it.nomProduit,
+        quantite: it.quantite,
+        prixUnitaire: it.prixUnitaire
+      })),
+      adresseLivraison: {
+        ville: commande.adresseLivraison?.ville,
+        province: commande.adresseLivraison?.province,
+        pays: commande.adresseLivraison?.pays
+      }
+    });
+  } catch (erreur) {
+    return res.status(500).json({ message: "Erreur serveur", erreur: erreur.message });
+  }
+});
+
+/**
  * ✅ GET /api/commandes/mes-commandes
  * Historique du client connecté
  */

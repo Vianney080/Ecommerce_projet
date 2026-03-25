@@ -9,6 +9,7 @@ const routesCategories = require("./routes/categories.routes");
 const routesCommandes = require("./routes/commandes.routes");
 const routesPanier = require("./routes/panier.routes");
 const routesAdmin = require("./routes/admin.routes");
+const routesAvis = require("./routes/avis.routes");
 require("dotenv").config();
 
 const app = express();
@@ -53,6 +54,7 @@ app.use("/api/commandes", routesCommandes);
 app.use("/api/produits", routesProduits);
 app.use("/api/tableau-de-bord", routesTableauDeBord);
 app.use("/api/panier", routesPanier);
+app.use("/api/avis", routesAvis);
 app.use("/api/admin", routesAdmin);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
