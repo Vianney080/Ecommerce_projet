@@ -338,6 +338,12 @@ function App() {
   const [triAccueil, setTriAccueil] = useState<TriAccueil>("recent");
   const [, setWishlistTick] = useState(0);
   const [suggestionsRechercheOuvertes, setSuggestionsRechercheOuvertes] = useState(false);
+  /** Carrousel images au survol (une carte à la fois, pas de timer global) */
+  const [hoverCarouselCarte, setHoverCarouselCarte] = useState<{
+    id: string | number;
+    n: number;
+    i: number;
+  } | null>(null);
   const sectionProduitsRef = useRef<HTMLElement | null>(null);
   const rechercheActivePrecedenteRef = useRef(false);
 
@@ -366,6 +372,18 @@ function App() {
     window.addEventListener("wishlist-updated", handler);
     return () => window.removeEventListener("wishlist-updated", handler);
   }, []);
+
+  useEffect(() => {
+    const h = hoverCarouselCarte;
+    if (!h || h.n <= 1) return;
+    const timer = window.setInterval(() => {
+      setHoverCarouselCarte((prev) => {
+        if (!prev || prev.n <= 1) return prev;
+        return { ...prev, i: (prev.i + 1) % prev.n };
+      });
+    }, 2200);
+    return () => window.clearInterval(timer);
+  }, [hoverCarouselCarte?.id, hoverCarouselCarte?.n]);
 
   const produitsFiltres = useMemo(() => {
     return produitsSource.filter((p) => {
@@ -955,15 +973,28 @@ function App() {
                 ].filter(Boolean)
               )
             );
-            /* Image principale stable (pas de carrousel global qui faisait « sauter » toutes les cartes) */
-            const imageActive = imagesCarte[0] || "";
+            const survolCetteCarte =
+              hoverCarouselCarte?.id === produit.id && imagesCarte.length > 1;
+            const indexImageAffichee = survolCetteCarte
+              ? hoverCarouselCarte!.i % imagesCarte.length
+              : 0;
+            const imageActive = imagesCarte[indexImageAffichee] || "";
             const stockDisponible = Number(produit.quantite);
             const ruptureStock = Number.isFinite(stockDisponible) && stockDisponible <= 0;
 
             const idListe = String(produit.backendId || produit.id);
             return (
               <article key={produit.id} className="product-card">
-                <div className="product-image-wrapper">
+                <div
+                  className="product-image-wrapper"
+                  onMouseEnter={() => {
+                    if (imagesCarte.length <= 1) return;
+                    setHoverCarouselCarte({ id: produit.id, n: imagesCarte.length, i: 0 });
+                  }}
+                  onMouseLeave={() => {
+                    setHoverCarouselCarte((prev) => (prev?.id === produit.id ? null : prev));
+                  }}
+                >
                   <button
                     type="button"
                     className="product-wishlist-btn"
@@ -982,6 +1013,7 @@ function App() {
                   {ruptureStock && <span className="stock-out-badge">Rupture de stock</span>}
                   {imageActive ? (
                     <ProductImage
+                      key={`${produit.id}-img-${indexImageAffichee}`}
                       src={imageActive}
                       alt={produit.nom}
                       className="product-image"
@@ -992,9 +1024,19 @@ function App() {
                     <div className="product-image product-image-fallback" aria-hidden="true" />
                   )}
                   {imagesCarte.length > 1 && (
-                    <span className="product-image-multi-badge" title={`${imagesCarte.length} photos`}>
-                      +{imagesCarte.length - 1}
-                    </span>
+                    <>
+                      <div className="product-image-carousel-dots" aria-hidden="true">
+                        {imagesCarte.map((_, idx) => (
+                          <span
+                            key={`${produit.id}-dot-${idx}`}
+                            className={`product-image-dot ${idx === indexImageAffichee ? "is-active" : ""}`}
+                          />
+                        ))}
+                      </div>
+                      <span className="product-image-multi-badge" title={`${imagesCarte.length} photos`}>
+                        +{imagesCarte.length - 1}
+                      </span>
+                    </>
                   )}
                 </div>
                 <div className="product-content">

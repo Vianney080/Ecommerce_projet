@@ -1746,6 +1746,12 @@ body {
   border-radius: 999px;
   background: rgba(15, 23, 42, 0.45);
   backdrop-filter: blur(3px);
+  z-index: 3;
+}
+
+/* Évite le chevauchement avec le badge +N en bas à droite */
+.product-image-wrapper:has(.product-image-multi-badge) .product-image-carousel-dots {
+  bottom: 1.85rem;
 }
 
 .product-image-dot {
