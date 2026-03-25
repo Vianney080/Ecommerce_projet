@@ -12,10 +12,12 @@ const routesAdmin = require("./routes/admin.routes");
 require("dotenv").config();
 
 const app = express();
+const ORIGINES_PLACEHOLDERS = new Set(["https://temp.local", "http://temp.local"]);
 const corsOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || "")
   .split(",")
   .map((origin) => origin.trim())
-  .filter(Boolean);
+  .filter((origin) => origin && !ORIGINES_PLACEHOLDERS.has(origin));
+const VERCEL_DOMAIN_REGEX = /^https:\/\/[a-z0-9-]+\.vercel\.app$/i;
 
 const corsOptions = {
   origin(origin, callback) {
@@ -25,8 +27,14 @@ const corsOptions = {
       return;
     }
 
-    // Si aucune origin n'est configuree, on reste permissif (dev local)
-    if (corsOrigins.length === 0 || corsOrigins.includes(origin)) {
+    // Accepte les domaines explicitement declares.
+    if (corsOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    // Si aucune origine explicite n'est configuree, accepte Vercel + local.
+    if (corsOrigins.length === 0 && (VERCEL_DOMAIN_REGEX.test(origin) || /^http:\/\/localhost(:\d+)?$/i.test(origin))) {
       callback(null, true);
       return;
     }
