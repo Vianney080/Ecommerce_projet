@@ -11,14 +11,14 @@ export function PageMotDePasseOublie() {
   const [loading, setLoading] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
   const [succes, setSucces] = useState<string | null>(null);
-  const [resetUrlDebug, setResetUrlDebug] = useState<string | null>(null);
+  const [codeDev, setCodeDev] = useState<string | null>(null);
   const [erreurEmail, setErreurEmail] = useState<string | null>(null);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setErreur(null);
     setSucces(null);
-    setResetUrlDebug(null);
+    setCodeDev(null);
     setErreurEmail(null);
 
     const emailNettoye = email.trim().toLowerCase();
@@ -29,15 +29,15 @@ export function PageMotDePasseOublie() {
 
     setLoading(true);
     try {
-      const res = await api.post<{ message: string; resetUrl?: string }>("/auth/mot-de-passe-oublie", {
+      const res = await api.post<{ message: string; codeDev?: string }>("/auth/mot-de-passe-oublie", {
         email: emailNettoye
       });
       setSucces(
         res.data?.message ||
-          "Si un compte existe avec cet email, un lien de reinitialisation a ete envoye."
+          "Si un compte existe avec cet email, un code de réinitialisation a été envoyé."
       );
-      if (res.data?.resetUrl) {
-        setResetUrlDebug(res.data.resetUrl);
+      if (res.data?.codeDev) {
+        setCodeDev(res.data.codeDev);
       }
     } catch (err: any) {
       const msg = err?.response?.data?.message || "Erreur lors de la demande de reinitialisation.";
@@ -55,11 +55,25 @@ export function PageMotDePasseOublie() {
             ← Retour a la connexion
           </Link>
           <h1 className="auth-title">Mot de passe oublie</h1>
-          <p className="auth-subtitle">Entrez votre email pour recevoir un lien de reinitialisation.</p>
+          <p className="auth-subtitle">
+            Entrez votre email : vous recevrez un code à 6 chiffres pour choisir un nouveau mot de passe.
+          </p>
         </div>
 
         {erreur && <div className="auth-alert auth-alert-error">{erreur}</div>}
         {succes && <div className="auth-alert auth-alert-success">{succes}</div>}
+        {succes && (
+          <p className="auth-switch-text" style={{ marginTop: "0.5rem" }}>
+            <Link
+              to="/reinitialiser-mot-de-passe"
+              state={{ email: email.trim().toLowerCase() }}
+              className="client-action client-action-primary"
+              style={{ display: "inline-block", textDecoration: "none", textAlign: "center" }}
+            >
+              Saisir le code et nouveau mot de passe
+            </Link>
+          </p>
+        )}
 
         <form onSubmit={handleSubmit} className="auth-form-modern">
           <label className="auth-label">
@@ -79,18 +93,14 @@ export function PageMotDePasseOublie() {
           </label>
 
           <button type="submit" disabled={loading} className="client-action client-action-primary">
-            {loading ? "Envoi..." : "Envoyer le lien"}
+            {loading ? "Envoi..." : "Envoyer le code"}
           </button>
         </form>
 
-        {resetUrlDebug && (
+        {codeDev && (
           <div className="auth-debug-box">
-            <p className="auth-helper">
-              Mode developpement: lien de reinitialisation genere (a ouvrir dans le navigateur).
-            </p>
-            <a href={resetUrlDebug} className="auth-debug-link">
-              {resetUrlDebug}
-            </a>
+            <p className="auth-helper">Mode développement (EMAIL_DEV_AFFICHER_CODE sur le serveur) :</p>
+            <code className="auth-debug-link">{codeDev}</code>
           </div>
         )}
       </main>

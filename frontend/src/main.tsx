@@ -12,6 +12,7 @@ import { PageEspaceClient } from "./pages/PageEspaceClient.tsx";
 import { PageInscription } from "./pages/PageInscription.tsx";
 import { PageMotDePasseOublie } from "./pages/PageMotDePasseOublie.tsx";
 import { PageReinitialiserMotDePasse } from "./pages/PageReinitialiserMotDePasse.tsx";
+import { PageVerifierEmail } from "./pages/PageVerifierEmail.tsx";
 import { PageCatalogue } from "./pages/PageCatalogue.tsx";
 import { PagePanier } from "./pages/PagePanier.tsx";
 import { PageMesCommandes } from "./pages/PageMesCommandes.tsx";
@@ -71,10 +72,12 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/espace-client" element={<PageEspaceClient />} />
           <Route path="/connexion" element={<PageConnexion />} />
           <Route path="/inscription" element={<PageInscription />} />
+          <Route path="/verifier-email" element={<PageVerifierEmail />} />
           <Route path="/politique-confidentialite" element={<PagePolitiqueConfidentialite />} />
           <Route path="/mentions-legales" element={<PageMentionsLegales />} />
           <Route path="/cgv" element={<PageCGV />} />
           <Route path="/mot-de-passe-oublie" element={<PageMotDePasseOublie />} />
+          <Route path="/reinitialiser-mot-de-passe" element={<PageReinitialiserMotDePasse />} />
           <Route path="/reinitialiser-mot-de-passe/:token" element={<PageReinitialiserMotDePasse />} />
           <Route
             path="/catalogue"

@@ -11,6 +11,7 @@ const routesCommandes = require("./routes/commandes.routes");
 const routesPanier = require("./routes/panier.routes");
 const routesAdmin = require("./routes/admin.routes");
 const routesAvis = require("./routes/avis.routes");
+const { smtpConfigure } = require("./services/mail");
 require("dotenv").config();
 
 const app = express();
@@ -78,6 +79,13 @@ app.listen(PORT, () => {
     } else if (process.env.NODE_ENV === "production") {
       console.warn(
         "Images: pas de Cloudinary ni UPLOADS_DIR — le dossier ./uploads sur le disque de l’instance est souvent efface au redeploiement (Render). Configurez CLOUDINARY_* ou un disque persistant."
+      );
+    }
+    if (smtpConfigure()) {
+      console.log("Emails transactionnels : SMTP configuré (confirmation commande, codes inscription / mot de passe).");
+    } else {
+      console.warn(
+        "Emails : SMTP non configuré (SMTP_HOST, SMTP_USER, SMTP_PASS) — aucun email réel envoyé ; prévisualisation dans les logs serveur."
       );
     }
 });

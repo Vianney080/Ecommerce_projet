@@ -8,12 +8,17 @@ const Utilisateur = require("../models/Utilisateur");
 const verifierToken = require("../middleware/verifierToken");
 const uploadImage = require("../config/uploadImage");
 const { stockerImage } = require("../services/imageStorage");
+const { envoyerMail, codesDevAutorises } = require("../services/mail");
+const {
+  templateVerificationInscription,
+  templateReinitialisationMotDePasse
+} = require("../services/mailTemplates");
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,128}$/;
 
-function hacherTokenReset(tokenBrut) {
-  return crypto.createHash("sha256").update(tokenBrut).digest("hex");
+function genererCode6() {
+  return String(crypto.randomInt(100000, 1000000));
 }
 
 // ✅ Fonction pour créer un token
@@ -42,7 +47,8 @@ function serialiserUtilisateur(utilisateur) {
     pays: utilisateur.pays || "",
     themeInterface: utilisateur.themeInterface || "clair",
     newsletterActive: Boolean(utilisateur.newsletterActive),
-    notificationsEmailActives: Boolean(utilisateur.notificationsEmailActives)
+    notificationsEmailActives: Boolean(utilisateur.notificationsEmailActives),
+    emailVerifie: utilisateur.emailVerifie !== false
   };
 }
 
@@ -90,13 +96,110 @@ router.post("/inscription", async (req, res) => {
       nom: nomNormalise,
       email: emailNormalise,
       motDePasseHash,
-      role: roleAttribue
+      role: roleAttribue,
+      emailVerifie: roleAttribue === "admin"
     });
 
-    return res.status(201).json({
-      message: "Utilisateur créé ✅",
-      utilisateur: serialiserUtilisateur(utilisateur)
-    });
+    const corpsReponse = {
+      message:
+        roleAttribue === "client"
+          ? "Compte créé. Consultez votre boîte mail : un code de vérification vous a été envoyé."
+          : "Utilisateur créé ✅",
+      verificationRequise: roleAttribue === "client",
+      email: roleAttribue === "client" ? emailNormalise : undefined
+    };
+
+    if (roleAttribue === "client") {
+      const code = genererCode6();
+      utilisateur.emailVerificationCodeHash = await bcrypt.hash(code, 10);
+      utilisateur.emailVerificationExpiresAt = new Date(Date.now() + 30 * 60 * 1000);
+      await utilisateur.save();
+
+      const tpl = templateVerificationInscription({ nom: nomNormalise, code });
+      await envoyerMail({ to: emailNormalise, subject: tpl.subject, text: tpl.text, html: tpl.html });
+
+      if (codesDevAutorises()) {
+        corpsReponse.codeDev = code;
+      }
+    }
+
+    return res.status(201).json(corpsReponse);
+  } catch (erreur) {
+    return res.status(500).json({ message: "Erreur serveur", erreur: erreur.message });
+  }
+});
+
+// ✅ POST /api/auth/verifier-email — valider le code reçu à l'inscription
+router.post("/verifier-email", async (req, res) => {
+  try {
+    const emailNormalise = String(req.body?.email || "").trim().toLowerCase();
+    const codeBrut = String(req.body?.code || "").replace(/\D/g, "").trim();
+
+    if (!emailNormalise || !EMAIL_REGEX.test(emailNormalise)) {
+      return res.status(400).json({ message: "Adresse email invalide." });
+    }
+    if (codeBrut.length !== 6) {
+      return res.status(400).json({ message: "Le code doit contenir 6 chiffres." });
+    }
+
+    const utilisateur = await Utilisateur.findOne({ email: emailNormalise });
+    if (!utilisateur) {
+      return res.status(400).json({ message: "Code invalide ou expiré." });
+    }
+    if (utilisateur.emailVerifie !== false) {
+      return res.json({ message: "Ce compte est déjà vérifié. Vous pouvez vous connecter." });
+    }
+    if (!utilisateur.emailVerificationCodeHash || !utilisateur.emailVerificationExpiresAt) {
+      return res.status(400).json({ message: "Aucun code actif. Demandez un nouveau code." });
+    }
+    if (utilisateur.emailVerificationExpiresAt <= new Date()) {
+      return res.status(400).json({ message: "Code expiré. Demandez un nouveau code." });
+    }
+
+    const ok = await bcrypt.compare(codeBrut, utilisateur.emailVerificationCodeHash);
+    if (!ok) {
+      return res.status(400).json({ message: "Code incorrect." });
+    }
+
+    utilisateur.emailVerifie = true;
+    utilisateur.emailVerificationCodeHash = null;
+    utilisateur.emailVerificationExpiresAt = null;
+    await utilisateur.save();
+
+    return res.json({ message: "Email vérifié. Vous pouvez vous connecter." });
+  } catch (erreur) {
+    return res.status(500).json({ message: "Erreur serveur", erreur: erreur.message });
+  }
+});
+
+// ✅ POST /api/auth/renvoyer-code-verification
+router.post("/renvoyer-code-verification", async (req, res) => {
+  try {
+    const emailNormalise = String(req.body?.email || "").trim().toLowerCase();
+    if (!emailNormalise || !EMAIL_REGEX.test(emailNormalise)) {
+      return res.status(400).json({ message: "Adresse email invalide." });
+    }
+
+    const utilisateur = await Utilisateur.findOne({ email: emailNormalise });
+    const messageGenerique = "Si un compte non vérifié existe, un nouveau code a été envoyé.";
+
+    if (!utilisateur || utilisateur.emailVerifie !== false || utilisateur.role !== "client") {
+      return res.json({ message: messageGenerique });
+    }
+
+    const code = genererCode6();
+    utilisateur.emailVerificationCodeHash = await bcrypt.hash(code, 10);
+    utilisateur.emailVerificationExpiresAt = new Date(Date.now() + 30 * 60 * 1000);
+    await utilisateur.save();
+
+    const tpl = templateVerificationInscription({ nom: utilisateur.nom, code });
+    await envoyerMail({ to: emailNormalise, subject: tpl.subject, text: tpl.text, html: tpl.html });
+
+    const reponse = { message: messageGenerique };
+    if (codesDevAutorises()) {
+      reponse.codeDev = code;
+    }
+    return res.json(reponse);
   } catch (erreur) {
     return res.status(500).json({ message: "Erreur serveur", erreur: erreur.message });
   }
@@ -129,6 +232,13 @@ router.post("/connexion", async (req, res) => {
     const ok = await bcrypt.compare(motDePasseTexte, utilisateur.motDePasseHash);
     if (!ok) {
       return res.status(401).json({ message: "Identifiants invalides" });
+    }
+
+    if (utilisateur.role === "client" && utilisateur.emailVerifie === false) {
+      return res.status(403).json({
+        code: "EMAIL_NON_VERIFIE",
+        message: "Validez votre adresse email avec le code reçu avant de vous connecter."
+      });
     }
 
     const token = creerToken(utilisateur);
@@ -287,7 +397,7 @@ router.put("/me/mot-de-passe", verifierToken, async (req, res) => {
   }
 });
 
-// ✅ POST /api/auth/mot-de-passe-oublie
+// ✅ POST /api/auth/mot-de-passe-oublie — envoie un code à 6 chiffres par email
 router.post("/mot-de-passe-oublie", async (req, res) => {
   try {
     const emailNormalise = String(req.body?.email || "").trim().toLowerCase();
@@ -297,43 +407,47 @@ router.post("/mot-de-passe-oublie", async (req, res) => {
     }
 
     const utilisateur = await Utilisateur.findOne({ email: emailNormalise });
+    const messageOk =
+      "Si un compte actif existe avec cet email, un code de réinitialisation vient d'y être envoyé.";
 
+    let codeDev = null;
     if (utilisateur && utilisateur.estActif) {
-      const tokenBrut = crypto.randomBytes(32).toString("hex");
-      const tokenHash = hacherTokenReset(tokenBrut);
-
-      utilisateur.resetPasswordTokenHash = tokenHash;
-      utilisateur.resetPasswordExpiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+      const code = genererCode6();
+      utilisateur.resetPasswordTokenHash = null;
+      utilisateur.resetPasswordCodeHash = await bcrypt.hash(code, 10);
+      utilisateur.resetPasswordExpiresAt = new Date(Date.now() + 30 * 60 * 1000);
       await utilisateur.save();
 
-      const frontendBaseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-      const resetUrl = `${frontendBaseUrl}/reinitialiser-mot-de-passe/${tokenBrut}`;
+      const tpl = templateReinitialisationMotDePasse({ nom: utilisateur.nom || "Client", code });
+      await envoyerMail({ to: emailNormalise, subject: tpl.subject, text: tpl.text, html: tpl.html });
 
-      if (process.env.NODE_ENV !== "production") {
-        return res.json({
-          message: "Lien de reinitialisation genere.",
-          resetUrl
-        });
+      if (codesDevAutorises()) {
+        codeDev = code;
       }
     }
 
-    return res.json({
-      message:
-        "Si un compte existe avec cet email, un lien de reinitialisation a ete envoye."
-    });
+    const reponse = { message: messageOk };
+    if (codeDev) {
+      reponse.codeDev = codeDev;
+    }
+    return res.json(reponse);
   } catch (erreur) {
     return res.status(500).json({ message: "Erreur serveur", erreur: erreur.message });
   }
 });
 
-// ✅ POST /api/auth/reinitialiser-mot-de-passe
+// ✅ POST /api/auth/reinitialiser-mot-de-passe — email + code 6 chiffres + nouveau mot de passe
 router.post("/reinitialiser-mot-de-passe", async (req, res) => {
   try {
-    const tokenBrut = String(req.body?.token || "").trim();
+    const emailNormalise = String(req.body?.email || "").trim().toLowerCase();
+    const codeBrut = String(req.body?.code || "").replace(/\D/g, "").trim();
     const motDePasseTexte = String(req.body?.motDePasse || "");
 
-    if (!tokenBrut) {
-      return res.status(400).json({ message: "Token de reinitialisation manquant." });
+    if (!emailNormalise || !EMAIL_REGEX.test(emailNormalise)) {
+      return res.status(400).json({ message: "Adresse email invalide." });
+    }
+    if (codeBrut.length !== 6) {
+      return res.status(400).json({ message: "Le code doit contenir 6 chiffres." });
     }
 
     if (!PASSWORD_REGEX.test(motDePasseTexte)) {
@@ -343,23 +457,28 @@ router.post("/reinitialiser-mot-de-passe", async (req, res) => {
       });
     }
 
-    const tokenHash = hacherTokenReset(tokenBrut);
-    const utilisateur = await Utilisateur.findOne({
-      resetPasswordTokenHash: tokenHash,
-      resetPasswordExpiresAt: { $gt: new Date() },
-      estActif: true
-    });
+    const utilisateur = await Utilisateur.findOne({ email: emailNormalise, estActif: true });
+    if (
+      !utilisateur ||
+      !utilisateur.resetPasswordCodeHash ||
+      !utilisateur.resetPasswordExpiresAt ||
+      utilisateur.resetPasswordExpiresAt <= new Date()
+    ) {
+      return res.status(400).json({ message: "Code invalide ou expiré. Refaites une demande depuis « Mot de passe oublié »." });
+    }
 
-    if (!utilisateur) {
-      return res.status(400).json({ message: "Lien invalide ou expire." });
+    const okCode = await bcrypt.compare(codeBrut, utilisateur.resetPasswordCodeHash);
+    if (!okCode) {
+      return res.status(400).json({ message: "Code incorrect." });
     }
 
     utilisateur.motDePasseHash = await bcrypt.hash(motDePasseTexte, 10);
+    utilisateur.resetPasswordCodeHash = null;
     utilisateur.resetPasswordTokenHash = null;
     utilisateur.resetPasswordExpiresAt = null;
     await utilisateur.save();
 
-    return res.json({ message: "Mot de passe reinitialise avec succes." });
+    return res.json({ message: "Mot de passe réinitialisé avec succès." });
   } catch (erreur) {
     return res.status(500).json({ message: "Erreur serveur", erreur: erreur.message });
   }

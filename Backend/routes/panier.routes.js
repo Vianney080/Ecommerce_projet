@@ -6,6 +6,7 @@ const verifierToken = require("../middleware/verifierToken");
 const Panier = require("../models/Panier");
 const Produit = require("../models/Produit");
 const Commande = require("../models/Commande");
+const { envoyerConfirmationCommande } = require("../services/commandeEmails");
 
 const TAUX_TAXE = 0.15;
 const COUPONS = {
@@ -389,6 +390,12 @@ router.post("/commander", verifierToken, async (req, res) => {
       methodePaiement: "carte",
       adresseLivraison: adresse,
       statut: "en_attente"
+    });
+
+    setImmediate(() => {
+      envoyerConfirmationCommande(commande).catch((err) =>
+        console.error("[commandeEmails] confirmation:", err?.message || err)
+      );
     });
 
     // Vider panier et le remettre actif pour la prochaine session d'achat

@@ -8,7 +8,16 @@ interface AuthContextType {
     token: string | null;
     authPret: boolean;
     connexion: (email: string, motDePasse: string) => Promise<void>;
-    inscription: (data: { nom: string; email: string; motDePasse: string }) => Promise<void>;
+    inscription: (data: {
+        nom: string;
+        email: string;
+        motDePasse: string;
+    }) => Promise<{
+        message?: string;
+        verificationRequise?: boolean;
+        email?: string;
+        codeDev?: string;
+    }>;
     rafraichirProfil: () => Promise<void>;
     majUtilisateurLocal: (user: UtilisateurConnecte) => void;
     deconnexion: () => void;
@@ -82,8 +91,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     async function inscription(data: { nom: string; email: string; motDePasse: string }) {
-        await api.post("/auth/inscription", data);
-        // on peut ensuite rediriger vers la page de connexion côté composant
+        const res = await api.post<{
+            message?: string;
+            verificationRequise?: boolean;
+            email?: string;
+            codeDev?: string;
+        }>("/auth/inscription", data);
+        return res.data;
     }
 
     function majUtilisateurLocal(user: UtilisateurConnecte) {

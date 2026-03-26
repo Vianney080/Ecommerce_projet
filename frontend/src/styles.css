@@ -3349,6 +3349,12 @@ body {
   color: #047857;
 }
 
+.auth-alert-info {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+}
+
 .auth-helper {
   font-size: 0.74rem;
   color: #64748b;

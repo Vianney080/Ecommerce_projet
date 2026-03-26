@@ -75,9 +75,20 @@ export function PageInscription() {
 
     setLoading(true);
     try {
-      await inscription({ nom: nomNettoye, email: emailNettoye, motDePasse: motDePasseTexte });
-      setSucces("Compte créé avec succès. Vous pouvez vous connecter.");
-      setTimeout(() => navigate("/connexion", { state: { from: destinationApresConnexion } }), 1000);
+      const data = await inscription({ nom: nomNettoye, email: emailNettoye, motDePasse: motDePasseTexte });
+      if (data.verificationRequise) {
+        setSucces(data.message || "Consultez votre boîte mail pour le code de vérification.");
+        setTimeout(
+          () =>
+            navigate(`/verifier-email?email=${encodeURIComponent(emailNettoye)}`, {
+              state: { from: destinationApresConnexion },
+            }),
+          900
+        );
+      } else {
+        setSucces("Compte créé avec succès. Vous pouvez vous connecter.");
+        setTimeout(() => navigate("/connexion", { state: { from: destinationApresConnexion } }), 1000);
+      }
     } catch (err: any) {
       const msg = err?.response?.data?.message || "Erreur lors de l'inscription";
       setErreur(msg);

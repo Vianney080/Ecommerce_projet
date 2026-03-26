@@ -6,6 +6,12 @@ const verifierToken = require("../middleware/verifierToken");
 
 const Commande = require("../models/Commande");
 const Produit = require("../models/Produit");
+const {
+  envoyerConfirmationCommande,
+  envoyerCommandeExpediee,
+  envoyerCommandeLivree,
+  envoyerMiseAJourSuiviLivraison
+} = require("../services/commandeEmails");
 
 // ✅ Middleware admin
 function adminSeulement(req, res, next) {
@@ -154,6 +160,12 @@ router.post("/", verifierToken, async (req, res) => {
       statut: "en_attente"
     });
 
+    setImmediate(() => {
+      envoyerConfirmationCommande(commande).catch((err) =>
+        console.error("[commandeEmails] confirmation:", err?.message || err)
+      );
+    });
+
     return res.status(201).json({ message: "Commande créée ✅", commande });
   } catch (erreur) {
     return res.status(500).json({ message: "Erreur serveur", erreur: erreur.message });
@@ -263,8 +275,16 @@ router.patch("/:id/statut", verifierToken, adminSeulement, async (req, res) => {
       return res.status(404).json({ message: "Commande introuvable" });
     }
 
+    const ancienStatut = commande.statut;
     commande.statut = statut;
     await commande.save();
+
+    setImmediate(() => {
+      Promise.all([
+        envoyerCommandeExpediee(commande, ancienStatut),
+        envoyerCommandeLivree(commande, ancienStatut)
+      ]).catch((err) => console.error("[commandeEmails] statut:", err?.message || err));
+    });
 
     return res.json({ message: "Statut de commande mis a jour", commande });
   } catch (erreur) {
@@ -289,8 +309,15 @@ router.patch("/:id/suivi-livraison", verifierToken, adminSeulement, async (req, 
       return res.status(404).json({ message: "Commande introuvable" });
     }
 
+    const avantSuivi = commande.numeroSuiviLivraison || "";
     commande.numeroSuiviLivraison = brut;
     await commande.save();
+
+    setImmediate(() => {
+      envoyerMiseAJourSuiviLivraison(commande, avantSuivi).catch((err) =>
+        console.error("[commandeEmails] suivi:", err?.message || err)
+      );
+    });
 
     return res.json({ message: "Suivi livraison mis a jour", commande });
   } catch (erreur) {

@@ -45,6 +45,10 @@ export function PageConnexion() {
       await connexion(emailNettoye, motDePasseTexte);
       navigate(destinationApresConnexion, { replace: true });
     } catch (err: any) {
+      if (err?.response?.data?.code === "EMAIL_NON_VERIFIE") {
+        navigate(`/verifier-email?email=${encodeURIComponent(emailNettoye)}`, { replace: false });
+        return;
+      }
       const msg = err?.response?.data?.message || "Erreur de connexion";
       setErreur(msg);
     } finally {

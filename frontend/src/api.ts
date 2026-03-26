@@ -105,6 +105,7 @@ export interface UtilisateurConnecte {
   themeInterface?: "clair" | "sombre" | "systeme" | string;
   newsletterActive?: boolean;
   notificationsEmailActives?: boolean;
+  emailVerifie?: boolean;
 }
 
 export interface AuthResponse {

@@ -90,6 +90,23 @@ const utilisateurSchema = new mongoose.Schema(
       default: true
     },
 
+    /** false = client doit valider son email avec un code */
+    emailVerifie: {
+      type: Boolean,
+      default: true
+    },
+
+    emailVerificationCodeHash: {
+      type: String,
+      default: null
+    },
+
+    emailVerificationExpiresAt: {
+      type: Date,
+      default: null
+    },
+
+    /** @deprecated flux par lien ; préférer resetPasswordCodeHash */
     resetPasswordTokenHash: {
       type: String,
       default: null
@@ -97,6 +114,12 @@ const utilisateurSchema = new mongoose.Schema(
 
     resetPasswordExpiresAt: {
       type: Date,
+      default: null
+    },
+
+    /** Code à 6 chiffres (hash bcrypt) pour mot de passe oublié */
+    resetPasswordCodeHash: {
+      type: String,
       default: null
     }
   },
