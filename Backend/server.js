@@ -20,7 +20,16 @@ const corsOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || "")
   .split(",")
   .map((origin) => origin.trim())
   .filter((origin) => origin && !ORIGINES_PLACEHOLDERS.has(origin));
-const VERCEL_DOMAIN_REGEX = /^https:\/\/[a-z0-9-]+\.vercel\.app$/i;
+
+/** Tout déploiement Vercel (prod, preview, alias) — évite le blocage si FRONTEND_URL ≠ l’URL réelle du navigateur */
+function estOrigineVercelApp(origin) {
+  try {
+    const u = new URL(origin);
+    return u.protocol === "https:" && u.hostname.endsWith(".vercel.app");
+  } catch {
+    return false;
+  }
+}
 
 const corsOptions = {
   origin(origin, callback) {
@@ -30,18 +39,24 @@ const corsOptions = {
       return;
     }
 
-    // Accepte les domaines explicitement declares.
+    // Domaines listés dans CORS_ORIGINS ou FRONTEND_URL (plusieurs URLs séparées par des virgules)
     if (corsOrigins.includes(origin)) {
       callback(null, true);
       return;
     }
 
-    // Si aucune origine explicite n'est configuree, accepte Vercel + local.
-    if (corsOrigins.length === 0 && (VERCEL_DOMAIN_REGEX.test(origin) || /^http:\/\/localhost(:\d+)?$/i.test(origin))) {
+    // N’importe quel sous-domaine *.vercel.app (souvent plusieurs noms pour le même projet)
+    if (estOrigineVercelApp(origin)) {
       callback(null, true);
       return;
     }
 
+    if (/^http:\/\/localhost(:\d+)?$/i.test(origin) || /^http:\/\/127\.0\.0\.1(:\d+)?$/i.test(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    console.warn("[CORS] Origin refusée:", origin);
     callback(new Error("Origin non autorisee par CORS"));
   },
   credentials: true
