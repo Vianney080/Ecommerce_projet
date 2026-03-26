@@ -1572,6 +1572,237 @@ body {
   color: #475569;
 }
 
+.suivi-code-inline {
+  font-size: 0.85em;
+  background: #f1f5f9;
+  padding: 0.12rem 0.35rem;
+  border-radius: 0.35rem;
+}
+
+.suivi-numero-client {
+  margin: 0.75rem 0 1rem;
+  padding: 0.85rem 1rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+}
+
+.suivi-numero-client-label {
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+  margin-bottom: 0.35rem;
+}
+
+.suivi-numero-client-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.suivi-numero-client-value {
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.suivi-copy-btn {
+  font-size: 0.78rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 0.45rem;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+  cursor: pointer;
+}
+
+.suivi-copy-btn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.suivi-etapes {
+  list-style: none;
+  margin: 0 0 1.15rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  counter-reset: suivi-etape;
+}
+
+@media (min-width: 520px) {
+  .suivi-etapes {
+    flex-wrap: nowrap;
+    gap: 0;
+  }
+}
+
+.suivi-etape {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 6.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  color: #94a3b8;
+  padding: 0.35rem 0;
+}
+
+.suivi-etape.is-done {
+  color: #0f172a;
+}
+
+.suivi-etape.is-current .suivi-etape-label {
+  font-weight: 600;
+  color: #0f766e;
+}
+
+.suivi-etape-dot {
+  flex-shrink: 0;
+  width: 0.65rem;
+  height: 0.65rem;
+  margin-top: 0.2rem;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  background: #fff;
+}
+
+.suivi-etape.is-done .suivi-etape-dot {
+  border-color: #0d9488;
+  background: #0d9488;
+  box-shadow: inset 0 0 0 2px #fff;
+}
+
+.suivi-etape.is-current .suivi-etape-dot {
+  border-color: #0d9488;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.35);
+}
+
+.suivi-commande-annulee {
+  margin: 0 0 1rem;
+  padding: 0.65rem 0.85rem;
+  background: #fef2f2;
+  border-radius: 0.5rem;
+  color: #991b1b;
+  font-size: 0.88rem;
+}
+
+.suivi-transporteur {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.9rem;
+  background: #ecfeff;
+  border: 1px solid #a5f3fc;
+  border-radius: 0.65rem;
+}
+
+.suivi-transporteur-title {
+  margin: 0 0 0.4rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #0e7490;
+}
+
+.suivi-transporteur-lien {
+  font-weight: 600;
+  color: #0e7490;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.suivi-transporteur-numero {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.orders-numero-fac {
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+  margin: 0.25rem 0 0.15rem;
+}
+
+.orders-suivi-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.orders-suivi-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.admin-suivi-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.admin-suivi-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.admin-suivi-input {
+  flex: 1 1 12rem;
+  min-width: 10rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.45rem;
+  font-size: 0.85rem;
+}
+
+.commande-succes-numero-bloc {
+  margin: 1rem 0;
+  padding: 1rem 1.15rem;
+  background: linear-gradient(135deg, #f0fdfa 0%, #ecfeff 100%);
+  border: 1px solid #99f6e4;
+  border-radius: 0.85rem;
+  text-align: left;
+}
+
+.commande-succes-numero-bloc .orders-card-id {
+  margin: 0 0 0.35rem;
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.commande-succes-fac-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.commande-succes-fac-value {
+  font-size: 1.2rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+
 .products-grid {
   display: flex;
   flex-wrap: wrap;

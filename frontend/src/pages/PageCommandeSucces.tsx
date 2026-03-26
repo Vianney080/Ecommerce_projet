@@ -43,10 +43,14 @@ function formatAdresse(adresse?: AdresseLivraison) {
   return lignes.join("\n");
 }
 
+type EtatSucces = { commande?: CommandeSucces; emailConfirmation?: string } | null;
+
 export function PageCommandeSucces() {
   const location = useLocation();
   const navigate = useNavigate();
-  const commande = (location.state as { commande?: CommandeSucces } | null)?.commande;
+  const etat = location.state as EtatSucces;
+  const commande = etat?.commande;
+  const emailConfirmation = (etat?.emailConfirmation || "").trim();
 
   if (!commande) {
     return (
@@ -69,9 +73,18 @@ export function PageCommandeSucces() {
   }
 
   const commandeValidee = commande;
+  const facAffiche = (commandeValidee.numeroFacture || `CMD-${commandeValidee._id.slice(-8).toUpperCase()}`).toUpperCase();
+
+  async function copierTexte(texte: string) {
+    try {
+      await navigator.clipboard.writeText(texte);
+    } catch {
+      /* ignore */
+    }
+  }
 
   function telechargerFacturePDF() {
-    const numero = (commandeValidee.numeroFacture || `CMD-${commandeValidee._id.slice(-8).toUpperCase()}`).toUpperCase();
+    const numero = facAffiche;
     const dateTexte = new Date(commandeValidee.createdAt || Date.now()).toLocaleString();
     const lignes = commandeValidee.items
       .map(
@@ -128,14 +141,31 @@ export function PageCommandeSucces() {
           <p className="panier-kicker">Paiement confirmé</p>
           <h1 className="panier-title">Commande validée</h1>
           <p className="panier-subtitle">
-            Merci pour votre achat. Votre commande a été enregistrée avec succès.
+            Merci pour votre achat. Conservez votre numéro de commande pour le suivi (comme sur un reçu Amazon).
           </p>
-          <p className="orders-card-id">Commande #{commandeValidee._id.slice(-8).toUpperCase()}</p>
+          <div className="commande-succes-numero-bloc">
+            <p className="orders-card-id">Référence commande (à noter ou copier)</p>
+            <div className="commande-succes-fac-row">
+              <span className="commande-succes-fac-value">{facAffiche}</span>
+              <button type="button" className="suivi-copy-btn" onClick={() => copierTexte(facAffiche)}>
+                Copier le numéro
+              </button>
+            </div>
+            {emailConfirmation && (
+              <p className="orders-card-date" style={{ marginTop: "0.5rem" }}>
+                Suivi avec cet email : <strong>{emailConfirmation}</strong>
+              </p>
+            )}
+            <Link
+              className="orders-link-btn"
+              style={{ marginTop: "0.65rem", display: "inline-block" }}
+              to={`/suivi-commande?numero=${encodeURIComponent(commandeValidee.numeroFacture || facAffiche)}&email=${encodeURIComponent(emailConfirmation)}`}
+            >
+              Suivre ma commande
+            </Link>
+          </div>
           <p className="orders-card-date">
-            Facture: {(commandeValidee.numeroFacture || "N/A").toUpperCase()} - Paiement:{" "}
-            {commandeValidee.statutPaiement || "paye"}
-          </p>
-          <p className="orders-card-date">
+            Paiement : {commandeValidee.statutPaiement || "paye"} ·{" "}
             {new Date(commandeValidee.createdAt || Date.now()).toLocaleString()}
           </p>
         </div>

@@ -256,6 +256,7 @@ export function PagePaiement() {
       navigate("/commande/succes", {
         state: {
           commande: res.data.commande,
+          emailConfirmation: utilisateur?.email?.trim() || "",
         },
       });
     } catch (err: any) {

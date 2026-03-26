@@ -58,7 +58,9 @@ const commandeSchema = new mongoose.Schema(
       type: String,
       enum: ["en_attente", "payee", "annulee", "livree"],
       default: "en_attente"
-    }
+    },
+
+    numeroSuiviLivraison: { type: String, default: "", trim: true, maxlength: 500 }
   },
   { timestamps: true }
 );

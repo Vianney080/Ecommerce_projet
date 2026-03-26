@@ -16,6 +16,7 @@ interface CommandeClient {
   statut: "en_attente" | "payee" | "livree" | "annulee" | string;
   statutPaiement?: "en_attente" | "paye" | "echoue" | "rembourse" | string;
   numeroFacture?: string;
+  numeroSuiviLivraison?: string;
   total: number;
   createdAt: string;
   items: ItemCommande[];
@@ -80,10 +81,10 @@ function normaliserNomProduit(nom: string) {
 }
 
 function libelleStatut(statut: string) {
-  if (statut === "en_attente") return "En attente";
-  if (statut === "payee") return "Payee";
-  if (statut === "livree") return "Livree";
-  if (statut === "annulee") return "Annulee";
+  if (statut === "en_attente") return "En préparation";
+  if (statut === "payee") return "Expédiée / en transit";
+  if (statut === "livree") return "Livrée";
+  if (statut === "annulee") return "Annulée";
   return statut;
 }
 
@@ -261,7 +262,33 @@ export function PageMesCommandes() {
                   <div>
                     <p className="orders-card-id">Commande #{c._id.slice(-6).toUpperCase()}</p>
                     <p className="orders-card-date">{new Date(c.createdAt).toLocaleString()}</p>
-                    <p className="orders-card-date">Facture: {(c.numeroFacture || "N/A").toUpperCase()}</p>
+                    <p className="orders-card-date">N° client / facture</p>
+                    <p className="orders-numero-fac">{(c.numeroFacture || "—").toUpperCase()}</p>
+                    {c.numeroSuiviLivraison?.trim() && (
+                      <p className="orders-card-date">
+                        Suivi transporteur :{" "}
+                        {/^https?:\/\//i.test(c.numeroSuiviLivraison.trim()) ? (
+                          <a href={c.numeroSuiviLivraison.trim()} target="_blank" rel="noopener noreferrer">
+                            lien de suivi
+                          </a>
+                        ) : (
+                          <strong>{c.numeroSuiviLivraison.trim()}</strong>
+                        )}
+                      </p>
+                    )}
+                    {utilisateur?.email && c.numeroFacture && (
+                      <div className="orders-suivi-row">
+                        <Link
+                          to={`/suivi-commande?numero=${encodeURIComponent(c.numeroFacture)}&email=${encodeURIComponent(utilisateur.email)}`}
+                          className="orders-link-btn"
+                        >
+                          Suivre cette commande
+                        </Link>
+                      </div>
+                    )}
+                    <p className="orders-suivi-hint">
+                      Utilisez ce numéro (et votre email) sur la page Suivi — pas l’identifiant technique.
+                    </p>
                   </div>
                   <div className="orders-status-pair">
                     <span className={`orders-status status-${c.statut}`}>

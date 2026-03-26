@@ -38,6 +38,33 @@ function adresseValide(adresse) {
   );
 }
 
+function echapperRegex(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Recherche par ID Mongo (24 hex) ou par numéro de facture / commande (ex. FAC-…)
+ */
+async function trouverCommandePourSuiviPublic(identifiantBrut) {
+  const s = String(identifiantBrut || "").trim();
+  if (!s) return null;
+
+  if (/^[a-fA-F0-9]{24}$/.test(s)) {
+    const parId = await Commande.findById(s);
+    if (parId) return parId;
+  }
+
+  const fac = s.replace(/\s+/g, "");
+  if (fac.length >= 6) {
+    const parFacture = await Commande.findOne({
+      numeroFacture: new RegExp(`^${echapperRegex(fac)}$`, "i")
+    });
+    if (parFacture) return parFacture;
+  }
+
+  return null;
+}
+
 /**
  * ✅ POST /api/commandes
  * Client passe une commande
@@ -134,12 +161,12 @@ router.post("/", verifierToken, async (req, res) => {
 });
 
 /**
- * GET /api/commandes/suivi-public/:id?email=
- * Suivi minimal sans compte (email doit correspondre au compte ayant passe la commande)
+ * GET /api/commandes/suivi-public/:identifiant?email=
+ * identifiant = numéro de facture (FAC-…) ou ID technique ; email = vérification identité
  */
-router.get("/suivi-public/:id", async (req, res) => {
+router.get("/suivi-public/:identifiant", async (req, res) => {
   try {
-    const { id } = req.params;
+    const { identifiant } = req.params;
     const email = String(req.query.email || "")
       .trim()
       .toLowerCase();
@@ -147,11 +174,12 @@ router.get("/suivi-public/:id", async (req, res) => {
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return res.status(400).json({ message: "Email requis pour consulter le suivi." });
     }
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: "Numero de commande invalide." });
-    }
 
-    const commande = await Commande.findById(id).populate("utilisateurId", "email");
+    const ref = await trouverCommandePourSuiviPublic(identifiant);
+    if (!ref) {
+      return res.status(404).json({ message: "Commande introuvable." });
+    }
+    const commande = await Commande.findById(ref._id).populate("utilisateurId", "email");
     if (!commande) {
       return res.status(404).json({ message: "Commande introuvable." });
     }
@@ -170,6 +198,7 @@ router.get("/suivi-public/:id", async (req, res) => {
       taxe: commande.taxe,
       sousTotal: commande.sousTotal,
       createdAt: commande.createdAt,
+      numeroSuiviLivraison: commande.numeroSuiviLivraison || "",
       items: commande.items.map((it) => ({
         nomProduit: it.nomProduit,
         quantite: it.quantite,
@@ -238,6 +267,32 @@ router.patch("/:id/statut", verifierToken, adminSeulement, async (req, res) => {
     await commande.save();
 
     return res.json({ message: "Statut de commande mis a jour", commande });
+  } catch (erreur) {
+    return res.status(500).json({ message: "Erreur serveur", erreur: erreur.message });
+  }
+});
+
+/**
+ * PATCH /api/commandes/:id/suivi-livraison
+ * Admin : numéro ou lien de suivi transporteur (visible client)
+ */
+router.patch("/:id/suivi-livraison", verifierToken, adminSeulement, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const brut = String(req.body?.numeroSuiviLivraison ?? "").trim();
+    if (brut.length > 500) {
+      return res.status(400).json({ message: "Numero de suivi trop long (500 caracteres max)." });
+    }
+
+    const commande = await Commande.findById(id);
+    if (!commande) {
+      return res.status(404).json({ message: "Commande introuvable" });
+    }
+
+    commande.numeroSuiviLivraison = brut;
+    await commande.save();
+
+    return res.json({ message: "Suivi livraison mis a jour", commande });
   } catch (erreur) {
     return res.status(500).json({ message: "Erreur serveur", erreur: erreur.message });
   }

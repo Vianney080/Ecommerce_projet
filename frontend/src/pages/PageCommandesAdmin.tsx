@@ -20,6 +20,7 @@ interface CommandeAdmin {
   statut: "en_attente" | "payee" | "livree" | "annulee" | string;
   statutPaiement?: "en_attente" | "paye" | "echoue" | "rembourse" | string;
   numeroFacture?: string;
+  numeroSuiviLivraison?: string;
   total: number;
   createdAt: string;
   utilisateurId?: UtilisateurLite;
@@ -114,6 +115,9 @@ export function PageCommandesAdmin() {
   const [nouvellesCommandes, setNouvellesCommandes] = useState(0);
   const commandesConnuesRef = useRef<Set<string>>(new Set());
   const initialisationRef = useRef(false);
+  const [suiviTexte, setSuiviTexte] = useState<Record<string, string>>({});
+  const suiviServeurRef = useRef<Record<string, string>>({});
+  const [loadingSuiviId, setLoadingSuiviId] = useState<string | null>(null);
 
   const charger = useCallback(async (options?: { silencieux?: boolean }) => {
     const silencieux = options?.silencieux ?? false;
@@ -153,6 +157,22 @@ export function PageCommandesAdmin() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    setSuiviTexte((prev) => {
+      const next = { ...prev };
+      for (const c of commandes) {
+        const s = c.numeroSuiviLivraison || "";
+        const ancienServeur = suiviServeurRef.current[c._id];
+        const courant = prev[c._id];
+        if (courant === undefined || courant === ancienServeur) {
+          next[c._id] = s;
+        }
+        suiviServeurRef.current[c._id] = s;
+      }
+      return next;
+    });
+  }, [commandes]);
 
   useEffect(() => {
     charger();
@@ -208,6 +228,25 @@ export function PageCommandesAdmin() {
       setMessage(msg);
     } finally {
       setLoadingId(null);
+    }
+  }
+
+  async function enregistrerSuivi(commandeId: string) {
+    const texte = (suiviTexte[commandeId] ?? "").trim();
+    setLoadingSuiviId(commandeId);
+    setMessage(null);
+    try {
+      const res = await api.patch(`/commandes/${commandeId}/suivi-livraison`, {
+        numeroSuiviLivraison: texte,
+      });
+      setMessage(res.data?.message || "Suivi enregistré");
+      suiviServeurRef.current[commandeId] = texte;
+      setSuiviTexte((prev) => ({ ...prev, [commandeId]: texte }));
+      await charger();
+    } catch (err: any) {
+      setMessage(err?.response?.data?.message || "Erreur lors de l'enregistrement du suivi");
+    } finally {
+      setLoadingSuiviId(null);
     }
   }
 
@@ -368,6 +407,29 @@ export function PageCommandesAdmin() {
                   {c.adresseLivraison?.pays && (
                     <p className="orders-address-line">{c.adresseLivraison.pays}</p>
                   )}
+                </div>
+
+                <div className="admin-suivi-row">
+                  <div style={{ flex: "1 1 14rem", minWidth: "10rem" }}>
+                    <label className="admin-suivi-label" htmlFor={`suivi-${c._id}`}>
+                      N° ou lien de suivi livraison (affiché au client)
+                    </label>
+                    <input
+                      id={`suivi-${c._id}`}
+                      className="admin-suivi-input"
+                      value={suiviTexte[c._id] ?? ""}
+                      onChange={(e) => setSuiviTexte((p) => ({ ...p, [c._id]: e.target.value }))}
+                      placeholder="Ex. 1Z999… ou https://transporteur.com/…"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    className="admin-btn"
+                    disabled={loadingSuiviId === c._id}
+                    onClick={() => enregistrerSuivi(c._id)}
+                  >
+                    {loadingSuiviId === c._id ? "…" : "Enregistrer suivi"}
+                  </button>
                 </div>
 
                 <div className="orders-admin-row">
