@@ -5275,6 +5275,26 @@ html.theme-dark .panier-field-helper-optional .field-helper-icon {
   color: #334155;
 }
 
+.admin-file-input-label .admin-file-input-native {
+  padding: 0.35rem 0;
+  font-size: 0.8rem;
+}
+
+.admin-file-selection-summary {
+  margin: -0.15rem 0 0;
+  padding: 0.45rem 0.55rem;
+  border-radius: 0.5rem;
+  background: #f1f5f9;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: #0f172a;
+}
+
+.admin-file-selection-summary strong {
+  font-weight: 600;
+  color: #334155;
+}
+
 .admin-input {
   width: 100%;
 }

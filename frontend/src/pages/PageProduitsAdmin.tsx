@@ -76,6 +76,14 @@ export function PageProduitsAdmin() {
   const objectUrlsRef = useRef<string[]>([]);
   const [fileInputKey, setFileInputKey] = useState(0);
 
+  const nomsNouveauxFichiers = useMemo(
+    () =>
+      imagePreviews
+        .filter((img): img is AdminImagePreview & { file: File } => img.source === "new" && Boolean(img.file))
+        .map((img) => img.file.name),
+    [imagePreviews]
+  );
+
   const [nouvelleCategorie, setNouvelleCategorie] = useState("");
   const [categorieEditionId, setCategorieEditionId] = useState<string | null>(null);
   const [categorieEditionNom, setCategorieEditionNom] = useState("");
@@ -212,7 +220,8 @@ export function PageProduitsAdmin() {
     });
 
     setImagePreviews([...previewsExistantes, ...dejaNouvelles, ...nouvellesAvecMeta]);
-    e.target.value = "";
+    /* Ne pas vider e.target.value : sinon le navigateur repasse à « Aucun fichier sélectionné »
+       alors que les vignettes sont bien ajoutées. Les fichiers sont conservés dans imagePreviews. */
   }
 
   function supprimerPreviewImage(previewId: string) {
@@ -524,17 +533,22 @@ export function PageProduitsAdmin() {
                 </label>
               </div>
 
-              <label>
+              <label className="admin-file-input-label">
                 Images (.png, .jpg, .webp) — en modification, facultatif si vous conservez les vignettes
                 <input
                   key={fileInputKey}
-                  className="admin-search admin-input"
+                  className="admin-search admin-input admin-file-input-native"
                   type="file"
                   accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
                   multiple
                   onChange={handleImageChange}
                 />
               </label>
+              {nomsNouveauxFichiers.length > 0 && (
+                <p className="admin-file-selection-summary" aria-live="polite">
+                  <strong>Fichier(s) ajouté(s) :</strong> {nomsNouveauxFichiers.join(" · ")}
+                </p>
+              )}
 
               {editionId && (
                 <label className="catalogue-checkbox">
