@@ -1861,6 +1861,80 @@ body {
   font-weight: 600;
 }
 
+/* Prix barré + promo (style marketplace) */
+.price-with-promo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.12rem;
+  line-height: 1.2;
+}
+
+.price-with-promo--sans-promo {
+  display: inline;
+  font-size: inherit;
+  font-weight: 600;
+}
+
+.price-with-promo-ligne {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.price-was {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #64748b;
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.price-discount-badge {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #fff;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  padding: 0.12rem 0.38rem;
+  border-radius: 0.35rem;
+  line-height: 1.2;
+}
+
+.price-now {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.price-with-promo--detail .price-was {
+  font-size: 0.95rem;
+}
+
+.price-with-promo--detail .price-now {
+  font-size: 1.45rem;
+  color: #be185d;
+}
+
+.price-with-promo--detail .price-discount-badge {
+  font-size: 0.72rem;
+  padding: 0.18rem 0.45rem;
+}
+
+.catalogue-card-price .price-with-promo,
+.catalogue-card-price .price-with-promo--sans-promo {
+  font-size: inherit;
+}
+
+.catalogue-card-price .price-now {
+  font-size: 0.88rem;
+}
+
+.catalogue-card-price .price-was {
+  font-size: 0.72rem;
+}
+
 .btn-product {
   width: 100%;
   border-radius: 999px;
@@ -5358,6 +5432,28 @@ html.theme-dark .panier-field-helper-optional .field-helper-icon {
   box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.15);
 }
 
+.admin-field-hint {
+  display: block;
+  margin-top: 0.28rem;
+  font-size: 0.72rem;
+  color: #64748b;
+  line-height: 1.35;
+  max-width: 42rem;
+}
+
+.admin-price-promo {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.08rem;
+  align-items: flex-start;
+}
+
+.admin-price-was {
+  font-size: 0.78rem;
+  color: #64748b;
+  text-decoration: line-through;
+}
+
 .admin-image-preview {
   border: 1px solid #e2e8f0;
   border-radius: 0.7rem;
@@ -5567,6 +5663,14 @@ html.theme-dark .product-price,
 html.theme-dark .catalogue-card-price,
 html.theme-dark .produit-price {
   color: #f8fafc !important;
+}
+
+html.theme-dark .price-now {
+  color: #fda4af !important;
+}
+
+html.theme-dark .price-was {
+  color: #94a3b8 !important;
 }
 
 html.theme-dark .section-header p {

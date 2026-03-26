@@ -14,6 +14,8 @@ const produitSchema = new mongoose.Schema(
     categorie: { type: String, required: true, trim: true },
     quantite: { type: Number, required: true, min: 0 },
     prixUnitaire: { type: Number, required: true, min: 0 },
+    /** Prix « avant réduction » (affiché barré) ; doit être > prixUnitaire si renseigné */
+    prixBarre: { type: Number, min: 0, default: null },
     seuilMinimum: { type: Number, required: true, min: 0 },
     imageUrl: {
       type: String,

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { api, resolveAssetUrl } from "./api";
 import { ProductImageCascade } from "./components/ProductImage";
+import { PrixAvecPromo } from "./components/PrixAvecPromo";
 import { ajouterAuPanierInvite, lirePanierInvite, totalPanierInvite } from "./cartInvite";
 import { Breadcrumb } from "./components/Breadcrumb";
 import { useDocumentTitle, useMetaDescription } from "./hooks/useDocumentTitle";
@@ -17,6 +18,8 @@ type Produit = {
   nom: string;
   categorie: string;
   prix: number;
+  /** Prix « avant réduction », affiché barré si > prix de vente */
+  prixBarre?: number;
   image: string;
   backendId?: string;
   description?: string;
@@ -492,6 +495,7 @@ function App() {
           categorie: string;
           quantite: number;
           prixUnitaire: number;
+          prixBarre?: number | null;
           seuilMinimum: number;
           imageUrl?: string;
           imageUrls?: string[];
@@ -504,6 +508,9 @@ function App() {
           resolveAssetUrl(p.imageUrl),
         ].filter(Boolean);
         const urlsTriees = trierUrlsImagesParFiabilite(Array.from(new Set(urlsBrutes)));
+        const pu = Number(p.prixUnitaire);
+        const pb = p.prixBarre != null ? Number(p.prixBarre) : NaN;
+        const prixBarre = Number.isFinite(pb) && Number.isFinite(pu) && pb > pu ? pb : undefined;
         return {
           id: p._id,
           backendId: p._id,
@@ -512,6 +519,7 @@ function App() {
           categorie: p.categorie,
           quantite: p.quantite,
           prix: p.prixUnitaire,
+          prixBarre,
           seuilMinimum: p.seuilMinimum,
           imageUrl: p.imageUrl,
           imageUrls: p.imageUrls || [],
@@ -1053,7 +1061,9 @@ function App() {
                 <div className="product-content">
                   <p className="product-category">{produit.categorie}</p>
                   <h3 className="product-title">{produit.nom}</h3>
-                  <p className="product-price">{formatCAD(produit.prix)}</p>
+                  <div className="product-price">
+                    <PrixAvecPromo prixUnitaire={produit.prix} prixBarre={produit.prixBarre} variant="card" />
+                  </div>
                   <div className="product-actions">
                     <button
                       className="btn btn-product"

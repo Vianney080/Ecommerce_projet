@@ -7,6 +7,7 @@ import { ajouterAuPanierInvite, lirePanierInvite } from "../cartInvite";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import { trierUrlsImagesParFiabilite } from "../utils/imageUrlPriority";
+import { PrixAvecPromo } from "../components/PrixAvecPromo";
 import "../styles.css";
 
 interface Categorie {
@@ -21,6 +22,7 @@ interface Produit {
   categorie: string;
   quantite: number;
   prixUnitaire: number;
+  prixBarre?: number | null;
   seuilMinimum: number;
   imageUrl?: string;
   imageUrls?: string[];
@@ -517,7 +519,13 @@ export function PageCatalogue() {
                       <p className="catalogue-card-category">{p.categorie}</p>
                       <h2 className="catalogue-card-title">{p.nom}</h2>
                       <div className="catalogue-card-meta">
-                        <span className="catalogue-card-price">{p.prixUnitaire.toFixed(2)} $</span>
+                        <span className="catalogue-card-price">
+                          <PrixAvecPromo
+                            prixUnitaire={p.prixUnitaire}
+                            prixBarre={p.prixBarre}
+                            variant="card"
+                          />
+                        </span>
                         <span className={`catalogue-stock-badge ${isStockBas ? "is-low" : "is-ok"}`}>
                           Stock: {p.quantite}
                         </span>

@@ -16,6 +16,7 @@ import { Breadcrumb } from "../components/Breadcrumb";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import { basculerListeSouhaits, estDansListeSouhaits } from "../wishlistInvite";
 import { trierUrlsImagesParFiabilite } from "../utils/imageUrlPriority";
+import { PrixAvecPromo } from "../components/PrixAvecPromo";
 import "../styles.css";
 
 type ProduitDetail = {
@@ -25,6 +26,7 @@ type ProduitDetail = {
   categorie: string;
   quantite: number;
   prixUnitaire: number;
+  prixBarre?: number | null;
   seuilMinimum: number;
   imageUrl?: string;
   imageUrls?: string[];
@@ -36,6 +38,7 @@ type ProduitState = Partial<ProduitDetail> & {
   id?: string | number;
   backendId?: string;
   prix?: number;
+  prixBarre?: number | null;
   image?: string;
   imageUrls?: string[];
 };
@@ -87,10 +90,6 @@ function FeedbackIcon({ type }: { type: "success" | "error" }) {
       />
     </svg>
   );
-}
-
-function formaterMontant(montant: number) {
-  return `${montant.toFixed(2)} $`;
 }
 
 export function PageProduitDetail() {
@@ -152,6 +151,10 @@ export function PageProduitDetail() {
               categorie: produitDepuisState.categorie || "Non classé",
               quantite: Number(produitDepuisState.quantite || 0),
               prixUnitaire: Number(produitDepuisState.prixUnitaire || produitDepuisState.prix || 0),
+              prixBarre:
+                "prixBarre" in produitDepuisState && produitDepuisState.prixBarre != null
+                  ? Number(produitDepuisState.prixBarre)
+                  : undefined,
               seuilMinimum: Number(produitDepuisState.seuilMinimum || 0),
               imageUrl: produitDepuisState.imageUrl || produitDepuisState.image || "",
               imageUrls: produitDepuisState.imageUrls || [],
@@ -585,7 +588,13 @@ export function PageProduitDetail() {
             <div className="produit-infos">
               <p className="produit-kicker">{produit.categorie}</p>
               <h1 className="produit-title">{produit.nom}</h1>
-              <p className="produit-price">{formaterMontant(produit.prixUnitaire)}</p>
+              <div className="produit-price">
+                <PrixAvecPromo
+                  prixUnitaire={produit.prixUnitaire}
+                  prixBarre={produit.prixBarre}
+                  variant="detail"
+                />
+              </div>
 
               <p className="produit-delivery-banner">
                 <strong>Livraison rapide</strong>
@@ -770,7 +779,13 @@ export function PageProduitDetail() {
                       <div className="catalogue-card-content">
                         <p className="catalogue-card-category">{item.categorie}</p>
                         <h3 className="catalogue-card-title">{item.nom}</h3>
-                        <p className="catalogue-card-price">{formaterMontant(item.prixUnitaire)}</p>
+                        <p className="catalogue-card-price">
+                          <PrixAvecPromo
+                            prixUnitaire={item.prixUnitaire}
+                            prixBarre={item.prixBarre}
+                            variant="card"
+                          />
+                        </p>
                         <div className="catalogue-actions">
                           <button
                             type="button"

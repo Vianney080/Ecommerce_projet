@@ -7,6 +7,7 @@ import { Breadcrumb } from "../components/Breadcrumb";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import { lireListeSouhaits, retirerListeSouhaits } from "../wishlistInvite";
 import { trierUrlsImagesParFiabilite } from "../utils/imageUrlPriority";
+import { PrixAvecPromo } from "../components/PrixAvecPromo";
 import "../styles.css";
 
 type ProduitApi = {
@@ -14,6 +15,7 @@ type ProduitApi = {
   nom: string;
   categorie: string;
   prixUnitaire: number;
+  prixBarre?: number | null;
   quantite: number;
   imageUrl?: string;
   imageUrls?: string[];
@@ -149,7 +151,9 @@ export function PageListeSouhaits() {
                   <div className="catalogue-card-content">
                     <p className="catalogue-card-category">{p.categorie}</p>
                     <h2 className="catalogue-card-title">{p.nom}</h2>
-                    <p className="catalogue-card-price">{p.prixUnitaire.toFixed(2)} $</p>
+                    <p className="catalogue-card-price">
+                      <PrixAvecPromo prixUnitaire={p.prixUnitaire} prixBarre={p.prixBarre} variant="card" />
+                    </p>
                     <div className="catalogue-actions">
                       <Link
                         to={`/produit/${p._id}`}

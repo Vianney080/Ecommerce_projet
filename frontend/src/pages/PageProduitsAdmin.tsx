@@ -18,6 +18,7 @@ interface ProduitAdmin {
   categorie: string;
   quantite: number;
   prixUnitaire: number;
+  prixBarre?: number | null;
   seuilMinimum: number;
   imageUrl?: string;
   imageUrls?: string[];
@@ -34,6 +35,8 @@ interface ProduitForm {
   categorie: string;
   quantite: string;
   prixUnitaire: string;
+  /** Ancien prix (barré sur le site) ; vide = pas de promo */
+  prixBarre: string;
   seuilMinimum: string;
 }
 
@@ -54,6 +57,7 @@ const FORM_INIT: ProduitForm = {
   categorie: "",
   quantite: "0",
   prixUnitaire: "0",
+  prixBarre: "",
   seuilMinimum: "1",
 };
 
@@ -162,6 +166,8 @@ export function PageProduitsAdmin() {
       categorie: p.categorie || "",
       quantite: String(p.quantite ?? 0),
       prixUnitaire: String(p.prixUnitaire ?? 0),
+      prixBarre:
+        p.prixBarre != null && Number(p.prixBarre) > 0 ? String(p.prixBarre) : "",
       seuilMinimum: String(p.seuilMinimum ?? 1),
     });
     setImagePreviews(construirePreviewsExistantes(p));
@@ -302,6 +308,18 @@ export function PageProduitsAdmin() {
       setErreur("Prix invalide.");
       return;
     }
+    const prixBarreStr = form.prixBarre.trim();
+    if (prixBarreStr !== "") {
+      const pb = Number(prixBarreStr.replace(",", "."));
+      if (!Number.isFinite(pb) || pb < 0) {
+        setErreur("Prix barré invalide.");
+        return;
+      }
+      if (pb <= prixUnitaire) {
+        setErreur("Le prix barré doit être supérieur au prix de vente pour afficher une réduction.");
+        return;
+      }
+    }
     if (!Number.isFinite(seuilMinimum) || seuilMinimum < 0) {
       setErreur("Seuil minimum invalide.");
       return;
@@ -315,6 +333,7 @@ export function PageProduitsAdmin() {
       payload.append("categorie", categorie);
       payload.append("quantite", String(quantite));
       payload.append("prixUnitaire", String(prixUnitaire));
+      payload.append("prixBarre", prixBarreStr);
       payload.append("seuilMinimum", String(seuilMinimum));
       payload.append("garderImagesExistantes", garderImagesExistantes ? "true" : "false");
       const imagesExistantesConservees = imagePreviews
@@ -495,7 +514,7 @@ export function PageProduitsAdmin() {
                   </datalist>
                 </label>
                 <label>
-                  Prix ($)
+                  Prix de vente ($)
                   <input
                     className="admin-search admin-input"
                     type="number"
@@ -507,6 +526,23 @@ export function PageProduitsAdmin() {
                   />
                 </label>
               </div>
+
+              <label>
+                Prix barré ($) — facultatif
+                <input
+                  className="admin-search admin-input"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={form.prixBarre}
+                  onChange={(e) => setChamp("prixBarre", e.target.value)}
+                  placeholder="Ancien prix (ex. 34.99), laisser vide si pas de promo"
+                />
+                <span className="admin-field-hint">
+                  Doit être supérieur au prix de vente. Affiché barré sur le site avec le pourcentage
+                  économisé.
+                </span>
+              </label>
 
               <div className="admin-form-row">
                 <label>
@@ -743,7 +779,16 @@ export function PageProduitsAdmin() {
                           <span className={stockBas ? "admin-stat-value-danger" : ""}>{p.quantite}</span>
                         </td>
                         <td>{p.seuilMinimum}</td>
-                        <td>{Number(p.prixUnitaire || 0).toFixed(2)} $</td>
+                        <td>
+                          {p.prixBarre != null && Number(p.prixBarre) > Number(p.prixUnitaire) ? (
+                            <span className="admin-price-promo">
+                              <span className="admin-price-was">{Number(p.prixBarre).toFixed(2)} $</span>{" "}
+                              <strong>{Number(p.prixUnitaire || 0).toFixed(2)} $</strong>
+                            </span>
+                          ) : (
+                            `${Number(p.prixUnitaire || 0).toFixed(2)} $`
+                          )}
+                        </td>
                         <td>
                           <div className="admin-action-row">
                             <button type="button" className="admin-btn admin-btn-edit" onClick={() => preRemplirEdition(p)}>

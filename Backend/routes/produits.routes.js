@@ -55,6 +55,8 @@ function validerDonneesProduit(body) {
   const quantite = Number(body?.quantite);
   const prixUnitaire = Number(body?.prixUnitaire);
   const seuilMinimum = Number(body?.seuilMinimum);
+  const brutBarre = body?.prixBarre;
+  const texteBarre = brutBarre === undefined || brutBarre === null ? "" : String(brutBarre).trim();
 
   if (!nom || !categorie) {
     return { ok: false, message: "Le nom et la categorie sont obligatoires." };
@@ -69,9 +71,24 @@ function validerDonneesProduit(body) {
     return { ok: false, message: "Seuil minimum invalide." };
   }
 
+  let prixBarre = null;
+  if (texteBarre !== "") {
+    const pb = Number(texteBarre.replace(",", "."));
+    if (!Number.isFinite(pb) || pb < 0) {
+      return { ok: false, message: "Prix barré invalide." };
+    }
+    if (pb <= prixUnitaire) {
+      return {
+        ok: false,
+        message: "Le prix barré doit être supérieur au prix de vente pour afficher une réduction."
+      };
+    }
+    prixBarre = pb;
+  }
+
   return {
     ok: true,
-    data: { nom, categorie, description, quantite, prixUnitaire, seuilMinimum }
+    data: { nom, categorie, description, quantite, prixUnitaire, seuilMinimum, prixBarre }
   };
 }
 
@@ -260,15 +277,22 @@ router.get("/:id", async (req, res) => {
 // ✅ POST /api/produits
 router.post("/", verifierToken, async (req, res) => {
   try {
-    const { nom, description, categorie, quantite, prixUnitaire, seuilMinimum, imageUrl } = req.body;
-
-    const nouveau = await Produit.create({
+    const { nom, description, categorie, quantite, prixUnitaire, seuilMinimum, imageUrl, prixBarre } = req.body;
+    const v = validerDonneesProduit({
       nom,
-      description: description || "",
+      description,
       categorie,
       quantite,
       prixUnitaire,
       seuilMinimum,
+      prixBarre
+    });
+    if (!v.ok) {
+      return res.status(400).json({ message: v.message });
+    }
+
+    const nouveau = await Produit.create({
+      ...v.data,
       imageUrl: imageUrl || ""
     });
 
