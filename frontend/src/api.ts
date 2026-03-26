@@ -32,6 +32,8 @@ if (import.meta.env.PROD) {
  * - Chemins relatifs → préfixe API_ORIGIN (doit être VITE_API_URL en prod).
  * - //domain → https (évite src invalides).
  * - http sur page https → passage en https sauf localhost (évite le contenu mixte bloqué).
+ * - URL absolues /uploads/... vers un autre hôte (ancien Render, localhost) → réécrites vers API_ORIGIN
+ *   pour suivre le backend actuellement configuré (sinon vignettes cassées après changement d’URL Render).
  */
 export function resolveAssetUrl(raw: string | undefined | null): string {
   let s = String(raw ?? "").trim();
@@ -39,7 +41,22 @@ export function resolveAssetUrl(raw: string | undefined | null): string {
   if (s.startsWith("//")) {
     s = `https:${s}`;
   }
+  const originSansSlash = API_ORIGIN.replace(/\/+$/, "");
+
+  /** Même chemin /uploads/ mais servi par l’API définie dans VITE_API_URL. */
+  const reecrireUploadsVersApiActuelle = (urlAbsolue: string): string => {
+    if (!/^https?:\/\//i.test(urlAbsolue)) return urlAbsolue;
+    try {
+      const u = new URL(urlAbsolue);
+      if (!u.pathname.startsWith("/uploads/")) return urlAbsolue;
+      return `${originSansSlash}${u.pathname}${u.search}${u.hash}`;
+    } catch {
+      return urlAbsolue;
+    }
+  };
+
   if (/^https?:\/\//i.test(s)) {
+    s = reecrireUploadsVersApiActuelle(s);
     if (typeof window !== "undefined" && window.location?.protocol === "https:") {
       try {
         const u = new URL(s);
@@ -54,8 +71,8 @@ export function resolveAssetUrl(raw: string | undefined | null): string {
     }
     return s;
   }
-  if (s.startsWith("/")) return `${API_ORIGIN}${s}`;
-  return `${API_ORIGIN}/${s}`;
+  if (s.startsWith("/")) return `${originSansSlash}${s}`;
+  return `${originSansSlash}/${s}`;
 }
 
 export const api = axios.create({
