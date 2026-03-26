@@ -66,7 +66,7 @@ export function ProductImageCascade({
 
   useEffect(() => {
     setEchecs(0);
-  }, [ordreEssai.join("|")]);
+  }, [JSON.stringify(ordreEssai)]);
 
   const src = ordreEssai[echecs] || "";
 

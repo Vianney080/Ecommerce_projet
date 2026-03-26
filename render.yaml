@@ -19,3 +19,12 @@ services:
         sync: false
       - key: CORS_ORIGINS
         sync: false
+      # Chemin d’un disque persistant Render (Dashboard → Disks) si vous n’utilisez pas Cloudinary
+      - key: UPLOADS_DIR
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false

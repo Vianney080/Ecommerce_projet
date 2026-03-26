@@ -1,7 +1,8 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const path = require("path");
+const { DOSSIER_UPLOADS } = require("./config/uploadsPath");
+const { cloudinaryConfigure } = require("./services/imageStorage");
 const routesProduits = require("./routes/produits.routes");
 const routesTableauDeBord = require("./routes/tableauDeBord.routes");
 const routesAuth = require("./routes/auth.routes");
@@ -56,7 +57,7 @@ app.use("/api/tableau-de-bord", routesTableauDeBord);
 app.use("/api/panier", routesPanier);
 app.use("/api/avis", routesAvis);
 app.use("/api/admin", routesAdmin);
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static(DOSSIER_UPLOADS));
 
 // Connexion MongoDB
 mongoose.connect(process.env.MONGO_URI)
@@ -70,4 +71,13 @@ app.get("/", (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Serveur lancé sur le port ${PORT}`);
+    if (cloudinaryConfigure) {
+      console.log("Images: Cloudinary actif (URLs stables apres redeploiement).");
+    } else if (process.env.UPLOADS_DIR) {
+      console.log(`Images: fichiers locaux dans UPLOADS_DIR=${process.env.UPLOADS_DIR}`);
+    } else if (process.env.NODE_ENV === "production") {
+      console.warn(
+        "Images: pas de Cloudinary ni UPLOADS_DIR — le dossier ./uploads sur le disque de l’instance est souvent efface au redeploiement (Render). Configurez CLOUDINARY_* ou un disque persistant."
+      );
+    }
 });

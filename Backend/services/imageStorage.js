@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { v2: cloudinary } = require("cloudinary");
 
-const DOSSIER_UPLOADS = path.join(__dirname, "..", "uploads");
+const { DOSSIER_UPLOADS } = require("../config/uploadsPath");
 
 const CLOUDINARY_CONFIGURE =
   Boolean(process.env.CLOUDINARY_CLOUD_NAME) &&

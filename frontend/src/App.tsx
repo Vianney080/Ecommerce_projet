@@ -1023,7 +1023,7 @@ function App() {
                   {ruptureStock && <span className="stock-out-badge">Rupture de stock</span>}
                   {imagesCarte.length > 0 ? (
                     <ProductImageCascade
-                      key={`${produit.id}-vue-${indexImageAffichee}`}
+                      key={produit.id}
                       urls={imagesCarte}
                       preferredIndex={indexImageAffichee}
                       alt={produit.nom}

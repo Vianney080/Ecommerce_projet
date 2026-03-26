@@ -17,6 +17,16 @@ const API_BASE_URL = normaliserBaseApi(
 );
 export const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/i, "");
 
+if (import.meta.env.PROD) {
+  const h = API_ORIGIN.replace(/^https?:\/\//i, "").split("/")[0] || "";
+  if (/^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(h)) {
+    console.error(
+      "[CosmétiShop] Le build de production utilise encore localhost comme API (VITE_API_URL absent ou invalide au build). " +
+        "Les images /uploads/ ne se chargeront pas. Dans Vercel : Environment Variables → VITE_API_URL=https://votre-api.onrender.com/api puis redéployer."
+    );
+  }
+}
+
 /**
  * URL finale pour images / fichiers (uploads, Cloudinary, etc.).
  * - Chemins relatifs → préfixe API_ORIGIN (doit être VITE_API_URL en prod).

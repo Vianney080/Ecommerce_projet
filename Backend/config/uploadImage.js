@@ -1,11 +1,6 @@
 const multer = require("multer");
-const fs = require("fs");
 const path = require("path");
-
-const DOSSIER_UPLOADS = path.join(__dirname, "..", "uploads");
-if (!fs.existsSync(DOSSIER_UPLOADS)) {
-  fs.mkdirSync(DOSSIER_UPLOADS, { recursive: true });
-}
+const { DOSSIER_UPLOADS } = require("./uploadsPath");
 
 const EXTENSIONS_AUTORISEES = new Set([".png", ".jpg", ".jpeg"]);
 const MIME_AUTORISES = new Set(["image/png", "image/jpeg"]);
