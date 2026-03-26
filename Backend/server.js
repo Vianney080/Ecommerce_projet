@@ -31,6 +31,25 @@ function estOrigineVercelApp(origin) {
   }
 }
 
+function origineAutorisee(origin) {
+  if (!origin) return false;
+  if (corsOrigins.includes(origin)) return true;
+  if (estOrigineVercelApp(origin)) return true;
+  if (/^http:\/\/localhost(:\d+)?$/i.test(origin) || /^http:\/\/127\.0\.0\.1(:\d+)?$/i.test(origin)) {
+    return true;
+  }
+  return false;
+}
+
+/** Réponses d’erreur / 404 : le package cors n’ajoute pas toujours les en-têtes → le navigateur affiche « CORS » à tort */
+function appliquerCorsReponse(req, res) {
+  const origin = req.headers.origin;
+  if (origin && origineAutorisee(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+  }
+}
+
 const corsOptions = {
   origin(origin, callback) {
     // Autorise les appels sans Origin (Postman, curl, checks Render, etc.)
@@ -39,25 +58,14 @@ const corsOptions = {
       return;
     }
 
-    // Domaines listés dans CORS_ORIGINS ou FRONTEND_URL (plusieurs URLs séparées par des virgules)
-    if (corsOrigins.includes(origin)) {
+    if (origineAutorisee(origin)) {
       callback(null, true);
       return;
     }
 
-    // N’importe quel sous-domaine *.vercel.app (souvent plusieurs noms pour le même projet)
-    if (estOrigineVercelApp(origin)) {
-      callback(null, true);
-      return;
-    }
-
-    if (/^http:\/\/localhost(:\d+)?$/i.test(origin) || /^http:\/\/127\.0\.0\.1(:\d+)?$/i.test(origin)) {
-      callback(null, true);
-      return;
-    }
-
+    // Ne pas utiliser callback(Error) : la lib cors renvoie une 500 sans Access-Control-Allow-Origin
     console.warn("[CORS] Origin refusée:", origin);
-    callback(new Error("Origin non autorisee par CORS"));
+    callback(null, false);
   },
   credentials: true
 };
@@ -82,6 +90,19 @@ mongoose.connect(process.env.MONGO_URI)
 
 app.get("/", (req, res) => {
     res.send("API Ecommerce fonctionne ");
+});
+
+app.use((req, res) => {
+  appliquerCorsReponse(req, res);
+  res.status(404).json({ message: "Route introuvable" });
+});
+
+app.use((err, req, res, next) => {
+  appliquerCorsReponse(req, res);
+  const status = Number(err.status || err.statusCode) || 500;
+  const message = err.message || "Erreur serveur";
+  console.error("[API]", status, message, err.stack ? err.stack.split("\n").slice(0, 3).join(" ") : "");
+  res.status(status).json({ message });
 });
 
 const PORT = process.env.PORT || 5000;
