@@ -21,6 +21,7 @@ export function PageInscription() {
   const [loading, setLoading] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
   const [succes, setSucces] = useState<string | null>(null);
+  const [avertissementSmtp, setAvertissementSmtp] = useState<string | null>(null);
   const [erreursChamps, setErreursChamps] = useState<{
     nom?: string;
     email?: string;
@@ -33,6 +34,7 @@ export function PageInscription() {
     e.preventDefault();
     setErreur(null);
     setSucces(null);
+    setAvertissementSmtp(null);
     setErreursChamps({});
 
     const nomNettoye = nom.trim();
@@ -78,12 +80,20 @@ export function PageInscription() {
       const data = await inscription({ nom: nomNettoye, email: emailNettoye, motDePasse: motDePasseTexte });
       if (data.verificationRequise) {
         setSucces(data.message || "Consultez votre boîte mail pour le code de vérification.");
+        if (data.avertissementEmail) {
+          setAvertissementSmtp(data.avertissementEmail);
+        }
+        const delai = data.avertissementEmail ? 3500 : 900;
         setTimeout(
           () =>
             navigate(`/verifier-email?email=${encodeURIComponent(emailNettoye)}`, {
-              state: { from: destinationApresConnexion },
+              state: {
+                from: destinationApresConnexion,
+                avertissementEmail: data.avertissementEmail,
+                codeDev: data.codeDev,
+              },
             }),
-          900
+          delai
         );
       } else {
         setSucces("Compte créé avec succès. Vous pouvez vous connecter.");
@@ -112,6 +122,11 @@ export function PageInscription() {
 
         {erreur && <div className="auth-alert auth-alert-error">{erreur}</div>}
         {succes && <div className="auth-alert auth-alert-success">{succes}</div>}
+        {avertissementSmtp && (
+          <div className="auth-alert auth-alert-warning" role="status">
+            {avertissementSmtp}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="auth-form-modern">
           <label className="auth-label">

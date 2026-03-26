@@ -8,7 +8,7 @@ const Utilisateur = require("../models/Utilisateur");
 const verifierToken = require("../middleware/verifierToken");
 const uploadImage = require("../config/uploadImage");
 const { stockerImage } = require("../services/imageStorage");
-const { envoyerMail, codesDevAutorises } = require("../services/mail");
+const { envoyerMail, codesDevAutorises, texteAvertissementEmail } = require("../services/mail");
 const {
   templateVerificationInscription,
   templateReinitialisationMotDePasse
@@ -116,7 +116,19 @@ router.post("/inscription", async (req, res) => {
       await utilisateur.save();
 
       const tpl = templateVerificationInscription({ nom: nomNormalise, code });
-      await envoyerMail({ to: emailNormalise, subject: tpl.subject, text: tpl.text, html: tpl.html });
+      const envoi = await envoyerMail({
+        to: emailNormalise,
+        subject: tpl.subject,
+        text: tpl.text,
+        html: tpl.html
+      });
+
+      const av = texteAvertissementEmail(envoi);
+      if (av) {
+        corpsReponse.avertissementEmail = av;
+        corpsReponse.message =
+          "Compte créé. Si SMTP est configuré sur le serveur, un code vous a été envoyé par email ; sinon suivez l'avertissement ci-dessous.";
+      }
 
       if (codesDevAutorises()) {
         corpsReponse.codeDev = code;
@@ -193,9 +205,13 @@ router.post("/renvoyer-code-verification", async (req, res) => {
     await utilisateur.save();
 
     const tpl = templateVerificationInscription({ nom: utilisateur.nom, code });
-    await envoyerMail({ to: emailNormalise, subject: tpl.subject, text: tpl.text, html: tpl.html });
+    const envoi = await envoyerMail({ to: emailNormalise, subject: tpl.subject, text: tpl.text, html: tpl.html });
 
     const reponse = { message: messageGenerique };
+    const av = texteAvertissementEmail(envoi);
+    if (av) {
+      reponse.avertissementEmail = av;
+    }
     if (codesDevAutorises()) {
       reponse.codeDev = code;
     }
@@ -411,6 +427,7 @@ router.post("/mot-de-passe-oublie", async (req, res) => {
       "Si un compte actif existe avec cet email, un code de réinitialisation vient d'y être envoyé.";
 
     let codeDev = null;
+    let envoi = null;
     if (utilisateur && utilisateur.estActif) {
       const code = genererCode6();
       utilisateur.resetPasswordTokenHash = null;
@@ -419,7 +436,7 @@ router.post("/mot-de-passe-oublie", async (req, res) => {
       await utilisateur.save();
 
       const tpl = templateReinitialisationMotDePasse({ nom: utilisateur.nom || "Client", code });
-      await envoyerMail({ to: emailNormalise, subject: tpl.subject, text: tpl.text, html: tpl.html });
+      envoi = await envoyerMail({ to: emailNormalise, subject: tpl.subject, text: tpl.text, html: tpl.html });
 
       if (codesDevAutorises()) {
         codeDev = code;
@@ -427,6 +444,10 @@ router.post("/mot-de-passe-oublie", async (req, res) => {
     }
 
     const reponse = { message: messageOk };
+    const av = texteAvertissementEmail(envoi);
+    if (av) {
+      reponse.avertissementEmail = av;
+    }
     if (codeDev) {
       reponse.codeDev = codeDev;
     }

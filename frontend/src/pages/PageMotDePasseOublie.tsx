@@ -12,6 +12,7 @@ export function PageMotDePasseOublie() {
   const [erreur, setErreur] = useState<string | null>(null);
   const [succes, setSucces] = useState<string | null>(null);
   const [codeDev, setCodeDev] = useState<string | null>(null);
+  const [avertissementSmtp, setAvertissementSmtp] = useState<string | null>(null);
   const [erreurEmail, setErreurEmail] = useState<string | null>(null);
 
   async function handleSubmit(e: FormEvent) {
@@ -19,6 +20,7 @@ export function PageMotDePasseOublie() {
     setErreur(null);
     setSucces(null);
     setCodeDev(null);
+    setAvertissementSmtp(null);
     setErreurEmail(null);
 
     const emailNettoye = email.trim().toLowerCase();
@@ -29,13 +31,18 @@ export function PageMotDePasseOublie() {
 
     setLoading(true);
     try {
-      const res = await api.post<{ message: string; codeDev?: string }>("/auth/mot-de-passe-oublie", {
+      const res = await api.post<{
+        message: string;
+        codeDev?: string;
+        avertissementEmail?: string;
+      }>("/auth/mot-de-passe-oublie", {
         email: emailNettoye
       });
       setSucces(
         res.data?.message ||
           "Si un compte existe avec cet email, un code de réinitialisation a été envoyé."
       );
+      setAvertissementSmtp(res.data?.avertissementEmail || null);
       if (res.data?.codeDev) {
         setCodeDev(res.data.codeDev);
       }
@@ -62,6 +69,11 @@ export function PageMotDePasseOublie() {
 
         {erreur && <div className="auth-alert auth-alert-error">{erreur}</div>}
         {succes && <div className="auth-alert auth-alert-success">{succes}</div>}
+        {avertissementSmtp && (
+          <div className="auth-alert auth-alert-warning" role="status">
+            {avertissementSmtp}
+          </div>
+        )}
         {succes && (
           <p className="auth-switch-text" style={{ marginTop: "0.5rem" }}>
             <Link

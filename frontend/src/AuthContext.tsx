@@ -17,6 +17,7 @@ interface AuthContextType {
         verificationRequise?: boolean;
         email?: string;
         codeDev?: string;
+        avertissementEmail?: string;
     }>;
     rafraichirProfil: () => Promise<void>;
     majUtilisateurLocal: (user: UtilisateurConnecte) => void;
@@ -96,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             verificationRequise?: boolean;
             email?: string;
             codeDev?: string;
+            avertissementEmail?: string;
         }>("/auth/inscription", data);
         return res.data;
     }

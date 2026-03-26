@@ -85,7 +85,7 @@ app.listen(PORT, () => {
       console.log("Emails transactionnels : SMTP configuré (confirmation commande, codes inscription / mot de passe).");
     } else {
       console.warn(
-        "Emails : SMTP non configuré (SMTP_HOST, SMTP_USER, SMTP_PASS) — aucun email réel envoyé ; prévisualisation dans les logs serveur."
+        "Emails : SMTP non configuré (SMTP_* ou EMAIL_HOST / EMAIL_USER / EMAIL_PASS) — aucun email réel envoyé ; voir les logs serveur."
       );
     }
 });

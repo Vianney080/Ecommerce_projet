@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { api } from "../api";
 import "../styles.css";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+type EtatNavVerifier = { avertissementEmail?: string; codeDev?: string } | null;
+
 export function PageVerifierEmail() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -16,6 +19,7 @@ export function PageVerifierEmail() {
   const [erreur, setErreur] = useState<string | null>(null);
   const [succes, setSucces] = useState<string | null>(null);
   const [codeDev, setCodeDev] = useState<string | null>(null);
+  const [avertissementSmtp, setAvertissementSmtp] = useState<string | null>(null);
 
   useEffect(() => {
     const em = searchParams.get("email") || "";
@@ -23,6 +27,17 @@ export function PageVerifierEmail() {
       setEmail((prev) => prev || em);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    const st = (location.state as EtatNavVerifier)?.avertissementEmail;
+    const cd = (location.state as EtatNavVerifier)?.codeDev;
+    if (st) {
+      setAvertissementSmtp(st);
+    }
+    if (cd) {
+      setCodeDev(String(cd));
+    }
+  }, [location.state]);
 
   async function soumettre(e: FormEvent) {
     e.preventDefault();
@@ -70,10 +85,15 @@ export function PageVerifierEmail() {
     }
     setLoadingRenvoi(true);
     try {
-      const res = await api.post<{ message?: string; codeDev?: string }>("/auth/renvoyer-code-verification", {
+      const res = await api.post<{
+        message?: string;
+        codeDev?: string;
+        avertissementEmail?: string;
+      }>("/auth/renvoyer-code-verification", {
         email: emailNettoye,
       });
       setSucces(res.data?.message || "Si un compte non vérifié existe, un code a été envoyé.");
+      setAvertissementSmtp(res.data?.avertissementEmail || null);
       if (res.data?.codeDev) {
         setCodeDev(res.data.codeDev);
       }
@@ -102,6 +122,11 @@ export function PageVerifierEmail() {
 
         {erreur && <div className="auth-alert auth-alert-error">{erreur}</div>}
         {succes && <div className="auth-alert auth-alert-success">{succes}</div>}
+        {avertissementSmtp && (
+          <div className="auth-alert auth-alert-warning" role="status">
+            {avertissementSmtp}
+          </div>
+        )}
 
         <form onSubmit={soumettre} className="auth-form-modern">
           <label className="auth-label">
