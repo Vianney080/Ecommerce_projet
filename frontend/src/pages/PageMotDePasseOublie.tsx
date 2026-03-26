@@ -35,6 +35,7 @@ export function PageMotDePasseOublie() {
         message: string;
         codeDev?: string;
         avertissementEmail?: string;
+        detailEnvoiEmail?: string;
       }>("/auth/mot-de-passe-oublie", {
         email: emailNettoye
       });
@@ -42,7 +43,9 @@ export function PageMotDePasseOublie() {
         res.data?.message ||
           "Si un compte existe avec cet email, un code de réinitialisation a été envoyé."
       );
-      setAvertissementSmtp(res.data?.avertissementEmail || null);
+      const av = res.data?.avertissementEmail;
+      const det = res.data?.detailEnvoiEmail;
+      setAvertissementSmtp(av ? (det ? `${av}\n\nDétail : ${det}` : av) : null);
       if (res.data?.codeDev) {
         setCodeDev(res.data.codeDev);
       }

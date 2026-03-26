@@ -126,6 +126,9 @@ router.post("/inscription", async (req, res) => {
       const av = texteAvertissementEmail(envoi);
       if (av) {
         corpsReponse.avertissementEmail = av;
+        if (envoi.erreur) {
+          corpsReponse.detailEnvoiEmail = envoi.erreur;
+        }
         corpsReponse.message =
           "Compte créé. Si SMTP est configuré sur le serveur, un code vous a été envoyé par email ; sinon suivez l'avertissement ci-dessous.";
       }
@@ -211,6 +214,9 @@ router.post("/renvoyer-code-verification", async (req, res) => {
     const av = texteAvertissementEmail(envoi);
     if (av) {
       reponse.avertissementEmail = av;
+      if (envoi?.erreur) {
+        reponse.detailEnvoiEmail = envoi.erreur;
+      }
     }
     if (codesDevAutorises()) {
       reponse.codeDev = code;
@@ -447,6 +453,9 @@ router.post("/mot-de-passe-oublie", async (req, res) => {
     const av = texteAvertissementEmail(envoi);
     if (av) {
       reponse.avertissementEmail = av;
+      if (envoi?.erreur) {
+        reponse.detailEnvoiEmail = envoi.erreur;
+      }
     }
     if (codeDev) {
       reponse.codeDev = codeDev;

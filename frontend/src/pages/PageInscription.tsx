@@ -81,7 +81,11 @@ export function PageInscription() {
       if (data.verificationRequise) {
         setSucces(data.message || "Consultez votre boîte mail pour le code de vérification.");
         if (data.avertissementEmail) {
-          setAvertissementSmtp(data.avertissementEmail);
+          setAvertissementSmtp(
+            data.detailEnvoiEmail
+              ? `${data.avertissementEmail}\n\nDétail : ${data.detailEnvoiEmail}`
+              : data.avertissementEmail
+          );
         }
         const delai = data.avertissementEmail ? 3500 : 900;
         setTimeout(
@@ -90,6 +94,7 @@ export function PageInscription() {
               state: {
                 from: destinationApresConnexion,
                 avertissementEmail: data.avertissementEmail,
+                detailEnvoiEmail: data.detailEnvoiEmail,
                 codeDev: data.codeDev,
               },
             }),

@@ -18,6 +18,7 @@ interface AuthContextType {
         email?: string;
         codeDev?: string;
         avertissementEmail?: string;
+        detailEnvoiEmail?: string;
     }>;
     rafraichirProfil: () => Promise<void>;
     majUtilisateurLocal: (user: UtilisateurConnecte) => void;
@@ -98,6 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             email?: string;
             codeDev?: string;
             avertissementEmail?: string;
+            detailEnvoiEmail?: string;
         }>("/auth/inscription", data);
         return res.data;
     }

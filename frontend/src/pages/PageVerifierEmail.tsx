@@ -6,7 +6,7 @@ import "../styles.css";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-type EtatNavVerifier = { avertissementEmail?: string; codeDev?: string } | null;
+type EtatNavVerifier = { avertissementEmail?: string; detailEnvoiEmail?: string; codeDev?: string } | null;
 
 export function PageVerifierEmail() {
   const navigate = useNavigate();
@@ -30,9 +30,10 @@ export function PageVerifierEmail() {
 
   useEffect(() => {
     const st = (location.state as EtatNavVerifier)?.avertissementEmail;
+    const det = (location.state as EtatNavVerifier)?.detailEnvoiEmail;
     const cd = (location.state as EtatNavVerifier)?.codeDev;
     if (st) {
-      setAvertissementSmtp(st);
+      setAvertissementSmtp(det ? `${st}\n\nDétail : ${det}` : st);
     }
     if (cd) {
       setCodeDev(String(cd));
@@ -89,11 +90,14 @@ export function PageVerifierEmail() {
         message?: string;
         codeDev?: string;
         avertissementEmail?: string;
+        detailEnvoiEmail?: string;
       }>("/auth/renvoyer-code-verification", {
         email: emailNettoye,
       });
       setSucces(res.data?.message || "Si un compte non vérifié existe, un code a été envoyé.");
-      setAvertissementSmtp(res.data?.avertissementEmail || null);
+      const av = res.data?.avertissementEmail;
+      const det = res.data?.detailEnvoiEmail;
+      setAvertissementSmtp(av ? (det ? `${av}\n\nDétail : ${det}` : av) : null);
       if (res.data?.codeDev) {
         setCodeDev(res.data.codeDev);
       }

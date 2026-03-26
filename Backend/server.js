@@ -11,7 +11,7 @@ const routesCommandes = require("./routes/commandes.routes");
 const routesPanier = require("./routes/panier.routes");
 const routesAdmin = require("./routes/admin.routes");
 const routesAvis = require("./routes/avis.routes");
-const { smtpConfigure } = require("./services/mail");
+const { smtpConfigure, verifierSmtpAuDemarrage } = require("./services/mail");
 require("dotenv").config();
 
 const app = express();
@@ -118,7 +118,8 @@ app.listen(PORT, () => {
       );
     }
     if (smtpConfigure()) {
-      console.log("Emails transactionnels : SMTP configuré (confirmation commande, codes inscription / mot de passe).");
+      console.log("Emails transactionnels : variables SMTP présentes — test de connexion en cours…");
+      verifierSmtpAuDemarrage().catch(() => {});
     } else {
       console.warn(
         "Emails : SMTP non configuré (SMTP_* ou EMAIL_HOST / EMAIL_USER / EMAIL_PASS) — aucun email réel envoyé ; voir les logs serveur."
