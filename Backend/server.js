@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -11,8 +12,7 @@ const routesCommandes = require("./routes/commandes.routes");
 const routesPanier = require("./routes/panier.routes");
 const routesAdmin = require("./routes/admin.routes");
 const routesAvis = require("./routes/avis.routes");
-const { smtpConfigure, verifierSmtpAuDemarrage } = require("./services/mail");
-require("dotenv").config();
+const { smtpConfigure, resendConfigure, verifierSmtpAuDemarrage } = require("./services/mail");
 
 const app = express();
 const ORIGINES_PLACEHOLDERS = new Set(["https://temp.local", "http://temp.local"]);
@@ -117,12 +117,21 @@ app.listen(PORT, () => {
         "Images: pas de Cloudinary ni UPLOADS_DIR — le dossier ./uploads sur le disque de l’instance est souvent efface au redeploiement (Render). Configurez CLOUDINARY_* ou un disque persistant."
       );
     }
-    if (smtpConfigure()) {
-      console.log("Emails transactionnels : variables SMTP présentes — test de connexion en cours…");
+    if (resendConfigure()) {
+      const len = String(process.env.RESEND_API_KEY || "").trim().length;
+      console.log(
+        `[mail] RESEND_API_KEY détectée (longueur ${len}) — les envois passent par HTTPS Resend, pas par Gmail/SMTP.`
+      );
+      verifierSmtpAuDemarrage().catch(() => {});
+    } else if (smtpConfigure()) {
+      console.warn(
+        "[mail] Pas de RESEND_API_KEY : utilisation SMTP (Gmail). Sur Render gratuit cela provoque souvent « Connection timeout »."
+      );
+      console.log("[mail] Test de connexion SMTP en cours…");
       verifierSmtpAuDemarrage().catch(() => {});
     } else {
       console.warn(
-        "Emails : SMTP non configuré (SMTP_* ou EMAIL_HOST / EMAIL_USER / EMAIL_PASS) — aucun email réel envoyé ; voir les logs serveur."
+        "[mail] Aucun envoi email : ajoutez RESEND_API_KEY sur Render ou EMAIL_HOST + EMAIL_USER + EMAIL_PASS."
       );
     }
 });

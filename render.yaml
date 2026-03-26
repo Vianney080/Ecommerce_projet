@@ -28,3 +28,8 @@ services:
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
+      # Recommandé sur plan gratuit (SMTP sortant souvent bloqué) — renseigner dans le dashboard si non géré par le Blueprint
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM
+        sync: false
