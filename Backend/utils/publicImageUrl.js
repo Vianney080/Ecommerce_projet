@@ -2,6 +2,8 @@
  * Assure que les chemins /uploads/... renvoient vers le bon hôte (Render, etc.)
  * quand le frontend résout les images.
  */
+const { ordonnerUrlsImagesParFiabilite } = require("./imageUrlOrder");
+
 function basePubliqueDepuisEnv() {
   const brut =
     process.env.PUBLIC_API_ORIGIN ||
@@ -43,6 +45,11 @@ function produitImagesAbsolues(produit, base) {
   if (!o) return produit;
   if (o.imageUrl) o.imageUrl = absoluImage(o.imageUrl, b);
   if (Array.isArray(o.imageUrls)) o.imageUrls = o.imageUrls.map((u) => absoluImage(u, b));
+  const fusion = ordonnerUrlsImagesParFiabilite([...(o.imageUrls || []), o.imageUrl].filter(Boolean));
+  if (fusion.length) {
+    o.imageUrls = fusion;
+    o.imageUrl = fusion[0];
+  }
   return o;
 }
 

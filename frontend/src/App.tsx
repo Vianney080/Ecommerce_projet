@@ -2,11 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { api, resolveAssetUrl } from "./api";
-import { ProductImage } from "./components/ProductImage";
+import { ProductImageCascade } from "./components/ProductImage";
 import { ajouterAuPanierInvite, lirePanierInvite, totalPanierInvite } from "./cartInvite";
 import { Breadcrumb } from "./components/Breadcrumb";
 import { useDocumentTitle, useMetaDescription } from "./hooks/useDocumentTitle";
 import { basculerListeSouhaits, estDansListeSouhaits } from "./wishlistInvite";
+import { trierUrlsImagesParFiabilite } from "./utils/imageUrlPriority";
 import "./styles.css";
 
 type TriAccueil = "recent" | "nom" | "prix_asc" | "prix_desc";
@@ -498,7 +499,11 @@ function App() {
         }>
       >("/produits");
       const mapped = res.data.map((p) => {
-        const imageSource = p.imageUrls?.[0] || p.imageUrl;
+        const urlsBrutes = [
+          ...(p.imageUrls || []).map((u) => resolveAssetUrl(u)),
+          resolveAssetUrl(p.imageUrl),
+        ].filter(Boolean);
+        const urlsTriees = trierUrlsImagesParFiabilite(Array.from(new Set(urlsBrutes)));
         return {
           id: p._id,
           backendId: p._id,
@@ -510,7 +515,7 @@ function App() {
           seuilMinimum: p.seuilMinimum,
           imageUrl: p.imageUrl,
           imageUrls: p.imageUrls || [],
-          image: resolveAssetUrl(imageSource),
+          image: urlsTriees[0] || "",
           createdAt: p.createdAt,
         };
       });
@@ -965,20 +970,25 @@ function App() {
         </div>
         <div className={`products-grid ${pageProduitsCourte ? "is-short-page" : ""}`}>
           {produitsAffichesPageCourante.map((produit) => {
-            const imagesCarte = Array.from(
-              new Set(
-                [
-                  ...(produit.imageUrls || []).map((img) => resolveAssetUrl(img)),
-                  produit.image,
-                ].filter(Boolean)
+            const imagesCarte = trierUrlsImagesParFiabilite(
+              Array.from(
+                new Set(
+                  [
+                    ...(produit.imageUrls || []).map((img) => resolveAssetUrl(img)),
+                    resolveAssetUrl(produit.imageUrl),
+                    produit.image,
+                  ].filter(Boolean)
+                )
               )
             );
             const survolCetteCarte =
               hoverCarouselCarte?.id === produit.id && imagesCarte.length > 1;
-            const indexImageAffichee = survolCetteCarte
-              ? hoverCarouselCarte!.i % imagesCarte.length
-              : 0;
-            const imageActive = imagesCarte[indexImageAffichee] || "";
+            const indexImageAffichee =
+              imagesCarte.length > 0
+                ? survolCetteCarte
+                  ? hoverCarouselCarte!.i % imagesCarte.length
+                  : 0
+                : 0;
             const stockDisponible = Number(produit.quantite);
             const ruptureStock = Number.isFinite(stockDisponible) && stockDisponible <= 0;
 
@@ -1011,10 +1021,11 @@ function App() {
                     {estDansListeSouhaits(idListe) ? "♥" : "♡"}
                   </button>
                   {ruptureStock && <span className="stock-out-badge">Rupture de stock</span>}
-                  {imageActive ? (
-                    <ProductImage
-                      key={`${produit.id}-img-${indexImageAffichee}`}
-                      src={imageActive}
+                  {imagesCarte.length > 0 ? (
+                    <ProductImageCascade
+                      key={`${produit.id}-vue-${indexImageAffichee}`}
+                      urls={imagesCarte}
+                      preferredIndex={indexImageAffichee}
                       alt={produit.nom}
                       className="product-image"
                       loading="lazy"

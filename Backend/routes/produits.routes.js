@@ -4,6 +4,7 @@ const Produit = require("../models/Produit");
 const verifierToken = require("../middleware/verifierToken");
 const uploadImage = require("../config/uploadImage");
 const { stockerImage } = require("../services/imageStorage");
+const { ordonnerUrlsImagesParFiabilite } = require("../utils/imageUrlOrder");
 const { basePubliqueDepuisReq, produitImagesAbsolues } = require("../utils/publicImageUrl");
 
 const MOTS_VIDES_RECHERCHE = new Set([
@@ -332,10 +333,11 @@ router.post(
         return res.status(400).json({ message: validation.message });
       }
 
+      const imageUrlsOrdonnees = ordonnerUrlsImagesParFiabilite(imageUrls);
       const nouveau = await Produit.create({
         ...validation.data,
-        imageUrl: imageUrls[0],
-        imageUrls
+        imageUrl: imageUrlsOrdonnees[0],
+        imageUrls: imageUrlsOrdonnees
       });
 
       return res.status(201).json(nouveau);
@@ -391,12 +393,13 @@ router.put(
         return res.status(400).json({ message: "Image obligatoire (.png, .jpg, .jpeg)." });
       }
 
+      const imageUrlsOrdonnees = ordonnerUrlsImagesParFiabilite(imageUrls);
       const modifie = await Produit.findByIdAndUpdate(
         req.params.id,
         {
           ...validation.data,
-          imageUrl: imageUrls[0],
-          imageUrls
+          imageUrl: imageUrlsOrdonnees[0],
+          imageUrls: imageUrlsOrdonnees
         },
         { new: true, runValidators: true }
       );

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, resolveAssetUrl } from "../api";
-import { ProductImage } from "../components/ProductImage";
+import { ProductImageCascade } from "../components/ProductImage";
 import { useAuth } from "../AuthContext";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import { lireListeSouhaits, retirerListeSouhaits } from "../wishlistInvite";
+import { trierUrlsImagesParFiabilite } from "../utils/imageUrlPriority";
 import "../styles.css";
 
 type ProduitApi = {
@@ -120,13 +121,22 @@ export function PageListeSouhaits() {
         ) : (
           <section className="catalogue-grid">
             {produits.map((p) => {
-              const src = resolveAssetUrl(p.imageUrls?.[0] || p.imageUrl);
+              const urlsCarte = trierUrlsImagesParFiabilite(
+                Array.from(
+                  new Set(
+                    [...(p.imageUrls || []), p.imageUrl]
+                      .filter(Boolean)
+                      .map((u) => resolveAssetUrl(String(u)))
+                  )
+                )
+              );
               return (
                 <article key={p._id} className="catalogue-card">
                   <div className="catalogue-card-image-wrap">
-                    {src ? (
-                      <ProductImage
-                        src={src}
+                    {urlsCarte.length > 0 ? (
+                      <ProductImageCascade
+                        urls={urlsCarte}
+                        preferredIndex={0}
                         alt={p.nom}
                         className="catalogue-card-image"
                         loading="lazy"

@@ -9,12 +9,13 @@ import {
 } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { api, resolveAssetUrl } from "../api";
-import { ProductImage } from "../components/ProductImage";
+import { ProductImageCascade } from "../components/ProductImage";
 import { useAuth } from "../AuthContext";
 import { ajouterAuPanierInvite, lirePanierInvite } from "../cartInvite";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import { basculerListeSouhaits, estDansListeSouhaits } from "../wishlistInvite";
+import { trierUrlsImagesParFiabilite } from "../utils/imageUrlPriority";
 import "../styles.css";
 
 type ProduitDetail = {
@@ -738,16 +739,25 @@ export function PageProduitDetail() {
             ) : (
               <div className={`catalogue-grid ${produitsMemeCategorie.length < 4 ? "is-short-page" : ""}`}>
                 {produitsMemeCategorie.map((item, index) => {
-                  const imagePrincipaleCarte = resolveAssetUrl(item.imageUrls?.[0] || item.imageUrl || "");
+                  const urlsCarte = trierUrlsImagesParFiabilite(
+                    Array.from(
+                      new Set(
+                        [...(item.imageUrls || []), item.imageUrl]
+                          .filter(Boolean)
+                          .map((u) => resolveAssetUrl(String(u)))
+                      )
+                    )
+                  );
                   const ruptureStock = Number(item.quantite) <= 0;
                   return (
                     <article key={item._id} className="catalogue-card">
                       <div className="catalogue-card-image-wrap">
                         {index === 0 && <span className="produit-related-badge">Produit recommande</span>}
                         {ruptureStock && <span className="stock-out-badge">Rupture de stock</span>}
-                        {imagePrincipaleCarte ? (
-                          <ProductImage
-                            src={imagePrincipaleCarte}
+                        {urlsCarte.length > 0 ? (
+                          <ProductImageCascade
+                            urls={urlsCarte}
+                            preferredIndex={0}
                             alt={item.nom}
                             className="catalogue-card-image"
                             loading="lazy"
@@ -770,7 +780,7 @@ export function PageProduitDetail() {
                                 _id: item._id,
                                 nom: item.nom,
                                 prixUnitaire: item.prixUnitaire,
-                                imageUrl: imagePrincipaleCarte,
+                                imageUrl: urlsCarte[0] || "",
                                 quantite: item.quantite,
                               })
                             }

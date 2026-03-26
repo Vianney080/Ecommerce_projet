@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, resolveAssetUrl } from "../api";
-import { ProductImage } from "../components/ProductImage";
+import { ProductImageCascade } from "../components/ProductImage";
 import { useAuth } from "../AuthContext";
 import { ajouterAuPanierInvite, lirePanierInvite } from "../cartInvite";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
+import { trierUrlsImagesParFiabilite } from "../utils/imageUrlPriority";
 import "../styles.css";
 
 interface Categorie {
@@ -481,19 +482,23 @@ export function PageCatalogue() {
               {produitsPageCourante.map((p) => {
                 const isStockBas = p.quantite < p.seuilMinimum;
                 const ruptureStock = Number(p.quantite) <= 0;
-                const imagesCarte = Array.from(
-                  new Set(
-                    [p.imageUrls?.[0], ...(p.imageUrls || []), p.imageUrl].filter(Boolean)
+                const imagesCarte = trierUrlsImagesParFiabilite(
+                  Array.from(
+                    new Set(
+                      [...(p.imageUrls || []), p.imageUrl]
+                        .filter(Boolean)
+                        .map((u) => resolveAssetUrl(String(u)))
+                    )
                   )
                 );
-                const imageActive = resolveAssetUrl(imagesCarte[0]);
                 return (
                   <article key={p._id} className="catalogue-card">
                     <div className="catalogue-card-image-wrap">
                       {ruptureStock && <span className="stock-out-badge">Rupture de stock</span>}
-                      {imageActive ? (
-                        <ProductImage
-                          src={imageActive}
+                      {imagesCarte.length > 0 ? (
+                        <ProductImageCascade
+                          urls={imagesCarte}
+                          preferredIndex={0}
                           alt={p.nom}
                           className="catalogue-card-image"
                           loading="lazy"
