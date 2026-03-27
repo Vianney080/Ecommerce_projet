@@ -2,6 +2,15 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../AuthContext";
+import { AuthFieldFooter, AuthPasswordField, AuthTextField } from "../components/AuthFormFields";
+import {
+  MSG_CONFIDENTIALITE,
+  MSG_CONFIRMATION_MDP,
+  MSG_EMAIL_INVALIDE,
+  MSG_MDP_REGLES,
+  MSG_NOM_INVALIDE,
+  messageErreurRequeteAuth,
+} from "../utils/authMessages";
 import "../styles.css";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -49,25 +58,25 @@ export function PageInscription() {
     } = {};
 
     if (nomNettoye.length < 2 || nomNettoye.length > 60) {
-      nouvellesErreurs.nom = "Le nom doit contenir entre 2 et 60 caracteres.";
+      nouvellesErreurs.nom = MSG_NOM_INVALIDE;
     }
 
-    if (!EMAIL_REGEX.test(emailNettoye)) {
-      nouvellesErreurs.email = "Veuillez saisir une adresse email valide.";
+    if (!emailNettoye) {
+      nouvellesErreurs.email = MSG_EMAIL_INVALIDE;
+    } else if (!EMAIL_REGEX.test(emailNettoye)) {
+      nouvellesErreurs.email = MSG_EMAIL_INVALIDE;
     }
 
     if (!PASSWORD_REGEX.test(motDePasseTexte)) {
-      nouvellesErreurs.motDePasse =
-        "Minimum 8 caracteres, avec majuscule, minuscule, chiffre et caractere special.";
+      nouvellesErreurs.motDePasse = MSG_MDP_REGLES;
     }
 
     if (confirmationMotDePasse !== motDePasseTexte) {
-      nouvellesErreurs.confirmationMotDePasse = "La confirmation du mot de passe ne correspond pas.";
+      nouvellesErreurs.confirmationMotDePasse = MSG_CONFIRMATION_MDP;
     }
 
     if (!accepteConfidentialite) {
-      nouvellesErreurs.confidentialite =
-        "Vous devez accepter la politique de confidentialite pour creer un compte.";
+      nouvellesErreurs.confidentialite = MSG_CONFIDENTIALITE;
     }
 
     if (Object.keys(nouvellesErreurs).length > 0) {
@@ -104,9 +113,8 @@ export function PageInscription() {
         setSucces("Compte créé avec succès. Vous pouvez vous connecter.");
         setTimeout(() => navigate("/connexion", { state: { from: destinationApresConnexion } }), 1000);
       }
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || "Erreur lors de l'inscription";
-      setErreur(msg);
+    } catch (err: unknown) {
+      setErreur(messageErreurRequeteAuth(err, "L’inscription n’a pas pu être finalisée."));
     } finally {
       setLoading(false);
     }
@@ -117,11 +125,11 @@ export function PageInscription() {
       <main className="auth-shell">
         <div className="auth-header">
           <Link to="/espace-client" className="client-back-link">
-            ← Retour a l'espace client
+            ← Retour à l’espace client
           </Link>
-          <h1 className="auth-title">Inscription</h1>
+          <h1 className="auth-title">Créer un compte</h1>
           <p className="auth-subtitle">
-            Creez votre compte pour gerer vos commandes et votre panier.
+            Créez votre compte pour suivre vos commandes et votre panier en toute simplicité.
           </p>
         </div>
 
@@ -133,129 +141,108 @@ export function PageInscription() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="auth-form-modern">
-          <label className="auth-label">
-            Nom complet
-            <input
-              type="text"
-              value={nom}
-              onChange={(e) => {
-                setNom(e.target.value);
-                setErreursChamps((prev) => ({ ...prev, nom: undefined }));
-              }}
-              className="auth-input"
-              minLength={2}
-              maxLength={60}
-              required
-            />
-            {erreursChamps.nom && <span className="auth-field-error">{erreursChamps.nom}</span>}
-          </label>
+        <form onSubmit={handleSubmit} className="auth-form-modern" noValidate>
+          <AuthTextField
+            label="Nom complet"
+            required
+            type="text"
+            value={nom}
+            onChange={(e) => {
+              setNom(e.target.value);
+              setErreursChamps((prev) => ({ ...prev, nom: undefined }));
+            }}
+            minLength={2}
+            maxLength={60}
+            autoComplete="name"
+            error={erreursChamps.nom}
+          />
 
-          <label className="auth-label">
-            Email
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setErreursChamps((prev) => ({ ...prev, email: undefined }));
-              }}
-              className="auth-input"
-              autoComplete="email"
-              required
-            />
-            {erreursChamps.email && <span className="auth-field-error">{erreursChamps.email}</span>}
-          </label>
+          <AuthTextField
+            label="Adresse e-mail"
+            required
+            type="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setErreursChamps((prev) => ({ ...prev, email: undefined }));
+            }}
+            autoComplete="email"
+            inputMode="email"
+            autoCapitalize="none"
+            spellCheck={false}
+            error={erreursChamps.email}
+          />
 
-          <label className="auth-label">
-            Mot de passe
-            <input
-              type="password"
-              value={motDePasse}
-              onChange={(e) => {
-                setMotDePasse(e.target.value);
-                setErreursChamps((prev) => ({ ...prev, motDePasse: undefined }));
-              }}
-              className="auth-input"
-              minLength={8}
-              maxLength={128}
-              autoComplete="new-password"
-              required
-            />
-            <span className="auth-helper">
-              8+ caracteres, avec majuscule, minuscule, chiffre et caractere special.
-            </span>
-            {erreursChamps.motDePasse && (
-              <span className="auth-field-error">{erreursChamps.motDePasse}</span>
-            )}
-          </label>
+          <AuthPasswordField
+            label="Mot de passe"
+            required
+            value={motDePasse}
+            onChange={(e) => {
+              setMotDePasse(e.target.value);
+              setErreursChamps((prev) => ({ ...prev, motDePasse: undefined }));
+            }}
+            autoComplete="new-password"
+            hint={!erreursChamps.motDePasse ? MSG_MDP_REGLES : undefined}
+            error={erreursChamps.motDePasse}
+          />
 
-          <label className="auth-label">
-            Confirmer le mot de passe
-            <input
-              type="password"
-              value={confirmationMotDePasse}
-              onChange={(e) => {
-                setConfirmationMotDePasse(e.target.value);
-                setErreursChamps((prev) => ({ ...prev, confirmationMotDePasse: undefined }));
-              }}
-              className="auth-input"
-              minLength={8}
-              maxLength={128}
-              autoComplete="new-password"
-              required
-            />
-            {erreursChamps.confirmationMotDePasse && (
-              <span className="auth-field-error">{erreursChamps.confirmationMotDePasse}</span>
-            )}
-          </label>
+          <AuthPasswordField
+            label="Confirmer le mot de passe"
+            required
+            value={confirmationMotDePasse}
+            onChange={(e) => {
+              setConfirmationMotDePasse(e.target.value);
+              setErreursChamps((prev) => ({ ...prev, confirmationMotDePasse: undefined }));
+            }}
+            autoComplete="new-password"
+            error={erreursChamps.confirmationMotDePasse}
+          />
 
           <div className="auth-privacy-box">
-            <p className="auth-privacy-title">Politique de confidentialite</p>
+            <p className="auth-privacy-title">Données personnelles</p>
             <p className="auth-privacy-text">
-              En creant un compte, vous acceptez que vos donnees (nom, email, commandes et adresse de livraison)
-              soient utilisees pour traiter vos achats, assurer le suivi client et ameliorer votre experience sur la
-              boutique.
+              En créant un compte, vous acceptez que vos données (nom, e-mail, commandes et adresse de livraison)
+              soient utilisées pour traiter vos achats et assurer le suivi client.
             </p>
             <p className="auth-privacy-text">
-              Vous pouvez demander la mise a jour ou la suppression de vos donnees a tout moment via votre espace
+              Vous pouvez demander la mise à jour ou la suppression de vos données à tout moment depuis votre espace
               client.
             </p>
             <p className="auth-privacy-link-row">
               <Link to="/politique-confidentialite" className="auth-switch-link">
-                Consulter la politique complete
+                Lire la politique de confidentialité
               </Link>
             </p>
-            <label className="auth-privacy-check">
-              <input
-                type="checkbox"
-                checked={accepteConfidentialite}
-                onChange={(e) => {
-                  setAccepteConfidentialite(e.target.checked);
-                  setErreursChamps((prev) => ({ ...prev, confidentialite: undefined }));
-                }}
-                required
-              />
-              <span>
-                J&apos;accepte la{" "}
-                <Link to="/politique-confidentialite" className="auth-switch-link">
-                  politique de confidentialite
-                </Link>
-                .
-              </span>
-            </label>
-            {erreursChamps.confidentialite && (
-              <span className="auth-field-error">{erreursChamps.confidentialite}</span>
-            )}
+            <AuthFieldFooter error={erreursChamps.confidentialite}>
+              <label className="auth-privacy-check">
+                <input
+                  type="checkbox"
+                  checked={accepteConfidentialite}
+                  onChange={(e) => {
+                    setAccepteConfidentialite(e.target.checked);
+                    setErreursChamps((prev) => ({ ...prev, confidentialite: undefined }));
+                  }}
+                />
+                <span>
+                  J’accepte la{" "}
+                  <Link to="/politique-confidentialite" className="auth-switch-link">
+                    politique de confidentialité
+                  </Link>
+                  <abbr className="auth-required-mark" title="Champ obligatoire">
+                    *
+                  </abbr>
+                </span>
+              </label>
+            </AuthFieldFooter>
           </div>
 
-          <button type="submit" disabled={loading} className="client-action client-action-primary">
-            {loading ? "Creation..." : "Creer mon compte"}
+          <button type="submit" disabled={loading} className="auth-submit-primary">
+            {loading ? "Création du compte…" : "Créer mon compte"}
           </button>
         </form>
 
-        <p className="auth-switch-text">
-          Vous avez deja un compte ?{" "}
+        <p className="auth-divider-text">Vous avez déjà un compte ?</p>
+        <p className="auth-switch-text" style={{ marginTop: "0.35rem", textAlign: "center" }}>
           <Link to="/connexion" state={{ from: destinationApresConnexion }} className="auth-switch-link">
             Se connecter
           </Link>
@@ -264,4 +251,3 @@ export function PageInscription() {
     </div>
   );
 }
-

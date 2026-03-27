@@ -2,6 +2,14 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate, useLocation, useParams } from "react-router-dom";
 import { api } from "../api";
+import { AuthPasswordField, AuthTextField } from "../components/AuthFormFields";
+import {
+  MSG_CODE_6,
+  MSG_CONFIRMATION_MDP,
+  MSG_EMAIL_INVALIDE,
+  MSG_MDP_REGLES,
+  messageErreurRequeteAuth,
+} from "../utils/authMessages";
 import "../styles.css";
 
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,128}$/;
@@ -43,13 +51,13 @@ export function PageReinitialiserMotDePasse() {
             </Link>
             <h1 className="auth-title">Lien expiré</h1>
             <p className="auth-subtitle">
-              La réinitialisation se fait désormais avec un <strong>code à 6 chiffres</strong> envoyé par email.
+              La réinitialisation se fait avec un <strong>code à 6 chiffres</strong> envoyé par e-mail.
             </p>
           </div>
           <div className="auth-alert auth-alert-info">
             Demandez un nouveau code depuis la page « Mot de passe oublié ».
           </div>
-          <Link to="/mot-de-passe-oublie" className="client-action client-action-primary" style={{ textDecoration: "none", textAlign: "center", display: "inline-block" }}>
+          <Link to="/mot-de-passe-oublie" className="auth-submit-primary">
             Mot de passe oublié
           </Link>
         </main>
@@ -67,18 +75,17 @@ export function PageReinitialiserMotDePasse() {
     const chiffres = code.replace(/\D/g, "").slice(0, 6);
     const nouvellesErreurs: typeof erreursChamps = {};
 
-    if (!EMAIL_REGEX.test(emailNettoye)) {
-      nouvellesErreurs.email = "Adresse email invalide.";
+    if (!emailNettoye || !EMAIL_REGEX.test(emailNettoye)) {
+      nouvellesErreurs.email = MSG_EMAIL_INVALIDE;
     }
     if (chiffres.length !== 6) {
-      nouvellesErreurs.code = "Le code doit contenir 6 chiffres.";
+      nouvellesErreurs.code = MSG_CODE_6;
     }
     if (!PASSWORD_REGEX.test(motDePasse)) {
-      nouvellesErreurs.motDePasse =
-        "Minimum 8 caracteres, avec majuscule, minuscule, chiffre et caractere special.";
+      nouvellesErreurs.motDePasse = MSG_MDP_REGLES;
     }
     if (motDePasse !== confirmation) {
-      nouvellesErreurs.confirmation = "La confirmation ne correspond pas au mot de passe.";
+      nouvellesErreurs.confirmation = MSG_CONFIRMATION_MDP;
     }
 
     if (Object.keys(nouvellesErreurs).length > 0) {
@@ -93,13 +100,10 @@ export function PageReinitialiserMotDePasse() {
         code: chiffres,
         motDePasse,
       });
-      setSucces(res.data?.message || "Mot de passe réinitialisé avec succès.");
+      setSucces(res.data?.message || "Votre mot de passe a bien été mis à jour.");
       window.setTimeout(() => navigate("/connexion"), 1200);
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        "Erreur lors de la réinitialisation du mot de passe.";
-      setErreur(msg);
+      setErreur(messageErreurRequeteAuth(err, "La réinitialisation n’a pas pu être enregistrée."));
     } finally {
       setLoading(false);
     }
@@ -112,102 +116,82 @@ export function PageReinitialiserMotDePasse() {
           <Link to="/connexion" className="client-back-link">
             ← Retour à la connexion
           </Link>
-          <h1 className="auth-title">Réinitialiser le mot de passe</h1>
+          <h1 className="auth-title">Nouveau mot de passe</h1>
           <p className="auth-subtitle">
-            Saisissez l&apos;email utilisé, le code reçu par courriel, puis votre nouveau mot de passe.
+            Saisissez l’e-mail du compte, le code reçu par courriel, puis votre nouveau mot de passe.
           </p>
         </div>
 
         {erreur && <div className="auth-alert auth-alert-error">{erreur}</div>}
         {succes && <div className="auth-alert auth-alert-success">{succes}</div>}
 
-        <form onSubmit={handleSubmit} className="auth-form-modern">
-          <label className="auth-label">
-            Email
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setErreursChamps((prev) => ({ ...prev, email: undefined }));
-              }}
-              className="auth-input"
-              autoComplete="email"
-              required
-            />
-            {erreursChamps.email && <span className="auth-field-error">{erreursChamps.email}</span>}
-          </label>
+        <form onSubmit={handleSubmit} className="auth-form-modern" noValidate>
+          <AuthTextField
+            label="Adresse e-mail"
+            required
+            type="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setErreursChamps((prev) => ({ ...prev, email: undefined }));
+            }}
+            autoComplete="email"
+            inputMode="email"
+            autoCapitalize="none"
+            spellCheck={false}
+            error={erreursChamps.email}
+          />
 
-          <label className="auth-label">
-            Code à 6 chiffres (email)
-            <input
-              type="text"
-              inputMode="numeric"
-              maxLength={8}
-              value={code}
-              onChange={(e) => {
-                setCode(e.target.value.replace(/\D/g, "").slice(0, 6));
-                setErreursChamps((prev) => ({ ...prev, code: undefined }));
-              }}
-              className="auth-input"
-              placeholder="000000"
-              autoComplete="one-time-code"
-              required
-            />
-            {erreursChamps.code && <span className="auth-field-error">{erreursChamps.code}</span>}
-          </label>
+          <AuthTextField
+            label="Code à 6 chiffres"
+            required
+            type="text"
+            inputMode="numeric"
+            maxLength={8}
+            value={code}
+            onChange={(e) => {
+              setCode(e.target.value.replace(/\D/g, "").slice(0, 6));
+              setErreursChamps((prev) => ({ ...prev, code: undefined }));
+            }}
+            placeholder="000000"
+            autoComplete="one-time-code"
+            hint={!erreursChamps.code ? "Le code figure dans l’e-mail « Mot de passe oublié »." : undefined}
+            error={erreursChamps.code}
+          />
 
-          <label className="auth-label">
-            Nouveau mot de passe
-            <input
-              type="password"
-              value={motDePasse}
-              onChange={(e) => {
-                setMotDePasse(e.target.value);
-                setErreursChamps((prev) => ({ ...prev, motDePasse: undefined }));
-              }}
-              className="auth-input"
-              autoComplete="new-password"
-              minLength={8}
-              maxLength={128}
-              required
-            />
-            <span className="auth-helper">
-              8+ caracteres, avec majuscule, minuscule, chiffre et caractere special.
-            </span>
-            {erreursChamps.motDePasse && (
-              <span className="auth-field-error">{erreursChamps.motDePasse}</span>
-            )}
-          </label>
+          <AuthPasswordField
+            label="Nouveau mot de passe"
+            required
+            value={motDePasse}
+            onChange={(e) => {
+              setMotDePasse(e.target.value);
+              setErreursChamps((prev) => ({ ...prev, motDePasse: undefined }));
+            }}
+            autoComplete="new-password"
+            hint={!erreursChamps.motDePasse ? MSG_MDP_REGLES : undefined}
+            error={erreursChamps.motDePasse}
+          />
 
-          <label className="auth-label">
-            Confirmer le mot de passe
-            <input
-              type="password"
-              value={confirmation}
-              onChange={(e) => {
-                setConfirmation(e.target.value);
-                setErreursChamps((prev) => ({ ...prev, confirmation: undefined }));
-              }}
-              className="auth-input"
-              autoComplete="new-password"
-              minLength={8}
-              maxLength={128}
-              required
-            />
-            {erreursChamps.confirmation && (
-              <span className="auth-field-error">{erreursChamps.confirmation}</span>
-            )}
-          </label>
+          <AuthPasswordField
+            label="Confirmer le nouveau mot de passe"
+            required
+            value={confirmation}
+            onChange={(e) => {
+              setConfirmation(e.target.value);
+              setErreursChamps((prev) => ({ ...prev, confirmation: undefined }));
+            }}
+            autoComplete="new-password"
+            error={erreursChamps.confirmation}
+          />
 
-          <button type="submit" disabled={loading} className="client-action client-action-primary">
-            {loading ? "Mise à jour…" : "Enregistrer le nouveau mot de passe"}
+          <button type="submit" disabled={loading} className="auth-submit-primary">
+            {loading ? "Enregistrement…" : "Enregistrer le nouveau mot de passe"}
           </button>
         </form>
 
-        <p className="auth-switch-text">
+        <p className="auth-switch-text" style={{ textAlign: "center", marginTop: "1rem" }}>
           <Link to="/mot-de-passe-oublie" className="auth-switch-link">
-            Je n&apos;ai pas reçu de code
+            Je n’ai pas reçu de code
           </Link>
         </p>
       </main>

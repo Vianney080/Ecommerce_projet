@@ -2,6 +2,8 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api";
+import { AuthTextField } from "../components/AuthFormFields";
+import { MSG_EMAIL_INVALIDE, messageErreurRequeteAuth } from "../utils/authMessages";
 import "../styles.css";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -24,8 +26,8 @@ export function PageMotDePasseOublie() {
     setErreurEmail(null);
 
     const emailNettoye = email.trim().toLowerCase();
-    if (!EMAIL_REGEX.test(emailNettoye)) {
-      setErreurEmail("Veuillez saisir une adresse email valide.");
+    if (!emailNettoye || !EMAIL_REGEX.test(emailNettoye)) {
+      setErreurEmail(MSG_EMAIL_INVALIDE);
       return;
     }
 
@@ -37,11 +39,11 @@ export function PageMotDePasseOublie() {
         avertissementEmail?: string;
         detailEnvoiEmail?: string;
       }>("/auth/mot-de-passe-oublie", {
-        email: emailNettoye
+        email: emailNettoye,
       });
       setSucces(
         res.data?.message ||
-          "Si un compte existe avec cet email, un code de réinitialisation a été envoyé."
+          "Si un compte existe avec cette adresse e-mail, un code à 6 chiffres vient d’être envoyé."
       );
       const av = res.data?.avertissementEmail;
       const det = res.data?.detailEnvoiEmail;
@@ -49,9 +51,8 @@ export function PageMotDePasseOublie() {
       if (res.data?.codeDev) {
         setCodeDev(res.data.codeDev);
       }
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || "Erreur lors de la demande de reinitialisation.";
-      setErreur(msg);
+    } catch (err: unknown) {
+      setErreur(messageErreurRequeteAuth(err, "Impossible d’envoyer le code pour le moment."));
     } finally {
       setLoading(false);
     }
@@ -62,11 +63,12 @@ export function PageMotDePasseOublie() {
       <main className="auth-shell">
         <div className="auth-header">
           <Link to="/connexion" className="client-back-link">
-            ← Retour a la connexion
+            ← Retour à la connexion
           </Link>
-          <h1 className="auth-title">Mot de passe oublie</h1>
+          <h1 className="auth-title">Mot de passe oublié</h1>
           <p className="auth-subtitle">
-            Entrez votre email : vous recevrez un code à 6 chiffres pour choisir un nouveau mot de passe.
+            Indiquez l’adresse e-mail de votre compte. Nous vous enverrons un code à 6 chiffres pour choisir un nouveau
+            mot de passe.
           </p>
         </div>
 
@@ -78,37 +80,36 @@ export function PageMotDePasseOublie() {
           </div>
         )}
         {succes && (
-          <p className="auth-switch-text" style={{ marginTop: "0.5rem" }}>
+          <p className="auth-switch-text" style={{ marginTop: "0.25rem" }}>
             <Link
               to="/reinitialiser-mot-de-passe"
               state={{ email: email.trim().toLowerCase() }}
-              className="client-action client-action-primary"
-              style={{ display: "inline-block", textDecoration: "none", textAlign: "center" }}
+              className="auth-submit-primary"
             >
-              Saisir le code et nouveau mot de passe
+              Saisir le code et le nouveau mot de passe
             </Link>
           </p>
         )}
 
-        <form onSubmit={handleSubmit} className="auth-form-modern">
-          <label className="auth-label">
-            Email
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setErreurEmail(null);
-              }}
-              className="auth-input"
-              autoComplete="email"
-              required
-            />
-            {erreurEmail && <span className="auth-field-error">{erreurEmail}</span>}
-          </label>
+        <form onSubmit={handleSubmit} className="auth-form-modern" noValidate>
+          <AuthTextField
+            label="Adresse e-mail"
+            required
+            type="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setErreurEmail(null);
+            }}
+            autoComplete="email"
+            inputMode="email"
+            autoCapitalize="none"
+            spellCheck={false}
+            error={erreurEmail ?? undefined}
+          />
 
-          <button type="submit" disabled={loading} className="client-action client-action-primary">
-            {loading ? "Envoi..." : "Envoyer le code"}
+          <button type="submit" disabled={loading} className="auth-submit-primary">
+            {loading ? "Envoi en cours…" : "M’envoyer le code"}
           </button>
         </form>
 
@@ -122,4 +123,3 @@ export function PageMotDePasseOublie() {
     </div>
   );
 }
-

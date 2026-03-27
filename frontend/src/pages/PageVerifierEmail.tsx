@@ -2,6 +2,12 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { api } from "../api";
+import { AuthTextField } from "../components/AuthFormFields";
+import {
+  MSG_CODE_6,
+  MSG_EMAIL_INVALIDE,
+  messageErreurRequeteAuth,
+} from "../utils/authMessages";
 import "../styles.css";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -32,6 +38,7 @@ export function PageVerifierEmail() {
   const [succes, setSucces] = useState<string | null>(null);
   const [codeDev, setCodeDev] = useState<string | null>(null);
   const [avertissementSmtp, setAvertissementSmtp] = useState<string | null>(null);
+  const [erreursChamps, setErreursChamps] = useState<{ email?: string; code?: string }>({});
 
   useEffect(() => {
     const em = searchParams.get("email") || "";
@@ -57,15 +64,20 @@ export function PageVerifierEmail() {
     setErreur(null);
     setSucces(null);
     setCodeDev(null);
+    setErreursChamps({});
+
     const emailNettoye = email.trim().toLowerCase();
     const chiffres = code.replace(/\D/g, "").slice(0, 6);
+    const champs: { email?: string; code?: string } = {};
 
-    if (!EMAIL_REGEX.test(emailNettoye)) {
-      setErreur("Adresse email invalide.");
-      return;
+    if (!emailNettoye || !EMAIL_REGEX.test(emailNettoye)) {
+      champs.email = MSG_EMAIL_INVALIDE;
     }
     if (chiffres.length !== 6) {
-      setErreur("Saisissez les 6 chiffres du code reçu par email.");
+      champs.code = MSG_CODE_6;
+    }
+    if (Object.keys(champs).length > 0) {
+      setErreursChamps(champs);
       return;
     }
 
@@ -75,20 +87,17 @@ export function PageVerifierEmail() {
         email: emailNettoye,
         code: chiffres,
       });
-      setSucces(res.data?.message || "Email vérifié.");
+      setSucces(res.data?.message || "Votre adresse e-mail est vérifiée. Vous pouvez vous connecter.");
       window.setTimeout(
         () =>
           navigate("/connexion", {
             replace: true,
-            state: { from: destinationApresConnexion }
+            state: { from: destinationApresConnexion },
           }),
         1400
       );
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        "Vérification impossible.";
-      setErreur(msg);
+      setErreur(messageErreurRequeteAuth(err, "La vérification n’a pas abouti."));
     } finally {
       setLoading(false);
     }
@@ -98,11 +107,14 @@ export function PageVerifierEmail() {
     setErreur(null);
     setSucces(null);
     setCodeDev(null);
+    setErreursChamps({});
+
     const emailNettoye = email.trim().toLowerCase();
-    if (!EMAIL_REGEX.test(emailNettoye)) {
-      setErreur("Indiquez d'abord une adresse email valide.");
+    if (!emailNettoye || !EMAIL_REGEX.test(emailNettoye)) {
+      setErreursChamps({ email: MSG_EMAIL_INVALIDE });
       return;
     }
+
     setLoadingRenvoi(true);
     try {
       const res = await api.post<{
@@ -113,7 +125,7 @@ export function PageVerifierEmail() {
       }>("/auth/renvoyer-code-verification", {
         email: emailNettoye,
       });
-      setSucces(res.data?.message || "Si un compte non vérifié existe, un code a été envoyé.");
+      setSucces(res.data?.message || "Si un compte non vérifié existe, un nouveau code vient d’être envoyé.");
       const av = res.data?.avertissementEmail;
       const det = res.data?.detailEnvoiEmail;
       setAvertissementSmtp(av ? (det ? `${av}\n\nDétail : ${det}` : av) : null);
@@ -121,9 +133,7 @@ export function PageVerifierEmail() {
         setCodeDev(res.data.codeDev);
       }
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Erreur lors de l'envoi.";
-      setErreur(msg);
+      setErreur(messageErreurRequeteAuth(err, "Impossible d’envoyer un nouveau code pour le moment."));
     } finally {
       setLoadingRenvoi(false);
     }
@@ -136,10 +146,10 @@ export function PageVerifierEmail() {
           <Link to="/connexion" state={{ from: destinationApresConnexion }} className="client-back-link">
             ← Retour à la connexion
           </Link>
-          <h1 className="auth-title">Vérifier mon email</h1>
+          <h1 className="auth-title">Vérifier mon e-mail</h1>
           <p className="auth-subtitle">
-            Un code à 6 chiffres a été envoyé à votre adresse après l&apos;inscription. Saisissez-le ci-dessous pour
-            activer votre compte.
+            Un code à 6 chiffres a été envoyé après votre inscription. Saisissez-le ci-dessous pour activer votre
+            compte.
           </p>
         </div>
 
@@ -151,41 +161,46 @@ export function PageVerifierEmail() {
           </div>
         )}
 
-        <form onSubmit={soumettre} className="auth-form-modern">
-          <label className="auth-label">
-            Email
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="auth-input"
-              autoComplete="email"
-              required
-            />
-          </label>
+        <form onSubmit={soumettre} className="auth-form-modern" noValidate>
+          <AuthTextField
+            label="Adresse e-mail"
+            required
+            type="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setErreursChamps((prev) => ({ ...prev, email: undefined }));
+            }}
+            autoComplete="email"
+            inputMode="email"
+            autoCapitalize="none"
+            spellCheck={false}
+            error={erreursChamps.email}
+          />
 
-          <label className="auth-label">
-            Code à 6 chiffres
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              maxLength={8}
-              value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              className="auth-input"
-              placeholder="000000"
-              autoComplete="one-time-code"
-              required
-            />
-          </label>
+          <AuthTextField
+            label="Code à 6 chiffres"
+            required
+            type="text"
+            inputMode="numeric"
+            maxLength={8}
+            value={code}
+            onChange={(e) => {
+              setCode(e.target.value.replace(/\D/g, "").slice(0, 6));
+              setErreursChamps((prev) => ({ ...prev, code: undefined }));
+            }}
+            placeholder="000000"
+            autoComplete="one-time-code"
+            hint={!erreursChamps.code ? "Vérifiez aussi le dossier courrier indésirable (spam)." : undefined}
+            error={erreursChamps.code}
+          />
 
-          <button type="submit" disabled={loading} className="client-action client-action-primary">
-            {loading ? "Vérification…" : "Valider mon email"}
+          <button type="submit" disabled={loading} className="auth-submit-primary">
+            {loading ? "Vérification…" : "Valider mon e-mail"}
           </button>
         </form>
 
-        <p className="auth-switch-text">
+        <p className="auth-switch-text" style={{ textAlign: "center", marginTop: "0.85rem" }}>
           Code non reçu ?{" "}
           <button
             type="button"
