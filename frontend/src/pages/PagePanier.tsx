@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api, resolveAssetUrl } from "../api";
 import { useAuth } from "../AuthContext";
 import {
+  CLE_TRANSFERT_PANIER_INVITE,
   lirePanierInvite,
   modifierQuantitePanierInvite,
   supprimerDuPanierInvite,
@@ -50,7 +51,6 @@ const ADRESSE_PAR_DEFAUT: AdresseLivraison = {
 };
 const TAUX_TAXE = 0.15;
 const cleAdresseLivraison = (utilisateurId?: string) => `adresse_livraison:${utilisateurId || "invite"}`;
-const CLE_TRANSFERT_PANIER_INVITE = "cosmetishop_panier_invite_transfer";
 
 const FRONTEND_IMAGE_BY_NAME: Record<string, string> = {
   "rouge a levres velours":
@@ -323,11 +323,17 @@ export function PagePanier() {
     }
   }
 
-  /** Meme comportement que le bouton « Se connecter pour commander » (transfert panier invite + retour panier apres login). */
-  function allerConnexionPourCommanderInvite() {
+  /** Transfert panier invité au backend après connexion + retour sur /panier (liens header, bouton, texte). */
+  function marquerTransfertPanierInviteEtAllerConnexion(messageHint?: string) {
     localStorage.setItem(CLE_TRANSFERT_PANIER_INVITE, "1");
-    setMessage("Connectez-vous pour finaliser la commande et recuperer votre panier invite.");
+    if (messageHint) setMessage(messageHint);
     navigate("/connexion", { state: { from: "/panier" } });
+  }
+
+  function allerConnexionPourCommanderInvite() {
+    marquerTransfertPanierInviteEtAllerConnexion(
+      "Connectez-vous pour finaliser la commande et recuperer votre panier invite."
+    );
   }
 
   function commander() {
@@ -483,10 +489,20 @@ export function PagePanier() {
               </>
             ) : (
               <>
-                <Link to="/connexion" className="nav-auth-btn nav-auth-link">
+                <Link
+                  to="/connexion"
+                  state={{ from: "/panier" }}
+                  onClick={() => localStorage.setItem(CLE_TRANSFERT_PANIER_INVITE, "1")}
+                  className="nav-auth-btn nav-auth-link"
+                >
                   Se connecter
                 </Link>
-                <Link to="/inscription" className="nav-auth-btn nav-auth-btn-primary nav-auth-link">
+                <Link
+                  to="/inscription"
+                  state={{ from: "/panier" }}
+                  onClick={() => localStorage.setItem(CLE_TRANSFERT_PANIER_INVITE, "1")}
+                  className="nav-auth-btn nav-auth-btn-primary nav-auth-link"
+                >
                   Créer un compte
                 </Link>
               </>

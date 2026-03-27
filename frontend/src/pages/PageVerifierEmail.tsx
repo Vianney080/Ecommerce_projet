@@ -6,11 +6,23 @@ import "../styles.css";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-type EtatNavVerifier = { avertissementEmail?: string; detailEnvoiEmail?: string; codeDev?: string } | null;
+type EtatNavVerifier = {
+  from?: string;
+  avertissementEmail?: string;
+  detailEnvoiEmail?: string;
+  codeDev?: string;
+} | null;
+
+function destinationDepuisEtat(state: unknown): string {
+  const from = (state as EtatNavVerifier)?.from;
+  if (typeof from === "string" && from.startsWith("/") && !from.startsWith("//")) return from;
+  return "/";
+}
 
 export function PageVerifierEmail() {
   const navigate = useNavigate();
   const location = useLocation();
+  const destinationApresConnexion = destinationDepuisEtat(location.state);
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -64,7 +76,14 @@ export function PageVerifierEmail() {
         code: chiffres,
       });
       setSucces(res.data?.message || "Email vérifié.");
-      window.setTimeout(() => navigate("/connexion", { replace: true }), 1400);
+      window.setTimeout(
+        () =>
+          navigate("/connexion", {
+            replace: true,
+            state: { from: destinationApresConnexion }
+          }),
+        1400
+      );
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
@@ -114,7 +133,7 @@ export function PageVerifierEmail() {
     <div className="client-page">
       <main className="auth-shell">
         <div className="auth-header">
-          <Link to="/connexion" className="client-back-link">
+          <Link to="/connexion" state={{ from: destinationApresConnexion }} className="client-back-link">
             ← Retour à la connexion
           </Link>
           <h1 className="auth-title">Vérifier mon email</h1>

@@ -1,7 +1,11 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { api, type UtilisateurConnecte, type AuthResponse } from "./api";
-import { fusionnerPanierInviteVersBackend, viderPanierInvite } from "./cartInvite";
+import {
+  CLE_TRANSFERT_PANIER_INVITE,
+  fusionnerPanierInviteVersBackend,
+  viderPanierInvite
+} from "./cartInvite";
 
 interface AuthContextType {
     utilisateur: UtilisateurConnecte | null;
@@ -26,7 +30,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-const CLE_TRANSFERT_PANIER_INVITE = "cosmetishop_panier_invite_transfer";
 
 function appliquerTheme(themeInterface?: string) {
     if (typeof window === "undefined") return;

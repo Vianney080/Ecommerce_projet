@@ -1,5 +1,8 @@
 import type { AxiosInstance } from "axios";
 
+/** Marqueur localStorage : fusionner le panier invité au backend après connexion (parcours panier / paiement). */
+export const CLE_TRANSFERT_PANIER_INVITE = "cosmetishop_panier_invite_transfer";
+
 export type ItemPanierInvite = {
   produitId: string;
   nomProduit: string;
