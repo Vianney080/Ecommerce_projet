@@ -202,6 +202,17 @@ function texteAvertissementEmail(resultat) {
       detail
     );
   }
+  // Resend (clé API sans domaine vérifié) : seuls les destinataires « autorisés » par le compte Resend reçoivent les mails.
+  if (/only send testing emails to your own email|verify a domain at resend\.com/i.test(detail)) {
+    return (
+      "L’email n’a pas pu être envoyé : votre compte Resend est en mode test (expéditeur type onboarding@resend.dev). " +
+      "Resend n’autorise alors que l’envoi vers l’adresse liée au compte Resend, pas vers n’importe quel client. " +
+      "Pour envoyer les codes d’inscription à de vrais utilisateurs : vérifiez un domaine sur https://resend.com/domains , " +
+      "puis définissez RESEND_FROM sur Render avec une adresse de ce domaine (ex. noreply@votredomaine.com). " +
+      "Détail technique : " +
+      detail
+    );
+  }
   return (
     "L'email n'a pas pu être envoyé. Détail : " +
     detail +
