@@ -15,7 +15,10 @@ import { ajouterAuPanierInvite, lirePanierInvite } from "../cartInvite";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import { basculerListeSouhaits, estDansListeSouhaits } from "../wishlistInvite";
-import { trierUrlsImagesParFiabilite } from "../utils/imageUrlPriority";
+import {
+  NB_VIGNETES_IMAGES_PRIORITAIRES,
+  trierUrlsImagesParFiabilite,
+} from "../utils/imageUrlPriority";
 import { PrixAvecPromo } from "../components/PrixAvecPromo";
 import "../styles.css";
 
@@ -534,6 +537,8 @@ export function PageProduitDetail() {
                     src={imagePrincipale}
                     alt={produit.nom}
                     className="produit-image-main"
+                    fetchPriority="high"
+                    decoding="async"
                     style={{
                       transform: `scale(${zoom})`,
                       transformOrigin: `${origin.x}% ${origin.y}%`,
@@ -557,7 +562,13 @@ export function PageProduitDetail() {
                         setOrigin({ x: 50, y: 50 });
                       }}
                     >
-                      <img src={img} alt={`${produit.nom} vue ${idx + 1}`} />
+                      <img
+                        src={img}
+                        alt={`${produit.nom} vue ${idx + 1}`}
+                        loading={idx === imageActiveIndex ? "eager" : "lazy"}
+                        decoding="async"
+                        fetchPriority={idx === imageActiveIndex ? "high" : undefined}
+                      />
                     </button>
                   ))}
                 </div>
@@ -748,6 +759,7 @@ export function PageProduitDetail() {
             ) : (
               <div className={`catalogue-grid ${produitsMemeCategorie.length < 4 ? "is-short-page" : ""}`}>
                 {produitsMemeCategorie.map((item, index) => {
+                  const chargementImagePrioritaire = index < NB_VIGNETES_IMAGES_PRIORITAIRES;
                   const urlsCarte = trierUrlsImagesParFiabilite(
                     Array.from(
                       new Set(
@@ -769,8 +781,9 @@ export function PageProduitDetail() {
                             preferredIndex={0}
                             alt={item.nom}
                             className="catalogue-card-image"
-                            loading="lazy"
+                            loading={chargementImagePrioritaire ? "eager" : "lazy"}
                             decoding="async"
+                            fetchPriority={chargementImagePrioritaire ? "high" : undefined}
                           />
                         ) : (
                           <div className="catalogue-card-image catalogue-card-image-placeholder" aria-hidden="true" />

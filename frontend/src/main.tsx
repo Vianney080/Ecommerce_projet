@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import type { ReactNode } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 
+import { API_ORIGIN } from "./api";
 import App from './App.tsx'
 import { AuthProvider } from "./AuthContext.tsx";
 import { useAuth } from "./AuthContext.tsx";
@@ -62,6 +63,28 @@ function ClientRoute({ children }: { children: ReactNode }) {
 
   return <>{children}</>;
 }
+
+/** DNS + TLS vers l’hôte des /uploads/ avant les <img>, surtout utile sur mobile (domaine différent du front). */
+function injecterPreconnectApi() {
+  if (typeof document === "undefined") return;
+  const brut = String(API_ORIGIN || "").trim();
+  if (!brut) return;
+  let origin: string;
+  try {
+    origin = new URL(/^https?:\/\//i.test(brut) ? brut : `https://${brut}`).origin;
+  } catch {
+    return;
+  }
+  const id = "preconnect-api-assets";
+  if (document.getElementById(id)) return;
+  const link = document.createElement("link");
+  link.id = id;
+  link.rel = "preconnect";
+  link.href = origin;
+  document.head.appendChild(link);
+}
+
+injecterPreconnectApi();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -6,7 +6,10 @@ import { useAuth } from "../AuthContext";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import { lireListeSouhaits, retirerListeSouhaits } from "../wishlistInvite";
-import { trierUrlsImagesParFiabilite } from "../utils/imageUrlPriority";
+import {
+  NB_VIGNETES_IMAGES_PRIORITAIRES,
+  trierUrlsImagesParFiabilite,
+} from "../utils/imageUrlPriority";
 import { PrixAvecPromo } from "../components/PrixAvecPromo";
 import "../styles.css";
 
@@ -122,7 +125,8 @@ export function PageListeSouhaits() {
           </div>
         ) : (
           <section className="catalogue-grid">
-            {produits.map((p) => {
+            {produits.map((p, index) => {
+              const chargementImagePrioritaire = index < NB_VIGNETES_IMAGES_PRIORITAIRES;
               const urlsCarte = trierUrlsImagesParFiabilite(
                 Array.from(
                   new Set(
@@ -141,8 +145,9 @@ export function PageListeSouhaits() {
                         preferredIndex={0}
                         alt={p.nom}
                         className="catalogue-card-image"
-                        loading="lazy"
+                        loading={chargementImagePrioritaire ? "eager" : "lazy"}
                         decoding="async"
+                        fetchPriority={chargementImagePrioritaire ? "high" : undefined}
                       />
                     ) : (
                       <div className="catalogue-card-image catalogue-card-image-placeholder" />

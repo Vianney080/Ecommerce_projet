@@ -8,7 +8,7 @@ import { ajouterAuPanierInvite, lirePanierInvite, totalPanierInvite } from "./ca
 import { Breadcrumb } from "./components/Breadcrumb";
 import { useDocumentTitle, useMetaDescription } from "./hooks/useDocumentTitle";
 import { basculerListeSouhaits, estDansListeSouhaits } from "./wishlistInvite";
-import { trierUrlsImagesParFiabilite } from "./utils/imageUrlPriority";
+import { NB_VIGNETES_IMAGES_PRIORITAIRES, trierUrlsImagesParFiabilite } from "./utils/imageUrlPriority";
 import "./styles.css";
 
 type TriAccueil = "recent" | "nom" | "prix_asc" | "prix_desc";
@@ -977,7 +977,7 @@ function App() {
           </p>
         </div>
         <div className={`products-grid ${pageProduitsCourte ? "is-short-page" : ""}`}>
-          {produitsAffichesPageCourante.map((produit) => {
+          {produitsAffichesPageCourante.map((produit, index) => {
             const imagesCarte = trierUrlsImagesParFiabilite(
               Array.from(
                 new Set(
@@ -1001,6 +1001,7 @@ function App() {
             const ruptureStock = Number.isFinite(stockDisponible) && stockDisponible <= 0;
 
             const idListe = String(produit.backendId || produit.id);
+            const chargementImagePrioritaire = index < NB_VIGNETES_IMAGES_PRIORITAIRES;
             return (
               <article key={produit.id} className="product-card">
                 <div
@@ -1036,8 +1037,9 @@ function App() {
                       preferredIndex={indexImageAffichee}
                       alt={produit.nom}
                       className="product-image"
-                      loading="lazy"
+                      loading={chargementImagePrioritaire ? "eager" : "lazy"}
                       decoding="async"
+                      fetchPriority={chargementImagePrioritaire ? "high" : undefined}
                     />
                   ) : (
                     <div className="product-image product-image-fallback" aria-hidden="true" />

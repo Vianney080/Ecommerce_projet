@@ -1,13 +1,20 @@
 /**
- * Priorise les URLs stables (Cloudinary, HTTPS) avant /uploads/ (souvent ephemere sur Render).
+ * Cloudinary d’abord, puis photos /uploads/ (catalogue réel), puis autres https.
  */
 function scoreUrlImageStable(url) {
-  const u = String(url || "").toLowerCase();
+  const u = String(url || "").toLowerCase().trim();
   if (u.includes("res.cloudinary.com")) return 40;
   if (u.includes("cloudinary.com")) return 35;
+  try {
+    const abs = u.startsWith("//") ? `https:${u}` : u;
+    const parsed = new URL(abs);
+    if (String(parsed.pathname).toLowerCase().includes("/uploads/")) return 32;
+  } catch {
+    /* ignore */
+  }
   if (u.startsWith("https://")) return 20;
   if (u.startsWith("http://")) return 15;
-  if (u.startsWith("/uploads/")) return 5;
+  if (u.startsWith("/uploads/")) return 32;
   return 0;
 }
 

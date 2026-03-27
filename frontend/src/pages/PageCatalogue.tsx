@@ -6,7 +6,10 @@ import { useAuth } from "../AuthContext";
 import { ajouterAuPanierInvite, lirePanierInvite } from "../cartInvite";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
-import { trierUrlsImagesParFiabilite } from "../utils/imageUrlPriority";
+import {
+  NB_VIGNETES_IMAGES_PRIORITAIRES,
+  trierUrlsImagesParFiabilite,
+} from "../utils/imageUrlPriority";
 import { PrixAvecPromo } from "../components/PrixAvecPromo";
 import "../styles.css";
 
@@ -481,9 +484,10 @@ export function PageCatalogue() {
         ) : (
           <>
             <section className={`catalogue-grid ${pageCatalogueCourte ? "is-short-page" : ""}`}>
-              {produitsPageCourante.map((p) => {
+              {produitsPageCourante.map((p, index) => {
                 const isStockBas = p.quantite < p.seuilMinimum;
                 const ruptureStock = Number(p.quantite) <= 0;
+                const chargementImagePrioritaire = index < NB_VIGNETES_IMAGES_PRIORITAIRES;
                 const imagesCarte = trierUrlsImagesParFiabilite(
                   Array.from(
                     new Set(
@@ -503,8 +507,9 @@ export function PageCatalogue() {
                           preferredIndex={0}
                           alt={p.nom}
                           className="catalogue-card-image"
-                          loading="lazy"
+                          loading={chargementImagePrioritaire ? "eager" : "lazy"}
                           decoding="async"
+                          fetchPriority={chargementImagePrioritaire ? "high" : undefined}
                         />
                       ) : (
                         <div className="catalogue-card-image catalogue-card-image-placeholder" />
