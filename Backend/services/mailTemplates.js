@@ -6,14 +6,48 @@ function echapperHtml(s) {
     .replace(/"/g, "&quot;");
 }
 
+/**
+ * URL publique du front pour les liens dans les e-mails (suivi commande, etc.).
+ * Doit être l’URL de production actuelle (ex. https://votre-app.vercel.app ou votre domaine).
+ * Si elle est fausse ou obsolète (ancien nom Vercel), les clics mènent à DEPLOYMENT_NOT_FOUND.
+ *
+ * Variables prises en charge (la première définie gagne) : FRONTEND_URL, PUBLIC_SITE_URL,
+ * CLIENT_SITE_URL, SITE_URL.
+ */
 function baseUrlFront() {
-  return String(process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
+  const brut =
+    process.env.FRONTEND_URL ||
+    process.env.PUBLIC_SITE_URL ||
+    process.env.CLIENT_SITE_URL ||
+    process.env.SITE_URL ||
+    "";
+  let s = String(brut).trim().replace(/\/+$/, "");
+  if (!s) {
+    return "http://localhost:5173";
+  }
+  if (!/^https?:\/\//i.test(s)) {
+    s = `https://${s.replace(/^\/+/, "")}`;
+  }
+  try {
+    const u = new URL(s);
+    if (u.protocol !== "http:" && u.protocol !== "https:") {
+      throw new Error("protocole invalide");
+    }
+    return u.origin;
+  } catch (e) {
+    console.warn(
+      "[mailTemplates] URL front invalide pour les e-mails, utilisation de http://localhost:5173. Corrigez FRONTEND_URL sur l’hébergement (Render, etc.). Valeur reçue :",
+      brut
+    );
+    return "http://localhost:5173";
+  }
 }
 
 function lienSuivi(numeroFacture, email) {
-  const u = new URL("/suivi-commande", baseUrlFront());
-  u.searchParams.set("numero", numeroFacture);
-  u.searchParams.set("email", email);
+  const base = baseUrlFront();
+  const u = new URL("/suivi-commande", `${base}/`);
+  u.searchParams.set("numero", String(numeroFacture || "").trim());
+  u.searchParams.set("email", String(email || "").trim().toLowerCase());
   return u.toString();
 }
 
@@ -100,6 +134,7 @@ Merci pour votre achat.
   <p><strong>N° commande / facture :</strong> ${fac}<br/>
   <strong>Total :</strong> ${Number(total).toFixed(2)} $</p>
   <p><a href="${echapperHtml(suivi)}" style="color:#0d9488;">Suivre ma commande</a></p>
+  <p style="font-size:0.8rem;color:#64748b;word-break:break-all;">Si le bouton ne s’ouvre pas, copiez ce lien dans votre navigateur :<br/>${echapperHtml(suivi)}</p>
   <p>Merci pour votre achat.</p>
   <p>— CosmétiShop</p>
 </body></html>`;
@@ -132,6 +167,7 @@ Page de suivi : ${suivi}
   <p>Votre commande <strong>${fac}</strong> est <strong>expédiée</strong> ou en cours d'acheminement.</p>
   <p>${echapperHtml(suiviBloc)}</p>
   <p><a href="${echapperHtml(suivi)}" style="color:#0d9488;">Suivre ma commande</a></p>
+  <p style="font-size:0.8rem;color:#64748b;word-break:break-all;">Lien direct (copier-coller si besoin) :<br/>${echapperHtml(suivi)}</p>
   <p>— CosmétiShop</p>
 </body></html>`;
   return { subject, text, html };
@@ -157,6 +193,7 @@ ${suivi}
   <p>Votre commande <strong>${fac}</strong> est <strong>livrée</strong>.</p>
   <p>Nous espérons que vous apprécierez vos produits.</p>
   <p><a href="${echapperHtml(suivi)}" style="color:#0d9488;">Voir le détail de la commande</a></p>
+  <p style="font-size:0.8rem;color:#64748b;word-break:break-all;">Si le lien ne fonctionne pas, copiez cette adresse dans la barre d’adresse :<br/>${echapperHtml(suivi)}</p>
   <p>— CosmétiShop</p>
 </body></html>`;
   return { subject, text, html };
@@ -184,6 +221,7 @@ Page de suivi : ${suivi}
   <p>Le suivi de votre commande <strong>${fac}</strong> a été mis à jour.</p>
   <p>${echapperHtml(detail)}</p>
   <p><a href="${echapperHtml(suivi)}" style="color:#0d9488;">Suivre ma commande</a></p>
+  <p style="font-size:0.8rem;color:#64748b;word-break:break-all;">Lien direct :<br/>${echapperHtml(suivi)}</p>
   <p>— CosmétiShop</p>
 </body></html>`;
   return { subject, text, html };

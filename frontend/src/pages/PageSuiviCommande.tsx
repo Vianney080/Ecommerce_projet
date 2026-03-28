@@ -85,31 +85,51 @@ export function PageSuiviCommande() {
     "Suivez votre commande CosmétiShop avec votre numéro de commande (facture FAC-…) et l’email utilisé lors de l’achat."
   );
 
-  async function consulter(e: React.FormEvent) {
-    e.preventDefault();
-    setErreur(null);
-    setResultat(null);
-    const id = commandeId.trim();
-    const em = email.trim().toLowerCase();
+  async function chargerSuivi(idBrut: string, emailBrut: string, signal?: AbortSignal) {
+    const id = idBrut.trim();
+    const em = emailBrut.trim().toLowerCase();
     if (!id || !em) {
       setErreur("Renseignez le numéro de commande et votre email.");
       return;
     }
+    setErreur(null);
+    setResultat(null);
     setLoading(true);
     try {
       const res = await api.get<SuiviPayload>(
         `/commandes/suivi-public/${encodeURIComponent(id)}`,
-        { params: { email: em } }
+        { params: { email: em }, signal }
       );
       setResultat(res.data);
     } catch (err: unknown) {
+      const code = (err as { code?: string })?.code;
+      const name = (err as { name?: string })?.name;
+      if (code === "ERR_CANCELED" || name === "CanceledError") return;
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
         "Impossible de trouver cette commande. Vérifiez le numéro (ex. FAC-…) et l’email.";
       setErreur(msg);
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) {
+        setLoading(false);
+      }
     }
+  }
+
+  /** Lien reçu par e-mail : ouverture directe sur le détail (type parcours e-commerce). */
+  useEffect(() => {
+    const n = (searchParams.get("numero") || searchParams.get("cmd") || "").trim();
+    const em = (searchParams.get("email") || "").trim().toLowerCase();
+    if (!n || !em) return;
+    const ac = new AbortController();
+    void chargerSuivi(n, em, ac.signal);
+    return () => ac.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- exécution liée à l’URL uniquement
+  }, [searchParams]);
+
+  async function consulter(e: React.FormEvent) {
+    e.preventDefault();
+    await chargerSuivi(commandeId, email);
   }
 
   async function copierNumero(texte: string) {
