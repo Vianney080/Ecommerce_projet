@@ -6287,6 +6287,33 @@ html.theme-dark .legal-subtitle {
   color: #cbd5e1 !important;
 }
 
+/* Menu hamburger (mobile) : panneau et liens cohérents avec le thème sombre */
+@media (max-width: 900px) {
+  html.theme-dark .nav-center {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+  }
+
+  html.theme-dark .nav-center .nav-link {
+    background: #0f172a !important;
+    color: #e5e7eb !important;
+  }
+
+  html.theme-dark .nav-center .nav-link:hover {
+    background: #334155 !important;
+    color: #fda4af !important;
+  }
+
+  html.theme-dark .nav-mobile-toggle {
+    background: #1e293b !important;
+    border-color: #475569 !important;
+  }
+
+  html.theme-dark .nav-mobile-toggle span {
+    background: #e5e7eb !important;
+  }
+}
+
 html.theme-dark .nav-user-name,
 html.theme-dark .product-title,
 html.theme-dark .catalogue-card-title,
