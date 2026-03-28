@@ -162,169 +162,6 @@ const SLIDES: Slide[] = [
   },
 ];
 
-const PRODUITS_EXEMPLE: Produit[] = [
-  {
-    id: 1,
-    nom: "Rouge à lèvres velours",
-    categorie: "Maquillage",
-    prix: 14.9,
-    image:
-      "https://images.pexels.com/photos/3373742/pexels-photo-3373742.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    id: 2,
-    nom: "Sérum éclat vitaminé C",
-    categorie: "Soins visage",
-    prix: 29.9,
-    image:
-      "https://glowrabeautysupply.com/modules/bonbanner/views/img/6dc7ab513632596df446f62170082b04d69516c6_FB4.jpg",
-  },
-  {
-    id: 3,
-    nom: "Crème hydratante jour",
-    categorie: "Soins visage",
-    prix: 19.5,
-    image:
-      "https://images.pexels.com/photos/3738341/pexels-photo-3738341.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    id: 4,
-    nom: "Palette yeux nude",
-    categorie: "Maquillage",
-    prix: 24.0,
-    image:
-      "https://images.pexels.com/photos/3373712/pexels-photo-3373712.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    id: 5,
-    nom: "Parfum fleur de coton",
-    categorie: "Parfums",
-    prix: 39.9,
-    image:
-      "https://images.pexels.com/photos/965989/pexels-photo-965989.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    id: 6,
-    nom: "Huile capillaire nourrissante",
-    categorie: "Soins capillaires",
-    prix: 17.9,
-    image:
-      "https://images.pexels.com/photos/3738344/pexels-photo-3738344.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    id: 7,
-    nom: "Palette yeux nude",
-    categorie: "Maquillage",
-    prix: 24.0,
-    image:
-      "https://images.pexels.com/photos/3373714/pexels-photo-3373714.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    id: 8,
-    nom: "Fond de teint longue tenue",
-    categorie: "Maquillage",
-    prix: 32.5,
-    image:
-      "https://images.pexels.com/photos/3738115/pexels-photo-3738115.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    id: 9,
-    nom: "Masque hydratant intense",
-    categorie: "Soins visage",
-    prix: 21.5,
-    image:
-      "https://images.pexels.com/photos/3738355/pexels-photo-3738355.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    id: 10,
-    nom: "Gel nettoyant doux",
-    categorie: "Soins visage",
-    prix: 15.75,
-    image:
-      "https://images.pexels.com/photos/3738460/pexels-photo-3738460.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    id: 11,
-    nom: "Brume parfumée florale",
-    categorie: "Parfums",
-    prix: 27.9,
-    image:
-      "https://images.pexels.com/photos/965984/pexels-photo-965984.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    id: 12,
-    nom: "Eau de parfum raffinée",
-    categorie: "Parfums",
-    prix: 45.0,
-    image:
-      "https://images.pexels.com/photos/965989/pexels-photo-965989.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    id: 13,
-    nom: "Shampooing réparateur",
-    categorie: "Soins capillaires",
-    prix: 18.25,
-    image:
-      "https://images.pexels.com/photos/3738348/pexels-photo-3738348.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    id: 14,
-    nom: "Après‑shampooing lissant",
-    categorie: "Soins capillaires",
-    prix: 19.95,
-    image:
-      "https://images.pexels.com/photos/3735657/pexels-photo-3735657.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    id: 15,
-    nom: "Huile sèche pailletée",
-    categorie: "Corps",
-    prix: 26.4,
-    image:
-      "https://images.pexels.com/photos/3738374/pexels-photo-3738374.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    id: 16,
-    nom: "Lait corps nourrissant",
-    categorie: "Corps",
-    prix: 16.9,
-    image:
-      "https://images.pexels.com/photos/3738382/pexels-photo-3738382.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    id: 17,
-    nom: "Crème mains réparatrice",
-    categorie: "Corps",
-    prix: 9.9,
-    image:
-      "https://images.pexels.com/photos/3738390/pexels-photo-3738390.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    id: 18,
-    nom: "Gommage corps douceur",
-    categorie: "Corps",
-    prix: 22.0,
-    image:
-      "https://images.pexels.com/photos/3738346/pexels-photo-3738346.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    id: 19,
-    nom: "Kit découverte miniatures",
-    categorie: "Coffrets",
-    prix: 34.9,
-    image:
-      "https://images.pexels.com/photos/3738386/pexels-photo-3738386.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-  {
-    id: 20,
-    nom: "Coffret cadeau spa maison",
-    categorie: "Coffrets",
-    prix: 54.0,
-    image:
-      "https://images.pexels.com/photos/3738373/pexels-photo-3738373.jpeg?auto=compress&cs=tinysrgb&w=640",
-  },
-];
-
 const PRODUITS_PAR_PAGE = 8;
 
 function App() {
@@ -332,6 +169,10 @@ function App() {
   const [recherche, setRecherche] = useState("");
   const [categorie, setCategorie] = useState("Toutes");
   const [produitsBackend, setProduitsBackend] = useState<Produit[]>([]);
+  /** Premier chargement : squelettes tant que l’API n’a pas répondu. */
+  const [chargementInitialCatalogue, setChargementInitialCatalogue] = useState(true);
+  const [catalogueAccueilErreur, setCatalogueAccueilErreur] = useState(false);
+  const catalogueRecuAvecSuccesRef = useRef(false);
   const [itemsPanier, setItemsPanier] = useState<ItemPanier[]>([]);
   const [totalPanier, setTotalPanier] = useState(0);
   const [slideActif, setSlideActif] = useState(0);
@@ -354,13 +195,7 @@ function App() {
   const motsClesRecherche = useMemo(() => extraireMotsClesRecherche(recherche), [recherche]);
   const rechercheOuFiltreActif = recherche.trim() !== "" || categorie !== "Toutes";
 
-  const produitsSource = useMemo(() => {
-    if (produitsBackend.length === 0) {
-      return PRODUITS_EXEMPLE;
-    }
-    // La page d'accueil doit refléter exactement les données admin/backend.
-    return produitsBackend;
-  }, [produitsBackend]);
+  const produitsSource = useMemo(() => produitsBackend, [produitsBackend]);
 
   const categoriesDisponibles = useMemo(() => {
     return ["Toutes", ...Array.from(new Set(produitsSource.map((p) => p.categorie)))];
@@ -424,7 +259,7 @@ function App() {
   }, [produitsFiltres, triAccueil]);
 
   const totalPagesProduits = useMemo(() => {
-    return Math.max(1, Math.ceil(produitsAffiches.length / PRODUITS_PAR_PAGE));
+    return Math.ceil(produitsAffiches.length / PRODUITS_PAR_PAGE);
   }, [produitsAffiches.length]);
 
   const produitsAffichesPageCourante = useMemo(() => {
@@ -433,6 +268,7 @@ function App() {
   }, [produitsAffiches, pageCourante]);
   const pageProduitsCourte = produitsAffichesPageCourante.length > 0 && produitsAffichesPageCourante.length < 4;
   const paginationCompacteProduits = useMemo(() => {
+    if (totalPagesProduits <= 0) return [];
     if (totalPagesProduits <= 7) {
       return Array.from({ length: totalPagesProduits }, (_, index) => index + 1);
     }
@@ -485,7 +321,11 @@ function App() {
     setTotalPanier(panier.total || 0);
   }
 
-  const chargerProduitsBackend = useCallback(async () => {
+  const chargerProduitsBackend = useCallback(async (options?: { avecSquelettes?: boolean }) => {
+    if (options?.avecSquelettes) {
+      setChargementInitialCatalogue(true);
+      setCatalogueAccueilErreur(false);
+    }
     try {
       const res = await api.get<
         Array<{
@@ -528,8 +368,14 @@ function App() {
         };
       });
       setProduitsBackend(mapped);
+      catalogueRecuAvecSuccesRef.current = true;
+      setCatalogueAccueilErreur(false);
     } catch {
-      /* Ne pas vider le catalogue (erreur réseau / 502 Render) : évite images + textes « fantômes » */
+      if (!catalogueRecuAvecSuccesRef.current) {
+        setCatalogueAccueilErreur(true);
+      }
+    } finally {
+      setChargementInitialCatalogue(false);
     }
   }, []);
 
@@ -582,15 +428,14 @@ function App() {
       });
       return;
     }
-    let produitBackendId =
+    const produitBackendId =
       produit.backendId ||
       produitsBackend.find(
         (p) =>
           normaliserTexte(p.nom) === normaliserTexte(produit.nom) &&
           normaliserTexte(p.categorie) === normaliserTexte(produit.categorie)
       )?.backendId ||
-      produitsBackend.find((p) => normaliserTexte(p.nom) === normaliserTexte(produit.nom))
-        ?.backendId;
+      produitsBackend.find((p) => normaliserTexte(p.nom) === normaliserTexte(produit.nom))?.backendId;
 
     if (!produitBackendId) {
       setMessagePanier({
@@ -615,8 +460,10 @@ function App() {
             : "Article ajouté au panier avec succès."),
         type: "success",
       });
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || "Erreur lors de l'ajout au panier.";
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        "Erreur lors de l'ajout au panier.";
       setMessagePanier({ texte: msg, type: "error" });
     }
   }
@@ -667,6 +514,7 @@ function App() {
   }, [motsClesRecherche, categorie, triAccueil]);
 
   useEffect(() => {
+    if (totalPagesProduits <= 0) return;
     setPageCourante((page) => Math.min(page, totalPagesProduits));
   }, [totalPagesProduits]);
 
@@ -976,16 +824,38 @@ function App() {
             compte client.
           </p>
         </div>
-        <div className={`products-grid ${pageProduitsCourte ? "is-short-page" : ""}`}>
-          {produitsAffichesPageCourante.map((produit, index) => {
+        <div
+          className={`products-grid ${pageProduitsCourte ? "is-short-page" : ""}${chargementInitialCatalogue ? " products-grid--skeleton" : ""}`}
+          aria-busy={chargementInitialCatalogue}
+        >
+          {chargementInitialCatalogue
+            ? Array.from({ length: PRODUITS_PAR_PAGE }, (_, sk) => (
+                <article
+                  key={`catalogue-skeleton-${sk}`}
+                  className="product-card product-card--skeleton"
+                  aria-hidden="true"
+                >
+                  <div className="product-card-skeleton-image" />
+                  <div className="product-card-skeleton-body">
+                    <div className="product-card-skeleton-line product-card-skeleton-line--cat" />
+                    <div className="product-card-skeleton-line product-card-skeleton-line--title" />
+                    <div className="product-card-skeleton-line product-card-skeleton-line--price" />
+                    <div className="product-card-skeleton-actions">
+                      <span className="product-card-skeleton-btn" />
+                      <span className="product-card-skeleton-btn product-card-skeleton-btn--ghost" />
+                    </div>
+                  </div>
+                </article>
+              ))
+            : null}
+          {!chargementInitialCatalogue &&
+            produitsAffichesPageCourante.map((produit, index) => {
             const imagesCarte = trierUrlsImagesParFiabilite(
               Array.from(
                 new Set(
-                  [
-                    ...(produit.imageUrls || []).map((img) => resolveAssetUrl(img)),
-                    resolveAssetUrl(produit.imageUrl),
-                    produit.image,
-                  ].filter(Boolean)
+                  [...(produit.imageUrls || []), produit.imageUrl]
+                    .filter(Boolean)
+                    .map((u) => resolveAssetUrl(String(u)))
                 )
               )
             );
@@ -1086,11 +956,39 @@ function App() {
               </article>
             );
           })}
-          {produitsFiltres.length === 0 && (
-            <p className="products-empty">Aucun produit ne correspond à votre recherche.</p>
-          )}
+          {!chargementInitialCatalogue && catalogueAccueilErreur && produitsBackend.length === 0 ? (
+            <div className="products-empty products-empty-state" role="status">
+              <p className="products-empty-title">Catalogue indisponible</p>
+              <p className="products-empty-hint">
+                Vérifiez votre connexion ou que l’API est démarrée, puis réessayez.
+              </p>
+              <button
+                type="button"
+                className="btn btn-product products-empty-retry"
+                onClick={() => void chargerProduitsBackend({ avecSquelettes: true })}
+              >
+                Réessayer
+              </button>
+            </div>
+          ) : null}
+          {!chargementInitialCatalogue &&
+          !catalogueAccueilErreur &&
+          produitsBackend.length === 0 &&
+          produitsFiltres.length === 0 ? (
+            <div className="products-empty products-empty-state" role="status">
+              <p className="products-empty-title">Aucun produit pour le moment</p>
+              <p className="products-empty-hint">
+                Les articles ajoutés dans l’administration s’affichent ici automatiquement, avec leurs photos.
+              </p>
+            </div>
+          ) : null}
+          {!chargementInitialCatalogue &&
+          produitsBackend.length > 0 &&
+          produitsFiltres.length === 0 ? (
+            <p className="products-empty">Aucun produit ne correspond à votre recherche ou à ce filtre.</p>
+          ) : null}
         </div>
-        {produitsFiltres.length > 0 && totalPagesProduits > 1 && (
+        {!chargementInitialCatalogue && produitsFiltres.length > 0 && totalPagesProduits > 1 ? (
           <div className="products-pagination">
             <p className="products-pagination-info">
               Page {pageCourante} sur {totalPagesProduits}
@@ -1132,7 +1030,7 @@ function App() {
               </button>
             </div>
           </div>
-        )}
+        ) : null}
       </section>
 
     </div>
