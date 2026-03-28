@@ -2280,16 +2280,41 @@ body {
   background: #0f172a;
   color: white;
   font-size: 0.8rem;
+  font-weight: 500;
   padding: 0.55rem 1rem;
   cursor: pointer;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition:
+    background 0.22s ease,
+    color 0.22s ease,
+    border-color 0.22s ease,
+    transform 0.2s ease,
+    box-shadow 0.22s ease,
+    font-weight 0.15s ease,
+    letter-spacing 0.2s ease;
 }
 
-.btn-product:hover {
-  background: #020617;
+.btn-product:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ec4899 0%, #f97316 100%);
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(236, 72, 153, 0.42);
+  border-color: transparent;
+}
+
+.btn-product:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 6px 16px rgba(236, 72, 153, 0.32);
+}
+
+.btn-product:focus-visible {
+  outline: 2px solid #ec4899;
+  outline-offset: 2px;
 }
 
 .btn-product:disabled {
@@ -6324,6 +6349,19 @@ html.theme-dark .legal-title {
 
 html.theme-dark .product-content {
   background: #111827 !important;
+}
+
+html.theme-dark .product-card .btn-product:not(:disabled) {
+  background: #1e293b !important;
+  border-color: #475569 !important;
+  color: #f8fafc !important;
+}
+
+html.theme-dark .product-card .btn-product:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ec4899 0%, #f97316 100%) !important;
+  border-color: transparent !important;
+  color: #ffffff !important;
+  box-shadow: 0 12px 28px rgba(236, 72, 153, 0.38) !important;
 }
 
 html.theme-dark .product-category,
