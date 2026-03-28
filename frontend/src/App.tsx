@@ -662,7 +662,7 @@ function App() {
                         <span>Total</span>
                         <span>{formatCAD(totalPanier)}</span>
                       </div>
-                      <Link to="/panier" className="nav-link">
+                      <Link to="/panier" className="nav-cart-cta">
                         Voir mon panier
                       </Link>
                     </>

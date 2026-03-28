@@ -319,6 +319,27 @@ body {
   font-weight: 600;
   padding-top: 0.35rem;
   border-top: 1px solid rgba(226, 232, 240, 0.9);
+  color: #0f172a;
+}
+
+.nav-cart-cta {
+  display: block;
+  margin-top: 0.55rem;
+  text-align: center;
+  border-radius: 999px;
+  padding: 0.42rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: #ffffff;
+  background: linear-gradient(135deg, #ec4899, #f97316);
+  border: 1px solid transparent;
+  box-shadow: 0 6px 16px rgba(236, 72, 153, 0.25);
+}
+
+.nav-cart-cta:hover {
+  filter: brightness(1.05);
+  color: #ffffff;
 }
 
 @media (max-width: 900px) {
@@ -6459,6 +6480,43 @@ html.theme-dark .legal-subtitle {
   color: #cbd5e1 !important;
 }
 
+/* Panier header : le panneau gardait un fond blanc avec du texte hérité clair (illisible) */
+html.theme-dark .nav-cart-panel {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #e5e7eb !important;
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.45);
+}
+
+html.theme-dark .nav-cart-empty {
+  color: #94a3b8 !important;
+}
+
+html.theme-dark .nav-cart-item {
+  border-bottom-color: #334155 !important;
+}
+
+html.theme-dark .nav-cart-item-name,
+html.theme-dark .nav-cart-item-price {
+  color: #f1f5f9 !important;
+}
+
+html.theme-dark .nav-cart-total {
+  color: #f8fafc !important;
+  border-top-color: #475569 !important;
+}
+
+html.theme-dark .nav-cart-cta {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #db2777, #ea580c) !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+html.theme-dark .nav-cart-cta:hover {
+  color: #ffffff !important;
+  filter: brightness(1.08);
+}
+
 /* Menu hamburger (mobile) : panneau et liens cohérents avec le thème sombre */
 @media (max-width: 900px) {
   html.theme-dark .nav-center {
@@ -7074,8 +7132,22 @@ html.theme-dark .panier-item-visual {
   border-color: #334155 !important;
 }
 
+/* Quantité : la carte .panier-item impose du texte clair ; le cadre qty restait clair → chiffres invisibles */
+html.theme-dark .panier-qty-box {
+  background: #0f172a !important;
+  border-color: #475569 !important;
+}
+
+html.theme-dark .panier-qty-value {
+  color: #f8fafc !important;
+}
+
+html.theme-dark .panier-qty-btn {
+  color: #e5e7eb !important;
+}
+
 html.theme-dark .panier-footer-status {
-  color: #cbd5e1 !important;
+  color: #e2e8f0 !important;
 }
 
 html.theme-dark .panier-footer-total {
