@@ -2,7 +2,18 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, API_ORIGIN } from "../api";
 import { useAuth } from "../AuthContext";
-import { getRegionOptions, resolveCountryCode } from "../locationData";
+import { getCountryOptions, getRegionOptions, resolveCountryCode } from "../locationData";
+import {
+  filtrerNomPropre,
+  filtrerVille,
+  validerFormulaireAdresse,
+  validerTitulaireCarte,
+  validerNumeroCarte,
+  validerExpiration,
+  validerCvv,
+  type ChampsAdresseErreurs,
+  type ErreursPaiementCarte,
+} from "../utils/checkoutValidation";
 import "../styles.css";
 
 interface ItemPanier {
@@ -54,7 +65,15 @@ const COUPONS: Record<string, { type: "percent" | "fixed"; value: number }> = {
   SAVE5: { type: "fixed", value: 5 },
 };
 
-function adresseDepuisProfil(utilisateur: any): Partial<AdresseLivraison> {
+function adresseDepuisProfil(utilisateur: {
+  nom?: string;
+  adresse?: string;
+  ville?: string;
+  province?: string;
+  codePostal?: string;
+  pays?: string;
+  telephone?: string;
+} | null): Partial<AdresseLivraison> {
   if (!utilisateur) return {};
   return {
     nomComplet: String(utilisateur.nom || "").trim(),
@@ -65,24 +84,6 @@ function adresseDepuisProfil(utilisateur: any): Partial<AdresseLivraison> {
     pays: resolveCountryCode(utilisateur.pays || "CA") || "CA",
     telephone: String(utilisateur.telephone || "").trim(),
   };
-}
-
-function expirationValide(mmAa: string) {
-  const match = mmAa.match(/^(\d{2})\/(\d{2})$/);
-  if (!match) return false;
-
-  const mois = Number(match[1]);
-  const annee2 = Number(match[2]);
-  if (mois < 1 || mois > 12) return false;
-
-  const annee = 2000 + annee2;
-  const maintenant = new Date();
-  const moisActuel = maintenant.getMonth() + 1;
-  const anneeActuelle = maintenant.getFullYear();
-
-  if (annee < anneeActuelle) return false;
-  if (annee === anneeActuelle && mois < moisActuel) return false;
-  return true;
 }
 
 export function PagePaiement() {
@@ -99,6 +100,8 @@ export function PagePaiement() {
   const [cvv, setCvv] = useState("");
   const [couponCode, setCouponCode] = useState("");
   const [adresse, setAdresse] = useState<AdresseLivraison>(ADRESSE_PAR_DEFAUT);
+  const [erreursAdresse, setErreursAdresse] = useState<ChampsAdresseErreurs>({});
+  const [erreursCarte, setErreursCarte] = useState<ErreursPaiementCarte>({});
 
   const initialesUtilisateur = useMemo(() => {
     if (!utilisateur?.nom) return "U";
@@ -116,6 +119,9 @@ export function PagePaiement() {
         : `${API_ORIGIN}/${utilisateur.avatarUrl}`
     : "";
   const profilAdressePrefill = useMemo(() => adresseDepuisProfil(utilisateur), [utilisateur]);
+  const paysOptions = useMemo(() => getCountryOptions("fr-CA"), []);
+  const provinceOptions = useMemo(() => getRegionOptions(adresse.pays), [adresse.pays]);
+  const provinceObligatoire = provinceOptions.length > 0;
 
   const sousTotal = panier?.total || 0;
   const couponNormalise = couponCode.trim().toUpperCase();
@@ -163,6 +169,7 @@ export function PagePaiement() {
   }, [profilAdressePrefill, utilisateur?.id]);
 
   function remplirAdresseDepuisProfil() {
+    setErreursAdresse({});
     setAdresse((precedente) => ({
       ...precedente,
       nomComplet: profilAdressePrefill.nomComplet || precedente.nomComplet,
@@ -173,7 +180,7 @@ export function PagePaiement() {
       pays: profilAdressePrefill.pays || precedente.pays || "CA",
       telephone: profilAdressePrefill.telephone || precedente.telephone,
     }));
-    setMessage("Adresse de livraison synchronisee depuis votre profil.");
+    setMessage("Adresse de livraison synchronisée depuis votre profil.");
     setErreur(null);
   }
 
@@ -184,8 +191,10 @@ export function PagePaiement() {
       try {
         const res = await api.get<Panier>("/panier");
         setPanier(res.data);
-      } catch (err: any) {
-        const msg = err?.response?.data?.message || "Impossible de charger le panier";
+      } catch (err: unknown) {
+        const msg =
+          (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+          "Impossible de charger le panier";
         setErreur(msg);
       } finally {
         setLoading(false);
@@ -200,50 +209,30 @@ export function PagePaiement() {
     setMessage(null);
 
     if (!panier?.items?.length) {
-      setErreur("Votre panier est vide.");
+      setErreur("Votre panier est vide. Retournez au catalogue pour ajouter des articles.");
       return;
     }
 
-    const champsAdresse: Array<keyof AdresseLivraison> = [
-      "nomComplet",
-      "rue",
-      "ville",
-      "codePostal",
-      "pays",
-    ];
-    for (const champ of champsAdresse) {
-      if (!adresse[champ].trim()) {
-        setErreur("Adresse de livraison incomplète. Revenez au panier pour la compléter.");
-        return;
-      }
-    }
-    const paysAvecRegions = getRegionOptions(adresse.pays).length > 0;
-    if (paysAvecRegions && !adresse.province.trim()) {
-      setErreur("Province/etat manquant pour ce pays.");
+    const errsA = validerFormulaireAdresse(adresse, provinceObligatoire);
+    const errsC: ErreursPaiementCarte = {};
+    const nomErr = validerTitulaireCarte(nomCarte);
+    if (nomErr) errsC.nomCarte = nomErr;
+    const numeroNettoye = numeroCarte.replace(/\D/g, "");
+    const numErr = validerNumeroCarte(numeroNettoye);
+    if (numErr) errsC.numeroCarte = numErr;
+    const expErr = validerExpiration(expiration.trim());
+    if (expErr) errsC.expiration = expErr;
+    const cvvErr = validerCvv(cvv.trim());
+    if (cvvErr) errsC.cvv = cvvErr;
+
+    if (Object.keys(errsA).length > 0 || Object.keys(errsC).length > 0) {
+      setErreursAdresse(errsA);
+      setErreursCarte(errsC);
       return;
     }
 
-    const numeroNettoye = numeroCarte.replace(/\s+/g, "");
-    if (nomCarte.trim().length < 3) {
-      setErreur("Nom du titulaire invalide.");
-      return;
-    }
-    if (!/^\d{16}$/.test(numeroNettoye)) {
-      setErreur("Numéro de carte invalide (16 chiffres requis).");
-      return;
-    }
-    if (!/^\d{2}\/\d{2}$/.test(expiration)) {
-      setErreur("Date d'expiration invalide (format MM/AA).");
-      return;
-    }
-    if (!expirationValide(expiration)) {
-      setErreur("Carte expirée ou date invalide.");
-      return;
-    }
-    if (!/^\d{3,4}$/.test(cvv)) {
-      setErreur("CVV invalide.");
-      return;
-    }
+    setErreursAdresse({});
+    setErreursCarte({});
 
     try {
       setProcessing(true);
@@ -259,8 +248,10 @@ export function PagePaiement() {
           emailConfirmation: utilisateur?.email?.trim() || "",
         },
       });
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || "Erreur lors du paiement/commande";
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        "Le paiement n’a pas pu être finalisé. Vérifiez vos informations ou réessayez plus tard.";
       setErreur(msg);
     } finally {
       setProcessing(false);
@@ -344,67 +335,16 @@ export function PagePaiement() {
           <p className="panier-state">Chargement du checkout...</p>
         ) : (
           <section className="checkout-grid">
-            <div className="checkout-card">
-              <h2 className="checkout-title">Paiement par carte</h2>
-              <label className="checkout-label">
-                Titulaire de la carte
-                <input
-                  className="checkout-input"
-                  value={nomCarte}
-                  onChange={(e) => setNomCarte(e.target.value)}
-                  placeholder="Nom complet"
-                />
-              </label>
-              <label className="checkout-label">
-                Numéro de carte
-                <input
-                  className="checkout-input"
-                  value={numeroCarte}
-                  onChange={(e) => setNumeroCarte(e.target.value)}
-                  placeholder="1234 5678 9012 3456"
-                  maxLength={19}
-                />
-              </label>
-              <div className="checkout-inline">
-                <label className="checkout-label">
-                  Expiration
-                  <input
-                    className="checkout-input"
-                    value={expiration}
-                    onChange={(e) => setExpiration(e.target.value)}
-                    placeholder="MM/AA"
-                    maxLength={5}
-                  />
-                </label>
-                <label className="checkout-label">
-                  CVV
-                  <input
-                    className="checkout-input"
-                    value={cvv}
-                    onChange={(e) => setCvv(e.target.value)}
-                    placeholder="123"
-                    maxLength={4}
-                  />
-                </label>
-              </div>
-              <label className="checkout-label">
-                Code promo (optionnel)
-                <input
-                  className="checkout-input"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value)}
-                  placeholder="Ex: WELCOME10"
-                  maxLength={20}
-                />
-              </label>
-              {couponNormalise && (
-                <p className="checkout-hint">
-                  {couponActif
-                    ? `Code applique: ${couponNormalise} (${couponActif.type === "percent" ? `${couponActif.value}%` : `${couponActif.value.toFixed(2)} $`})`
-                    : "Ce code semble invalide et sera refuse au paiement."}
-                </p>
-              )}
-              <div className="checkout-actions">
+            <div className="checkout-card checkout-card-form">
+              <h2 className="checkout-title">Adresse de livraison</h2>
+              <p className="checkout-section-intro">
+                Vérifiez ou complétez l’adresse utilisée pour cette commande. Les champs marqués d’une astérisque (
+                <span className="panier-required-star" aria-hidden>
+                  *
+                </span>
+                ) sont obligatoires.
+              </p>
+              <div className="checkout-actions" style={{ marginBottom: "0.65rem" }}>
                 <button
                   type="button"
                   className="panier-btn panier-btn-ghost"
@@ -413,6 +353,335 @@ export function PagePaiement() {
                   Utiliser mes infos profil
                 </button>
               </div>
+              <div className="panier-adresse-grid">
+                <label>
+                  <span className="panier-label-heading">
+                    Nom complet (prénom et nom)
+                    <abbr className="panier-required-star" title="Champ obligatoire">
+                      *
+                    </abbr>
+                  </span>
+                  <input
+                    className={`panier-adresse-input${erreursAdresse.nomComplet ? " is-invalid" : ""}`}
+                    value={adresse.nomComplet}
+                    onChange={(e) => {
+                      setErreursAdresse((er) => ({ ...er, nomComplet: undefined }));
+                      setAdresse((prev) => ({ ...prev, nomComplet: filtrerNomPropre(e.target.value) }));
+                    }}
+                    autoComplete="name"
+                    aria-invalid={Boolean(erreursAdresse.nomComplet)}
+                  />
+                  {erreursAdresse.nomComplet ? (
+                    <span className="panier-field-error" role="alert">
+                      {erreursAdresse.nomComplet}
+                    </span>
+                  ) : (
+                    <span className="panier-field-hint">Lettres et tirets uniquement (ex. Jean-Philippe Gagnon).</span>
+                  )}
+                </label>
+                <label>
+                  <span className="panier-label-heading">Téléphone (optionnel)</span>
+                  <input
+                    type="tel"
+                    className={`panier-adresse-input${erreursAdresse.telephone ? " is-invalid" : ""}`}
+                    value={adresse.telephone}
+                    onChange={(e) => {
+                      setErreursAdresse((er) => ({ ...er, telephone: undefined }));
+                      setAdresse((prev) => ({ ...prev, telephone: e.target.value }));
+                    }}
+                    autoComplete="tel"
+                  />
+                  {erreursAdresse.telephone ? (
+                    <span className="panier-field-error" role="alert">
+                      {erreursAdresse.telephone}
+                    </span>
+                  ) : null}
+                </label>
+                <label className="panier-adresse-col-full">
+                  <span className="panier-label-heading">
+                    Rue et numéro
+                    <abbr className="panier-required-star" title="Champ obligatoire">
+                      *
+                    </abbr>
+                  </span>
+                  <input
+                    className={`panier-adresse-input${erreursAdresse.rue ? " is-invalid" : ""}`}
+                    value={adresse.rue}
+                    onChange={(e) => {
+                      setErreursAdresse((er) => ({ ...er, rue: undefined }));
+                      setAdresse((prev) => ({ ...prev, rue: e.target.value }));
+                    }}
+                    autoComplete="street-address"
+                  />
+                  {erreursAdresse.rue ? (
+                    <span className="panier-field-error" role="alert">
+                      {erreursAdresse.rue}
+                    </span>
+                  ) : null}
+                </label>
+                <label>
+                  <span className="panier-label-heading">
+                    Ville
+                    <abbr className="panier-required-star" title="Champ obligatoire">
+                      *
+                    </abbr>
+                  </span>
+                  <input
+                    className={`panier-adresse-input${erreursAdresse.ville ? " is-invalid" : ""}`}
+                    value={adresse.ville}
+                    onChange={(e) => {
+                      setErreursAdresse((er) => ({ ...er, ville: undefined }));
+                      setAdresse((prev) => ({ ...prev, ville: filtrerVille(e.target.value) }));
+                    }}
+                    autoComplete="address-level2"
+                  />
+                  {erreursAdresse.ville ? (
+                    <span className="panier-field-error" role="alert">
+                      {erreursAdresse.ville}
+                    </span>
+                  ) : (
+                    <span className="panier-field-hint">Sans chiffres.</span>
+                  )}
+                </label>
+                <label>
+                  <span className="panier-label-heading">
+                    Province / État
+                    {provinceObligatoire ? (
+                      <abbr className="panier-required-star" title="Champ obligatoire">
+                        *
+                      </abbr>
+                    ) : null}
+                  </span>
+                  {provinceOptions.length > 0 ? (
+                    <select
+                      className={`panier-adresse-input${erreursAdresse.province ? " is-invalid" : ""}`}
+                      value={adresse.province}
+                      onChange={(e) => {
+                        setErreursAdresse((er) => ({ ...er, province: undefined }));
+                        setAdresse((prev) => ({ ...prev, province: e.target.value }));
+                      }}
+                    >
+                      <option value="">Sélectionnez une province ou un État</option>
+                      {provinceOptions.map((province) => (
+                        <option key={province.code} value={province.label}>
+                          {province.label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      className={`panier-adresse-input${erreursAdresse.province ? " is-invalid" : ""}`}
+                      value={adresse.province}
+                      onChange={(e) => {
+                        setErreursAdresse((er) => ({ ...er, province: undefined }));
+                        setAdresse((prev) => ({ ...prev, province: e.target.value }));
+                      }}
+                    />
+                  )}
+                  {erreursAdresse.province ? (
+                    <span className="panier-field-error" role="alert">
+                      {erreursAdresse.province}
+                    </span>
+                  ) : null}
+                </label>
+                <label>
+                  <span className="panier-label-heading">
+                    Code postal
+                    <abbr className="panier-required-star" title="Champ obligatoire">
+                      *
+                    </abbr>
+                  </span>
+                  <input
+                    className={`panier-adresse-input${erreursAdresse.codePostal ? " is-invalid" : ""}`}
+                    value={adresse.codePostal}
+                    onChange={(e) => {
+                      setErreursAdresse((er) => ({ ...er, codePostal: undefined }));
+                      setAdresse((prev) => ({ ...prev, codePostal: e.target.value }));
+                    }}
+                    autoComplete="postal-code"
+                  />
+                  {erreursAdresse.codePostal ? (
+                    <span className="panier-field-error" role="alert">
+                      {erreursAdresse.codePostal}
+                    </span>
+                  ) : adresse.pays === "CA" ? (
+                    <span className="panier-field-hint">Format Canada : A1A 1A1.</span>
+                  ) : null}
+                </label>
+                <label>
+                  <span className="panier-label-heading">
+                    Pays
+                    <abbr className="panier-required-star" title="Champ obligatoire">
+                      *
+                    </abbr>
+                  </span>
+                  <select
+                    className={`panier-adresse-input${erreursAdresse.pays ? " is-invalid" : ""}`}
+                    value={adresse.pays}
+                    onChange={(e) => {
+                      setErreursAdresse((er) => ({ ...er, pays: undefined, province: undefined }));
+                      setAdresse((prev) => {
+                        const nouveauPays = e.target.value;
+                        const regions = getRegionOptions(nouveauPays);
+                        const provinceValide =
+                          regions.length === 0 ||
+                          regions.some((region) => region.label === prev.province);
+                        return {
+                          ...prev,
+                          pays: nouveauPays,
+                          province: provinceValide ? prev.province : "",
+                        };
+                      });
+                    }}
+                    autoComplete="country"
+                  >
+                    <option value="">Sélectionnez un pays</option>
+                    {paysOptions.map((pays) => (
+                      <option key={pays.code} value={pays.code}>
+                        {pays.label}
+                      </option>
+                    ))}
+                  </select>
+                  {erreursAdresse.pays ? (
+                    <span className="panier-field-error" role="alert">
+                      {erreursAdresse.pays}
+                    </span>
+                  ) : null}
+                </label>
+              </div>
+
+              <hr className="checkout-section-divider" />
+
+              <h2 className="checkout-title">Paiement par carte</h2>
+              <p className="checkout-section-intro">Démonstration : saisissez 16 chiffres, une date future MM/AA et le CVV.</p>
+
+              <label className="checkout-label">
+                <span className="panier-label-heading">
+                  Titulaire de la carte
+                  <abbr className="panier-required-star" title="Champ obligatoire">
+                    *
+                  </abbr>
+                </span>
+                <input
+                  className={`checkout-input${erreursCarte.nomCarte ? " is-invalid" : ""}`}
+                  value={nomCarte}
+                  onChange={(e) => {
+                    setErreursCarte((er) => ({ ...er, nomCarte: undefined }));
+                    setNomCarte(filtrerNomPropre(e.target.value));
+                  }}
+                  placeholder="Prénom Nom (comme sur la carte)"
+                  autoComplete="cc-name"
+                  aria-invalid={Boolean(erreursCarte.nomCarte)}
+                />
+                {erreursCarte.nomCarte ? (
+                  <span className="panier-field-error" role="alert">
+                    {erreursCarte.nomCarte}
+                  </span>
+                ) : (
+                  <span className="panier-field-hint">Même règles que le nom de livraison : lettres, espaces, tirets.</span>
+                )}
+              </label>
+              <label className="checkout-label">
+                <span className="panier-label-heading">
+                  Numéro de carte
+                  <abbr className="panier-required-star" title="Champ obligatoire">
+                    *
+                  </abbr>
+                </span>
+                <input
+                  className={`checkout-input${erreursCarte.numeroCarte ? " is-invalid" : ""}`}
+                  value={numeroCarte}
+                  inputMode="numeric"
+                  onChange={(e) => {
+                    setErreursCarte((er) => ({ ...er, numeroCarte: undefined }));
+                    const raw = e.target.value.replace(/\D/g, "").slice(0, 16);
+                    const formatted = raw.replace(/(\d{4})(?=\d)/g, "$1 ").trim();
+                    setNumeroCarte(formatted);
+                  }}
+                  placeholder="1234 5678 9012 3456"
+                  maxLength={19}
+                  autoComplete="cc-number"
+                  aria-invalid={Boolean(erreursCarte.numeroCarte)}
+                />
+                {erreursCarte.numeroCarte ? (
+                  <span className="panier-field-error" role="alert">
+                    {erreursCarte.numeroCarte}
+                  </span>
+                ) : null}
+              </label>
+              <div className="checkout-inline">
+                <label className="checkout-label">
+                  <span className="panier-label-heading">
+                    Expiration
+                    <abbr className="panier-required-star" title="Champ obligatoire">
+                      *
+                    </abbr>
+                  </span>
+                  <input
+                    className={`checkout-input${erreursCarte.expiration ? " is-invalid" : ""}`}
+                    value={expiration}
+                    inputMode="numeric"
+                    onChange={(e) => {
+                      setErreursCarte((er) => ({ ...er, expiration: undefined }));
+                      const d = e.target.value.replace(/\D/g, "").slice(0, 4);
+                      const avecSlash = d.length <= 2 ? d : `${d.slice(0, 2)}/${d.slice(2)}`;
+                      setExpiration(avecSlash);
+                    }}
+                    placeholder="MM/AA"
+                    maxLength={5}
+                    autoComplete="cc-exp"
+                    aria-invalid={Boolean(erreursCarte.expiration)}
+                  />
+                  {erreursCarte.expiration ? (
+                    <span className="panier-field-error" role="alert">
+                      {erreursCarte.expiration}
+                    </span>
+                  ) : null}
+                </label>
+                <label className="checkout-label">
+                  <span className="panier-label-heading">
+                    CVV
+                    <abbr className="panier-required-star" title="Champ obligatoire">
+                      *
+                    </abbr>
+                  </span>
+                  <input
+                    className={`checkout-input${erreursCarte.cvv ? " is-invalid" : ""}`}
+                    value={cvv}
+                    inputMode="numeric"
+                    onChange={(e) => {
+                      setErreursCarte((er) => ({ ...er, cvv: undefined }));
+                      setCvv(e.target.value.replace(/\D/g, "").slice(0, 4));
+                    }}
+                    placeholder="123"
+                    maxLength={4}
+                    autoComplete="cc-csc"
+                    aria-invalid={Boolean(erreursCarte.cvv)}
+                  />
+                  {erreursCarte.cvv ? (
+                    <span className="panier-field-error" role="alert">
+                      {erreursCarte.cvv}
+                    </span>
+                  ) : null}
+                </label>
+              </div>
+              <label className="checkout-label">
+                <span className="panier-label-heading">Code promo (optionnel)</span>
+                <input
+                  className="checkout-input"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  placeholder="Ex : WELCOME10"
+                  maxLength={20}
+                />
+              </label>
+              {couponNormalise && (
+                <p className="checkout-hint">
+                  {couponActif
+                    ? `Code appliqué : ${couponNormalise} (${couponActif.type === "percent" ? `${couponActif.value}%` : `${couponActif.value.toFixed(2)} $`})`
+                    : "Ce code semble invalide et sera refusé au paiement."}
+                </p>
+              )}
 
               <div className="checkout-actions">
                 <Link to="/panier" className="panier-btn panier-btn-ghost">
@@ -424,7 +693,7 @@ export function PagePaiement() {
                   onClick={payerEtCommander}
                   disabled={processing}
                 >
-                  {processing ? "Traitement..." : "Payer et commander"}
+                  {processing ? "Traitement…" : "Payer et commander"}
                 </button>
               </div>
             </div>

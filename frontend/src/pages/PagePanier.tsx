@@ -11,6 +11,12 @@ import {
   viderPanierInvite,
 } from "../cartInvite";
 import { getCountryOptions, getRegionOptions, resolveCountryCode } from "../locationData";
+import {
+  filtrerNomPropre,
+  filtrerVille,
+  validerFormulaireAdresse,
+  type ChampsAdresseErreurs,
+} from "../utils/checkoutValidation";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
@@ -101,7 +107,7 @@ function normaliserNomProduit(nom: string) {
     .trim();
 }
 
-function extraireAdresseDepuisProfil(utilisateur: any): Partial<AdresseLivraison> {
+function extraireAdresseDepuisProfil(utilisateur: { nom?: string; adresse?: string; ville?: string; province?: string; codePostal?: string; pays?: string; telephone?: string } | null): Partial<AdresseLivraison> {
   if (!utilisateur) return {};
   return {
     nomComplet: String(utilisateur.nom || "").trim(),
@@ -130,6 +136,7 @@ export function PagePanier() {
   const [erreur, setErreur] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [adresse, setAdresse] = useState<AdresseLivraison>(ADRESSE_PAR_DEFAUT);
+  const [erreursAdresse, setErreursAdresse] = useState<ChampsAdresseErreurs>({});
 
   useEffect(() => {
     if (!utilisateur) return;
@@ -168,8 +175,10 @@ export function PagePanier() {
     try {
       const res = await api.get<Panier>("/panier");
       setPanier(res.data);
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || "Erreur lors du chargement du panier";
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        "Erreur lors du chargement du panier";
       setErreur(msg);
     } finally {
       setLoading(false);
@@ -283,8 +292,10 @@ export function PagePanier() {
       });
       setPanier(res.data.panier);
       setMessage("Quantité mise à jour");
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || "Erreur lors de la mise à jour";
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        "Erreur lors de la mise à jour";
       setErreur(msg);
     }
   }
@@ -300,8 +311,10 @@ export function PagePanier() {
       const res = await api.delete<{ panier: Panier }>(`/panier/supprimer/${produitId}`);
       setPanier(res.data.panier);
       setMessage("Produit supprimé du panier");
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || "Erreur lors de la suppression";
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        "Erreur lors de la suppression";
       setErreur(msg);
     }
   }
@@ -317,8 +330,10 @@ export function PagePanier() {
       const res = await api.delete<{ panier: Panier }>("/panier/vider");
       setPanier(res.data.panier);
       setMessage("Panier vidé");
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || "Erreur lors du vidage du panier";
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        "Erreur lors du vidage du panier";
       setErreur(msg);
     }
   }
@@ -341,25 +356,14 @@ export function PagePanier() {
       allerConnexionPourCommanderInvite();
       return;
     }
-    const champsObligatoires: Array<keyof AdresseLivraison> = [
-      "nomComplet",
-      "rue",
-      "ville",
-      "codePostal",
-      "pays",
-    ];
-    for (const champ of champsObligatoires) {
-      if (!adresse[champ].trim()) {
-        setErreur("Veuillez renseigner l'adresse de livraison complète avant de commander.");
-        return;
-      }
-    }
+    setErreur(null);
     const provinceObligatoire = getRegionOptions(adresse.pays).length > 0;
-    if (provinceObligatoire && !adresse.province.trim()) {
-      setErreur("Veuillez selectionner une province/un etat pour ce pays.");
+    const errs = validerFormulaireAdresse(adresse, provinceObligatoire);
+    if (Object.keys(errs).length > 0) {
+      setErreursAdresse(errs);
       return;
     }
-    setErreur(null);
+    setErreursAdresse({});
     localStorage.setItem(cleAdresseLivraison(utilisateur.id), JSON.stringify(adresse));
     navigate("/paiement");
   }
@@ -418,6 +422,7 @@ export function PagePanier() {
 
   function remplirAdresseDepuisProfil() {
     if (!utilisateur) return;
+    setErreursAdresse({});
     setAdresse((precedente) => ({
       ...precedente,
       nomComplet: profilAdressePrefill.nomComplet || precedente.nomComplet,
@@ -585,52 +590,118 @@ export function PagePanier() {
                 </div>
                 <div className="panier-adresse-grid">
                   <label>
-                    Nom complet
+                    <span className="panier-label-heading">
+                      Nom complet (prénom et nom)
+                      <abbr className="panier-required-star" title="Champ obligatoire">
+                        *
+                      </abbr>
+                    </span>
                     <input
                       value={adresse.nomComplet}
-                      onChange={(e) =>
-                        setAdresse((prev) => ({ ...prev, nomComplet: e.target.value }))
-                      }
-                      className="panier-adresse-input"
+                      onChange={(e) => {
+                        setErreursAdresse((er) => ({ ...er, nomComplet: undefined }));
+                        setAdresse((prev) => ({ ...prev, nomComplet: filtrerNomPropre(e.target.value) }));
+                      }}
+                      className={`panier-adresse-input${erreursAdresse.nomComplet ? " is-invalid" : ""}`}
+                      autoComplete="name"
+                      aria-invalid={Boolean(erreursAdresse.nomComplet)}
+                      aria-describedby={erreursAdresse.nomComplet ? "panier-err-nom" : undefined}
                     />
+                    {erreursAdresse.nomComplet ? (
+                      <span id="panier-err-nom" className="panier-field-error" role="alert">
+                        {erreursAdresse.nomComplet}
+                      </span>
+                    ) : (
+                      <span className="panier-field-hint">Lettres uniquement, tiret pour les noms composés.</span>
+                    )}
                   </label>
                   <label>
-                    Téléphone (optionnel)
+                    <span className="panier-label-heading">Téléphone (optionnel)</span>
                     <input
+                      type="tel"
                       value={adresse.telephone}
-                      onChange={(e) =>
-                        setAdresse((prev) => ({ ...prev, telephone: e.target.value }))
-                      }
-                      className="panier-adresse-input"
+                      onChange={(e) => {
+                        setErreursAdresse((er) => ({ ...er, telephone: undefined }));
+                        setAdresse((prev) => ({ ...prev, telephone: e.target.value }));
+                      }}
+                      className={`panier-adresse-input${erreursAdresse.telephone ? " is-invalid" : ""}`}
+                      autoComplete="tel"
+                      aria-invalid={Boolean(erreursAdresse.telephone)}
                     />
+                    {erreursAdresse.telephone ? (
+                      <span className="panier-field-error" role="alert">
+                        {erreursAdresse.telephone}
+                      </span>
+                    ) : null}
                   </label>
                   <label className="panier-adresse-col-full">
-                    Rue et numéro
+                    <span className="panier-label-heading">
+                      Rue et numéro
+                      <abbr className="panier-required-star" title="Champ obligatoire">
+                        *
+                      </abbr>
+                    </span>
                     <input
                       value={adresse.rue}
-                      onChange={(e) => setAdresse((prev) => ({ ...prev, rue: e.target.value }))}
-                      className="panier-adresse-input"
+                      onChange={(e) => {
+                        setErreursAdresse((er) => ({ ...er, rue: undefined }));
+                        setAdresse((prev) => ({ ...prev, rue: e.target.value }));
+                      }}
+                      className={`panier-adresse-input${erreursAdresse.rue ? " is-invalid" : ""}`}
+                      autoComplete="street-address"
+                      aria-invalid={Boolean(erreursAdresse.rue)}
                     />
+                    {erreursAdresse.rue ? (
+                      <span className="panier-field-error" role="alert">
+                        {erreursAdresse.rue}
+                      </span>
+                    ) : null}
                   </label>
                   <label>
-                    Ville
+                    <span className="panier-label-heading">
+                      Ville
+                      <abbr className="panier-required-star" title="Champ obligatoire">
+                        *
+                      </abbr>
+                    </span>
                     <input
                       value={adresse.ville}
-                      onChange={(e) => setAdresse((prev) => ({ ...prev, ville: e.target.value }))}
-                      className="panier-adresse-input"
+                      onChange={(e) => {
+                        setErreursAdresse((er) => ({ ...er, ville: undefined }));
+                        setAdresse((prev) => ({ ...prev, ville: filtrerVille(e.target.value) }));
+                      }}
+                      className={`panier-adresse-input${erreursAdresse.ville ? " is-invalid" : ""}`}
+                      autoComplete="address-level2"
+                      aria-invalid={Boolean(erreursAdresse.ville)}
                     />
+                    {erreursAdresse.ville ? (
+                      <span className="panier-field-error" role="alert">
+                        {erreursAdresse.ville}
+                      </span>
+                    ) : (
+                      <span className="panier-field-hint">Sans chiffres (ex. Montréal, Québec).</span>
+                    )}
                   </label>
                   <label>
-                    Province / Etat
+                    <span className="panier-label-heading">
+                      Province / État
+                      {provinceObligatoire ? (
+                        <abbr className="panier-required-star" title="Champ obligatoire">
+                          *
+                        </abbr>
+                      ) : null}
+                    </span>
                     {provinceOptions.length > 0 ? (
                       <select
                         value={adresse.province}
-                        onChange={(e) =>
-                          setAdresse((prev) => ({ ...prev, province: e.target.value }))
-                        }
-                        className="panier-adresse-input"
+                        onChange={(e) => {
+                          setErreursAdresse((er) => ({ ...er, province: undefined }));
+                          setAdresse((prev) => ({ ...prev, province: e.target.value }));
+                        }}
+                        className={`panier-adresse-input${erreursAdresse.province ? " is-invalid" : ""}`}
+                        aria-invalid={Boolean(erreursAdresse.province)}
                       >
-                        <option value="">Selectionnez une province/un etat</option>
+                        <option value="">Sélectionnez une province ou un État</option>
                         {provinceOptions.map((province) => (
                           <option key={province.code} value={province.label}>
                             {province.label}
@@ -640,41 +711,70 @@ export function PagePanier() {
                     ) : (
                       <input
                         value={adresse.province}
-                        onChange={(e) =>
-                          setAdresse((prev) => ({ ...prev, province: e.target.value }))
-                        }
-                        className="panier-adresse-input"
+                        onChange={(e) => {
+                          setErreursAdresse((er) => ({ ...er, province: undefined }));
+                          setAdresse((prev) => ({ ...prev, province: e.target.value }));
+                        }}
+                        className={`panier-adresse-input${erreursAdresse.province ? " is-invalid" : ""}`}
+                        aria-invalid={Boolean(erreursAdresse.province)}
                       />
                     )}
-                    <span
-                      key={`province-helper-${adresse.pays}-${provinceObligatoire ? "required" : "optional"}`}
-                      className={`panier-field-helper ${
-                        provinceObligatoire ? "panier-field-helper-required" : "panier-field-helper-optional"
-                      } field-helper-animated`}
-                    >
-                      <span className="field-helper-icon" aria-hidden="true">
-                        {provinceObligatoire ? "!" : "✓"}
-                      </span>{" "}
-                      {provinceObligatoire
-                        ? "Obligatoire pour ce pays."
-                        : "Optionnel pour ce pays."}
-                    </span>
+                    {erreursAdresse.province ? (
+                      <span className="panier-field-error" role="alert">
+                        {erreursAdresse.province}
+                      </span>
+                    ) : (
+                      <span
+                        key={`province-helper-${adresse.pays}-${provinceObligatoire ? "required" : "optional"}`}
+                        className={`panier-field-helper ${
+                          provinceObligatoire ? "panier-field-helper-required" : "panier-field-helper-optional"
+                        } field-helper-animated`}
+                      >
+                        <span className="field-helper-icon" aria-hidden="true">
+                          {provinceObligatoire ? "!" : "✓"}
+                        </span>{" "}
+                        {provinceObligatoire
+                          ? "Obligatoire pour ce pays."
+                          : "Optionnel pour ce pays."}
+                      </span>
+                    )}
                   </label>
                   <label>
-                    Code postal
+                    <span className="panier-label-heading">
+                      Code postal
+                      <abbr className="panier-required-star" title="Champ obligatoire">
+                        *
+                      </abbr>
+                    </span>
                     <input
                       value={adresse.codePostal}
-                      onChange={(e) =>
-                        setAdresse((prev) => ({ ...prev, codePostal: e.target.value }))
-                      }
-                      className="panier-adresse-input"
+                      onChange={(e) => {
+                        setErreursAdresse((er) => ({ ...er, codePostal: undefined }));
+                        setAdresse((prev) => ({ ...prev, codePostal: e.target.value }));
+                      }}
+                      className={`panier-adresse-input${erreursAdresse.codePostal ? " is-invalid" : ""}`}
+                      autoComplete="postal-code"
+                      aria-invalid={Boolean(erreursAdresse.codePostal)}
                     />
+                    {erreursAdresse.codePostal ? (
+                      <span className="panier-field-error" role="alert">
+                        {erreursAdresse.codePostal}
+                      </span>
+                    ) : adresse.pays === "CA" ? (
+                      <span className="panier-field-hint">Format Canada : A1A 1A1.</span>
+                    ) : null}
                   </label>
                   <label>
-                    Pays
+                    <span className="panier-label-heading">
+                      Pays
+                      <abbr className="panier-required-star" title="Champ obligatoire">
+                        *
+                      </abbr>
+                    </span>
                     <select
                       value={adresse.pays}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        setErreursAdresse((er) => ({ ...er, pays: undefined, province: undefined }));
                         setAdresse((prev) => {
                           const nouveauPays = e.target.value;
                           const regions = getRegionOptions(nouveauPays);
@@ -686,17 +786,24 @@ export function PagePanier() {
                             pays: nouveauPays,
                             province: provinceValide ? prev.province : "",
                           };
-                        })
-                      }
-                      className="panier-adresse-input"
+                        });
+                      }}
+                      className={`panier-adresse-input${erreursAdresse.pays ? " is-invalid" : ""}`}
+                      autoComplete="country"
+                      aria-invalid={Boolean(erreursAdresse.pays)}
                     >
-                      <option value="">Selectionnez un pays</option>
+                      <option value="">Sélectionnez un pays</option>
                       {paysOptions.map((pays) => (
                         <option key={pays.code} value={pays.code}>
                           {pays.label}
                         </option>
                       ))}
                     </select>
+                    {erreursAdresse.pays ? (
+                      <span className="panier-field-error" role="alert">
+                        {erreursAdresse.pays}
+                      </span>
+                    ) : null}
                   </label>
                 </div>
               </section>
