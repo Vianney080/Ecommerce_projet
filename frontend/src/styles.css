@@ -6627,6 +6627,217 @@ html.theme-dark .admin-image-preview {
   border-color: #334155 !important;
 }
 
+/* Dashboard / produits admin — textes et tableaux lisibles sur fond sombre */
+html.theme-dark .admin-title {
+  color: #f8fafc !important;
+}
+
+html.theme-dark .admin-subtitle,
+html.theme-dark .admin-refresh-meta,
+html.theme-dark .admin-loading {
+  color: #94a3b8 !important;
+}
+
+html.theme-dark .admin-description {
+  color: #cbd5e1 !important;
+}
+
+html.theme-dark .admin-stat-label {
+  color: #94a3b8 !important;
+}
+
+html.theme-dark .admin-stat-value {
+  color: #f8fafc !important;
+}
+
+html.theme-dark .admin-stat-value-danger {
+  color: #fca5a5 !important;
+}
+
+html.theme-dark .admin-stat-value-success {
+  color: #6ee7b7 !important;
+}
+
+html.theme-dark .admin-panel-title {
+  color: #f1f5f9 !important;
+}
+
+html.theme-dark .admin-quick-title {
+  color: #c7d2fe !important;
+}
+
+html.theme-dark .admin-quick-text {
+  color: #cbd5e1 !important;
+}
+
+html.theme-dark .admin-quick-highlight {
+  color: #fcd34d !important;
+}
+
+html.theme-dark .admin-stock-value {
+  color: #f8fafc !important;
+}
+
+html.theme-dark .admin-top-item {
+  border-bottom-color: #334155 !important;
+}
+
+html.theme-dark .admin-table th,
+html.theme-dark .admin-table td {
+  border-bottom-color: #334155 !important;
+}
+
+html.theme-dark .admin-table th {
+  color: #cbd5e1 !important;
+}
+
+html.theme-dark .admin-table td {
+  color: #e5e7eb !important;
+}
+
+html.theme-dark .admin-table-muted {
+  color: #94a3b8 !important;
+}
+
+html.theme-dark .admin-select {
+  background-color: #0f172a !important;
+  border-color: #475569 !important;
+  color: #e5e7eb !important;
+}
+
+html.theme-dark .admin-select option {
+  background-color: #0f172a;
+  color: #e5e7eb;
+}
+
+html.theme-dark .admin-role-badge.is-client {
+  color: #e2e8f0 !important;
+  background: #334155 !important;
+  border-color: #475569 !important;
+}
+
+html.theme-dark .admin-role-badge.is-admin {
+  color: #fce7f3 !important;
+  background: rgba(131, 24, 67, 0.45) !important;
+  border-color: #db2777 !important;
+}
+
+html.theme-dark .admin-status-badge.is-active {
+  color: #a7f3d0 !important;
+  background: rgba(6, 78, 59, 0.45) !important;
+  border-color: #34d399 !important;
+}
+
+html.theme-dark .admin-status-badge.is-inactive {
+  color: #fde68a !important;
+  background: rgba(120, 53, 15, 0.4) !important;
+  border-color: #fbbf24 !important;
+}
+
+html.theme-dark .admin-alert-error {
+  background: rgba(127, 29, 29, 0.45) !important;
+  border-color: #dc2626 !important;
+  color: #fecaca !important;
+}
+
+html.theme-dark .admin-alert-neutral {
+  background: #1e293b !important;
+  border-color: #475569 !important;
+  color: #e5e7eb !important;
+}
+
+html.theme-dark .admin-alert-stock {
+  background: rgba(120, 53, 15, 0.4) !important;
+  border-color: #d97706 !important;
+  color: #fde68a !important;
+}
+
+html.theme-dark .admin-toast.is-success {
+  background: rgba(6, 78, 59, 0.95) !important;
+  border-color: #34d399 !important;
+  color: #ecfdf5 !important;
+}
+
+html.theme-dark .admin-toast.is-error {
+  background: rgba(127, 29, 29, 0.95) !important;
+  border-color: #f87171 !important;
+  color: #fef2f2 !important;
+}
+
+html.theme-dark .admin-categorie-row {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #e5e7eb !important;
+}
+
+html.theme-dark .admin-table-image {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: #94a3b8 !important;
+}
+
+html.theme-dark .admin-price-was {
+  color: #94a3b8 !important;
+}
+
+html.theme-dark .admin-file-input-label {
+  color: #cbd5e1 !important;
+}
+
+/* Commandes (liste cartes) — lignes articles, facture, lightbox, suivi admin */
+html.theme-dark .orders-title {
+  color: #f8fafc !important;
+}
+
+html.theme-dark .orders-numero-fac {
+  color: #f1f5f9 !important;
+}
+
+html.theme-dark .orders-items li {
+  border-bottom-color: #334155 !important;
+  color: #e5e7eb !important;
+}
+
+html.theme-dark .orders-item-thumb {
+  border-color: #334155 !important;
+  background: #0f172a !important;
+}
+
+html.theme-dark .orders-item-thumb-placeholder {
+  background: linear-gradient(145deg, #1e293b, #334155) !important;
+}
+
+html.theme-dark .orders-total {
+  color: #f1f5f9 !important;
+}
+
+html.theme-dark .orders-lightbox-content {
+  background: #1e293b !important;
+  border-color: #475569 !important;
+}
+
+html.theme-dark .orders-lightbox-content p {
+  color: #cbd5e1 !important;
+}
+
+html.theme-dark .admin-suivi-row {
+  border-top-color: #334155 !important;
+}
+
+html.theme-dark .admin-suivi-label {
+  color: #94a3b8 !important;
+}
+
+html.theme-dark .admin-suivi-input {
+  background: #0f172a !important;
+  border-color: #475569 !important;
+  color: #e5e7eb !important;
+}
+
+html.theme-dark .orders-suivi-hint {
+  color: #94a3b8 !important;
+}
+
 html.theme-dark .auth-helper {
   color: #94a3b8 !important;
 }
