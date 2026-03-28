@@ -142,7 +142,7 @@ export function AuthPasswordField({
           aria-pressed={visible}
           onClick={() => setVisible((v) => !v)}
         >
-          {visible ? <IconEyeHidden /> : <IconEyeVisible />}
+          {visible ? <IconEyeVisible /> : <IconEyeHidden />}
         </button>
       </div>
       {error ? (
