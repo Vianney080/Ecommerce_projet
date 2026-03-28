@@ -22,6 +22,9 @@ import {
 import { PrixAvecPromo } from "../components/PrixAvecPromo";
 import "../styles.css";
 
+/** `sizes` pour vignettes catalogue / grille (évite de télécharger trop large). */
+const SIZES_VIGNETTE_CATALOGUE = "(max-width: 640px) 50vw, (max-width: 1100px) 33vw, 280px";
+
 type ProduitDetail = {
   _id: string;
   nom: string;
@@ -105,6 +108,7 @@ export function PageProduitDetail() {
   const [produitsMemeCategorie, setProduitsMemeCategorie] = useState<ProduitDetail[]>([]);
   const [chargementMemeCategorie, setChargementMemeCategorie] = useState(false);
   const [messagePanier, setMessagePanier] = useState<PanierFeedback | null>(null);
+  const [messageListeSouhaits, setMessageListeSouhaits] = useState<string | null>(null);
   const [imageActiveIndex, setImageActiveIndex] = useState(0);
   const [zoom, setZoom] = useState(1.8);
   const [origin, setOrigin] = useState({ x: 50, y: 50 });
@@ -202,6 +206,12 @@ export function PageProduitDetail() {
     const idTimeout = window.setTimeout(() => setMessagePanier(null), 3200);
     return () => window.clearTimeout(idTimeout);
   }, [messagePanier]);
+
+  useEffect(() => {
+    if (!messageListeSouhaits) return;
+    const idTimeout = window.setTimeout(() => setMessageListeSouhaits(null), 2800);
+    return () => window.clearTimeout(idTimeout);
+  }, [messageListeSouhaits]);
 
   useEffect(() => {
     let annule = false;
@@ -496,9 +506,22 @@ export function PageProduitDetail() {
         </div>
       )}
 
+      {messageListeSouhaits && (
+        <div className="top-feedback-wrap is-right is-floating">
+          <div className="top-feedback top-feedback-success" role="status">
+            <span className="top-feedback-icon" aria-hidden>
+              ♥
+            </span>
+            <span>{messageListeSouhaits}</span>
+          </div>
+        </div>
+      )}
+
       <main className="produit-shell">
         {loading ? (
-          <p className="produit-state">Chargement du produit...</p>
+          <p className="produit-state panier-state--pulse" role="status">
+            Chargement du produit…
+          </p>
         ) : erreur || !produit ? (
           <div className="produit-alert produit-alert-error">
             <p>{erreur || "Produit indisponible."}</p>
@@ -525,8 +548,11 @@ export function PageProduitDetail() {
                   }
                   onClick={(ev) => {
                     ev.stopPropagation();
-                    basculerListeSouhaits(produit._id);
+                    const ajoute = basculerListeSouhaits(produit._id);
                     setWishlistTick((t) => t + 1);
+                    setMessageListeSouhaits(
+                      ajoute ? "Ajouté à votre liste d'envies" : "Retiré de votre liste d'envies"
+                    );
                   }}
                 >
                   {dansListeSouhaitsActif ? "♥" : "♡"}
@@ -588,7 +614,7 @@ export function PageProduitDetail() {
                     setOrigin({ x: 50, y: 50 });
                   }}
                 >
-                  Reinitialiser
+                  Réinitialiser
                 </button>
               </div>
               <p className="produit-zoom-hint">
@@ -616,7 +642,7 @@ export function PageProduitDetail() {
               <p className="produit-description">
                 {produit.description?.trim()
                   ? produit.description
-                  : "Aucune description detaillee n'est disponible pour cet article pour le moment."}
+                  : "Aucune description détaillée n'est disponible pour cet article pour le moment."}
               </p>
 
               <div className="produit-meta-grid">
@@ -773,7 +799,7 @@ export function PageProduitDetail() {
                   return (
                     <article key={item._id} className="catalogue-card">
                       <div className="catalogue-card-image-wrap">
-                        {index === 0 && <span className="produit-related-badge">Produit recommande</span>}
+                        {index === 0 && <span className="produit-related-badge">Produit recommandé</span>}
                         {ruptureStock && <span className="stock-out-badge">Rupture de stock</span>}
                         {urlsCarte.length > 0 ? (
                           <ProductImageCascade
@@ -784,6 +810,7 @@ export function PageProduitDetail() {
                             loading={chargementImagePrioritaire ? "eager" : "lazy"}
                             decoding="async"
                             fetchPriority={chargementImagePrioritaire ? "high" : undefined}
+                            sizes={SIZES_VIGNETTE_CATALOGUE}
                           />
                         ) : (
                           <div className="catalogue-card-image catalogue-card-image-placeholder" aria-hidden="true" />

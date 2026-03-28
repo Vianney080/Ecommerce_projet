@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, API_ORIGIN } from "../api";
 import { useAuth } from "../AuthContext";
+import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
 
 interface ItemCommande {
@@ -97,6 +98,8 @@ function libelleStatutPaiement(statutPaiement?: string) {
 }
 
 export function PageMesCommandes() {
+  useDocumentTitle("Mes commandes");
+  useMetaDescription("Historique et détail de vos commandes CosmétiShop, numéros de facture et suivi.");
   const { utilisateur, deconnexion } = useAuth();
   const [commandes, setCommandes] = useState<CommandeClient[]>([]);
   const [loading, setLoading] = useState(false);

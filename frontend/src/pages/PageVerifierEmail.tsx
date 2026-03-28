@@ -8,6 +8,7 @@ import {
   MSG_EMAIL_INVALIDE,
   messageErreurRequeteAuth,
 } from "../utils/authMessages";
+import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -26,6 +27,10 @@ function destinationDepuisEtat(state: unknown): string {
 }
 
 export function PageVerifierEmail() {
+  useDocumentTitle("Vérifier mon e-mail");
+  useMetaDescription(
+    "Activez votre compte CosmétiShop avec le code reçu par e-mail pour finaliser l'inscription."
+  );
   const navigate = useNavigate();
   const location = useLocation();
   const destinationApresConnexion = destinationDepuisEtat(location.state);

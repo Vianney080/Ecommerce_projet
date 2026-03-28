@@ -8,11 +8,16 @@ import {
   MSG_MDP_REQUIS,
   messageErreurRequeteAuth,
 } from "../utils/authMessages";
+import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function PageConnexion() {
+  useDocumentTitle("Connexion");
+  useMetaDescription(
+    "Connectez-vous à votre compte CosmétiShop pour accéder au panier, aux commandes et au profil."
+  );
   const { connexion } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();

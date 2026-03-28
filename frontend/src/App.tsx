@@ -165,6 +165,8 @@ const SLIDES: Slide[] = [
 
 const PRODUITS_PAR_PAGE = 8;
 
+const SIZES_VIGNETTE_CATALOGUE = "(max-width: 640px) 50vw, (max-width: 1100px) 33vw, 280px";
+
 function App() {
   const { utilisateur, deconnexion } = useAuth();
   const [recherche, setRecherche] = useState("");
@@ -183,6 +185,7 @@ function App() {
   const [pageCourante, setPageCourante] = useState(1);
   const [triAccueil, setTriAccueil] = useState<TriAccueil>("recent");
   const [, setWishlistTick] = useState(0);
+  const [messageListeSouhaits, setMessageListeSouhaits] = useState<string | null>(null);
   const [suggestionsRechercheOuvertes, setSuggestionsRechercheOuvertes] = useState(false);
   /** Carrousel images au survol (une carte à la fois, pas de timer global) */
   const [hoverCarouselCarte, setHoverCarouselCarte] = useState<{
@@ -212,6 +215,12 @@ function App() {
     window.addEventListener("wishlist-updated", handler);
     return () => window.removeEventListener("wishlist-updated", handler);
   }, []);
+
+  useEffect(() => {
+    if (!messageListeSouhaits) return;
+    const t = window.setTimeout(() => setMessageListeSouhaits(null), 2800);
+    return () => window.clearTimeout(t);
+  }, [messageListeSouhaits]);
 
   useEffect(() => {
     const h = hoverCarouselCarte;
@@ -710,10 +719,10 @@ function App() {
             className="products-select products-select-tri"
             aria-label="Trier les produits"
           >
-            <option value="recent">Plus recents</option>
+            <option value="recent">Plus récents</option>
             <option value="nom">Nom (A-Z)</option>
             <option value="prix_asc">Prix croissant</option>
-            <option value="prix_desc">Prix decroissant</option>
+            <option value="prix_desc">Prix décroissant</option>
           </select>
         </div>
       </nav>
@@ -734,6 +743,17 @@ function App() {
               <FeedbackIcon type={messagePanier.type} />
             </span>
             <span>{messagePanier.texte}</span>
+          </div>
+        </div>
+      )}
+
+      {messageListeSouhaits && (
+        <div className="top-feedback-wrap is-right is-floating">
+          <div className="top-feedback top-feedback-success" role="status">
+            <span className="top-feedback-icon" aria-hidden>
+              ♥
+            </span>
+            <span>{messageListeSouhaits}</span>
           </div>
         </div>
       )}
@@ -867,8 +887,11 @@ function App() {
                         : "Ajouter a la liste d'envies"
                     }
                     onClick={() => {
-                      basculerListeSouhaits(idListe);
+                      const ajoute = basculerListeSouhaits(idListe);
                       setWishlistTick((t) => t + 1);
+                      setMessageListeSouhaits(
+                        ajoute ? "Ajouté à votre liste d'envies" : "Retiré de votre liste d'envies"
+                      );
                     }}
                   >
                     {estDansListeSouhaits(idListe) ? "♥" : "♡"}
@@ -884,6 +907,7 @@ function App() {
                       loading={chargementImagePrioritaire ? "eager" : "lazy"}
                       decoding="async"
                       fetchPriority={chargementImagePrioritaire ? "high" : undefined}
+                      sizes={SIZES_VIGNETTE_CATALOGUE}
                     />
                   ) : (
                     <div className="product-image product-image-fallback" aria-hidden="true" />
@@ -974,7 +998,7 @@ function App() {
                 onClick={() => setPageCourante((page) => Math.max(1, page - 1))}
                 disabled={pageCourante === 1}
               >
-                Precedent
+                Précédent
               </button>
               {paginationCompacteProduits.map((item, index) =>
                 item === "ellipsis" ? (

@@ -1,4 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
 
 type ItemCommande = {
@@ -51,6 +52,13 @@ export function PageCommandeSucces() {
   const etat = location.state as EtatSucces;
   const commande = etat?.commande;
   const emailConfirmation = (etat?.emailConfirmation || "").trim();
+
+  useDocumentTitle(commande ? "Commande confirmée" : "Commande");
+  useMetaDescription(
+    commande
+      ? "Votre commande CosmétiShop est confirmée. Conservez votre numéro pour le suivi et la facture."
+      : "Consultez l’historique de vos commandes depuis votre espace client CosmétiShop."
+  );
 
   if (!commande) {
     return (

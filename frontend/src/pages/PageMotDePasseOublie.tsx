@@ -4,11 +4,16 @@ import { Link } from "react-router-dom";
 import { api } from "../api";
 import { AuthTextField } from "../components/AuthFormFields";
 import { MSG_EMAIL_INVALIDE, messageErreurRequeteAuth } from "../utils/authMessages";
+import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function PageMotDePasseOublie() {
+  useDocumentTitle("Mot de passe oublié");
+  useMetaDescription(
+    "Réinitialisez votre mot de passe CosmétiShop : lien ou code envoyé par e-mail."
+  );
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);

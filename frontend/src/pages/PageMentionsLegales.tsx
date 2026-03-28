@@ -1,16 +1,19 @@
 import { Link } from "react-router-dom";
+import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
 
 export function PageMentionsLegales() {
+  useDocumentTitle("Mentions légales");
+  useMetaDescription("Éditeur, hébergement et informations légales du site CosmétiShop.");
   return (
     <div className="legal-page">
       <main className="legal-shell">
         <div className="legal-header">
           <Link to="/" className="client-back-link">
-            Retour a l&apos;accueil
+            Retour à l&apos;accueil
           </Link>
-          <h1 className="legal-title">Mentions legales</h1>
-          <p className="legal-subtitle">Informations legales de la boutique</p>
+          <h1 className="legal-title">Mentions légales</h1>
+          <p className="legal-subtitle">Informations légales de la boutique</p>
         </div>
 
         <section className="legal-section">

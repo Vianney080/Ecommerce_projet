@@ -11,12 +11,17 @@ import {
   MSG_NOM_INVALIDE,
   messageErreurRequeteAuth,
 } from "../utils/authMessages";
+import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,128}$/;
 
 export function PageInscription() {
+  useDocumentTitle("Inscription");
+  useMetaDescription(
+    "Créez votre compte CosmétiShop : catalogue cosmétiques, panier et commandes en ligne."
+  );
   const { inscription } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();

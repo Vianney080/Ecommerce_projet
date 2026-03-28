@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, API_ORIGIN } from "../api";
+import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
 
 interface UtilisateurLite {
@@ -102,6 +103,8 @@ function libelleStatutPaiement(statutPaiement?: string) {
 }
 
 export function PageCommandesAdmin() {
+  useDocumentTitle("Admin · Commandes");
+  useMetaDescription("Gestion des commandes CosmétiShop : statuts, paiements et adresses de livraison.");
   const [commandes, setCommandes] = useState<CommandeAdmin[]>([]);
   const [statutsEdition, setStatutsEdition] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);

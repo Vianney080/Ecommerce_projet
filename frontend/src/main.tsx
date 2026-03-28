@@ -29,6 +29,9 @@ import { PagePolitiqueConfidentialite } from "./pages/PagePolitiqueConfidentiali
 import { PageMentionsLegales } from "./pages/PageMentionsLegales.tsx";
 import { PageCGV } from "./pages/PageCGV.tsx";
 import { SiteFooter } from "./components/SiteFooter.tsx";
+import { initAnalytics } from "./utils/initAnalytics.ts";
+
+initAnalytics();
 
 function AdminRoute({ children }: { children: ReactNode }) {
   const { utilisateur, authPret } = useAuth();

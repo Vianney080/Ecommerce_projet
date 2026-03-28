@@ -14,6 +14,8 @@ import {
   type ChampsAdresseErreurs,
   type ErreursPaiementCarte,
 } from "../utils/checkoutValidation";
+import { TrustCheckoutStrip } from "../components/TrustCheckoutStrip";
+import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
 
 interface ItemPanier {
@@ -89,6 +91,10 @@ function adresseDepuisProfil(utilisateur: {
 export function PagePaiement() {
   const { utilisateur, deconnexion } = useAuth();
   const navigate = useNavigate();
+  useDocumentTitle("Paiement");
+  useMetaDescription(
+    "Finalisez votre commande CosmétiShop : adresse de livraison, carte et validation sécurisée."
+  );
   const [panier, setPanier] = useState<Panier | null>(null);
   const [loading, setLoading] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -304,7 +310,7 @@ export function PagePaiement() {
               </span>
             </Link>
             <button type="button" className="nav-auth-btn nav-auth-btn-logout" onClick={deconnexion}>
-              Deconnexion
+              Déconnexion
             </button>
           </div>
         </div>
@@ -328,11 +334,15 @@ export function PagePaiement() {
           </div>
         </section>
 
+        <TrustCheckoutStrip />
+
         {erreur && <div className="panier-alert panier-alert-error">{erreur}</div>}
         {message && <div className="panier-alert panier-alert-success">{message}</div>}
 
         {loading ? (
-          <p className="panier-state">Chargement du checkout...</p>
+          <p className="panier-state panier-state--pulse" role="status">
+            Chargement du paiement…
+          </p>
         ) : (
           <section className="checkout-grid">
             <div className="checkout-card checkout-card-form">

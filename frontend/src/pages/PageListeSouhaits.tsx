@@ -13,6 +13,8 @@ import {
 import { PrixAvecPromo } from "../components/PrixAvecPromo";
 import "../styles.css";
 
+const SIZES_VIGNETTE_CATALOGUE = "(max-width: 640px) 50vw, (max-width: 1100px) 33vw, 280px";
+
 type ProduitApi = {
   _id: string;
   nom: string;
@@ -115,7 +117,9 @@ export function PageListeSouhaits() {
         </header>
 
         {loading ? (
-          <p className="catalogue-state">Chargement...</p>
+          <p className="catalogue-state panier-state--pulse" role="status">
+            Chargement…
+          </p>
         ) : produits.length === 0 ? (
           <div className="panier-empty" style={{ marginTop: "1rem" }}>
             <p>Votre liste d&apos;envies est vide.</p>
@@ -148,6 +152,7 @@ export function PageListeSouhaits() {
                         loading={chargementImagePrioritaire ? "eager" : "lazy"}
                         decoding="async"
                         fetchPriority={chargementImagePrioritaire ? "high" : undefined}
+                        sizes={SIZES_VIGNETTE_CATALOGUE}
                       />
                     ) : (
                       <div className="catalogue-card-image catalogue-card-image-placeholder" />

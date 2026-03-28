@@ -1,16 +1,21 @@
 import { Link } from "react-router-dom";
+import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
 
 export function PageCGV() {
+  useDocumentTitle("CGV");
+  useMetaDescription(
+    "Conditions générales de vente CosmétiShop : commandes, livraison, prix et droits du client."
+  );
   return (
     <div className="legal-page">
       <main className="legal-shell">
         <div className="legal-header">
           <Link to="/" className="client-back-link">
-            Retour a l&apos;accueil
+            Retour à l&apos;accueil
           </Link>
-          <h1 className="legal-title">Conditions generales de vente (CGV)</h1>
-          <p className="legal-subtitle">Regles applicables a vos commandes sur CosmetiShop</p>
+          <h1 className="legal-title">Conditions générales de vente (CGV)</h1>
+          <p className="legal-subtitle">Règles applicables à vos commandes sur CosmétiShop</p>
         </div>
 
         <section className="legal-section">

@@ -4,6 +4,7 @@ import { api, API_ORIGIN } from "../api";
 import { useAuth } from "../AuthContext";
 import { getCountryOptions, getRegionOptions, resolveCountryCode } from "../locationData";
 import { AuthPasswordField } from "../components/AuthFormFields";
+import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
 
 type ProfilForm = {
@@ -29,6 +30,10 @@ function imageUtilisateurUrl(url?: string) {
 }
 
 export function PageProfilClient() {
+  useDocumentTitle("Mon profil");
+  useMetaDescription(
+    "Gérez vos informations personnelles, adresse, préférences et sécurité du compte CosmétiShop."
+  );
   const { utilisateur, rafraichirProfil, majUtilisateurLocal } = useAuth();
   const [form, setForm] = useState<ProfilForm>({
     nom: "",
@@ -228,7 +233,9 @@ export function PageProfilClient() {
               Retour a l&apos;accueil
             </Link>
             <h1 className="client-title">Profil client</h1>
-            <p className="client-subtitle">Connectez-vous pour acceder a vos parametres personnalises.</p>
+            <p className="client-subtitle">
+              Connectez-vous pour accéder à vos paramètres personnalisés.
+            </p>
           </div>
           <div className="client-cards">
             <article className="client-card">

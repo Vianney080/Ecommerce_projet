@@ -18,6 +18,7 @@ import {
   type ChampsAdresseErreurs,
 } from "../utils/checkoutValidation";
 import { Breadcrumb } from "../components/Breadcrumb";
+import { TrustCheckoutStrip } from "../components/TrustCheckoutStrip";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
 
@@ -301,10 +302,11 @@ export function PagePanier() {
   }
 
   async function supprimerProduit(produitId: string) {
+    if (!window.confirm("Retirer ce produit du panier ?")) return;
     if (!utilisateur) {
       supprimerDuPanierInvite(produitId);
       setPanierInvite(lirePanierInvite());
-      setMessage("Produit supprime du panier");
+      setMessage("Produit retiré du panier");
       return;
     }
     try {
@@ -320,6 +322,7 @@ export function PagePanier() {
   }
 
   async function viderPanier() {
+    if (!window.confirm("Vider entièrement le panier ?")) return;
     if (!utilisateur) {
       viderPanierInvite();
       setPanierInvite([]);
@@ -530,7 +533,7 @@ export function PagePanier() {
             <p className="panier-kicker">Votre espace achat</p>
             <h1 className="panier-title">Mon panier</h1>
             <p className="panier-subtitle">
-              Finalisez vos articles en quelques clics avec une experience fluide et securisee.
+              Finalisez vos articles en quelques clics avec une expérience fluide et sécurisée.
             </p>
             <p className="panier-mode">
               {utilisateur
@@ -551,7 +554,7 @@ export function PagePanier() {
             )}
           </div>
           <div className="panier-summary-card">
-            <p className="panier-summary-label">Total estime (taxe incluse)</p>
+            <p className="panier-summary-label">Total estimé (taxe incluse)</p>
             <p className="panier-summary-total">{totalTTC.toFixed(2)} $</p>
             <p className="panier-summary-meta">Sous-total: {total.toFixed(2)} $</p>
             <p className="panier-summary-meta">Taxe (15%): {taxeEstimee.toFixed(2)} $</p>
@@ -559,16 +562,20 @@ export function PagePanier() {
           </div>
         </section>
 
+        <TrustCheckoutStrip compact />
+
         {erreur && <div className="panier-alert panier-alert-error">{erreur}</div>}
         {message && <div className="panier-alert panier-alert-success">{message}</div>}
 
         {loading ? (
-          <p className="panier-state">Chargement du panier...</p>
+          <p className="panier-state panier-state--pulse" role="status">
+            Chargement du panier…
+          </p>
         ) : itemsAvecPrix.length === 0 ? (
           <div className="panier-empty">
             <p>Votre panier est vide pour le moment.</p>
             <Link to="/catalogue" className="panier-btn panier-btn-primary">
-              Decouvrir le catalogue
+              Découvrir le catalogue
             </Link>
           </div>
         ) : (

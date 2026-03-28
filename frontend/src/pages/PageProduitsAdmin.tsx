@@ -9,6 +9,7 @@ import {
 } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { api, resolveAssetUrl } from "../api";
+import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
 
 interface ProduitAdmin {
@@ -62,6 +63,8 @@ const FORM_INIT: ProduitForm = {
 };
 
 export function PageProduitsAdmin() {
+  useDocumentTitle("Admin · Produits");
+  useMetaDescription("Catalogue administrateur CosmétiShop : ajout, modification, stock et catégories.");
   const [searchParams, setSearchParams] = useSearchParams();
   const [produits, setProduits] = useState<ProduitAdmin[]>([]);
   const [categories, setCategories] = useState<CategorieAdmin[]>([]);

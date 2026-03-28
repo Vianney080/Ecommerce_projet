@@ -6830,3 +6830,76 @@ html.theme-dark .panier-state {
   color: #94a3b8 !important;
 }
 
+/* ——— Finition « site pro » : focus, chargement, confiance checkout ——— */
+:where(a, button, input:not([type="hidden"]), select, textarea, summary):focus-visible {
+  outline: 2px solid #e11d48;
+  outline-offset: 2px;
+}
+
+.panier-state--pulse {
+  animation: panierStatePulse 1.15s ease-in-out infinite;
+}
+
+@keyframes panierStatePulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.trust-checkout-strip {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.95rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.95), rgba(241, 245, 249, 0.98));
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: #475569;
+}
+
+.trust-checkout-strip--compact {
+  margin-bottom: 0.75rem;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.76rem;
+}
+
+.trust-checkout-strip-title {
+  display: block;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.2rem;
+  font-size: 0.82rem;
+}
+
+.trust-checkout-strip a {
+  color: #be185d;
+  font-weight: 600;
+  text-underline-offset: 2px;
+}
+
+.trust-checkout-strip a:hover {
+  color: #9d174d;
+}
+
+html.theme-dark .trust-checkout-strip {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+html.theme-dark .trust-checkout-strip-title {
+  color: #f1f5f9;
+}
+
+html.theme-dark .trust-checkout-strip a {
+  color: #fda4af;
+}
+
+html.theme-dark .trust-checkout-strip a:hover {
+  color: #fbcfe8;
+}
+

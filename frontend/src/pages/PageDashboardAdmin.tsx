@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api";
 import { useAuth } from "../AuthContext";
+import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
 
 interface UtilisateurAdmin {
@@ -38,6 +39,8 @@ interface RoleHistoriqueItem {
 }
 
 export function PageDashboardAdmin() {
+  useDocumentTitle("Admin · Tableau de bord");
+  useMetaDescription("Tableau de bord administrateur CosmétiShop : statistiques, stock et utilisateurs.");
   const { utilisateur } = useAuth();
   const [stats, setStats] = useState<StatsAdmin | null>(null);
   const [resume, setResume] = useState<ResumeStock | null>(null);

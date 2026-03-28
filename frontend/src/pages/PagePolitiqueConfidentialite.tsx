@@ -1,16 +1,21 @@
 import { Link } from "react-router-dom";
+import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
 
 export function PagePolitiqueConfidentialite() {
+  useDocumentTitle("Politique de confidentialité");
+  useMetaDescription(
+    "Comment CosmétiShop collecte et protège vos données personnelles (compte, commandes, livraison)."
+  );
   return (
     <div className="legal-page">
       <main className="legal-shell">
         <div className="legal-header">
           <Link to="/" className="client-back-link">
-            Retour a l&apos;accueil
+            Retour à l&apos;accueil
           </Link>
-          <h1 className="legal-title">Politique de confidentialite</h1>
-          <p className="legal-subtitle">Derniere mise a jour: {new Date().toLocaleDateString("fr-CA")}</p>
+          <h1 className="legal-title">Politique de confidentialité</h1>
+          <p className="legal-subtitle">Dernière mise à jour : {new Date().toLocaleDateString("fr-CA")}</p>
         </div>
 
         <section className="legal-section">

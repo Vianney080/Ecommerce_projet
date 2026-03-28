@@ -14,6 +14,8 @@ import { buildPaginationItems } from "../utils/pagination";
 import { PrixAvecPromo } from "../components/PrixAvecPromo";
 import "../styles.css";
 
+const SIZES_VIGNETTE_CATALOGUE = "(max-width: 640px) 50vw, (max-width: 1100px) 33vw, 280px";
+
 interface Categorie {
   _id: string;
   nom: string;
@@ -484,6 +486,7 @@ export function PageCatalogue() {
                           loading={chargementImagePrioritaire ? "eager" : "lazy"}
                           decoding="async"
                           fetchPriority={chargementImagePrioritaire ? "high" : undefined}
+                          sizes={SIZES_VIGNETTE_CATALOGUE}
                         />
                       ) : (
                         <div className="catalogue-card-image catalogue-card-image-placeholder" />
@@ -531,7 +534,7 @@ export function PageCatalogue() {
                 );
               })}
               {!loading && produits.length === 0 && (
-                <p className="catalogue-state">Aucun produit trouve avec ces filtres.</p>
+                <p className="catalogue-state">Aucun produit trouvé avec ces filtres.</p>
               )}
             </section>
             {produits.length > 0 && totalPages > 1 && (
@@ -546,7 +549,7 @@ export function PageCatalogue() {
                     onClick={() => setPageCourante((page) => Math.max(1, page - 1))}
                     disabled={pageCourante === 1}
                   >
-                    Precedent
+                    Précédent
                   </button>
                   {paginationCompacte.map((item, index) =>
                     item === "ellipsis" ? (

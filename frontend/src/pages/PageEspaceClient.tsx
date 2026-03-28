@@ -1,8 +1,13 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../AuthContext";
+import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
 
 export function PageEspaceClient() {
+  useDocumentTitle("Espace client");
+  useMetaDescription(
+    "Accédez à votre espace CosmétiShop : connexion, inscription, catalogue et panier."
+  );
   const { utilisateur } = useAuth();
 
   return (
@@ -10,11 +15,11 @@ export function PageEspaceClient() {
       <main className="client-shell">
         <div className="client-header">
           <Link to="/" className="client-back-link">
-            ← Retour a l'accueil
+            ← Retour à l&apos;accueil
           </Link>
           <h1 className="client-title">Espace client</h1>
           <p className="client-subtitle">
-            Choisissez une option pour acceder a votre compte ou en creer un nouveau.
+            Choisissez une option pour accéder à votre compte ou en créer un nouveau.
           </p>
         </div>
 
@@ -22,7 +27,7 @@ export function PageEspaceClient() {
           {utilisateur && (
             <article className="client-card">
               <h2>Mon espace</h2>
-              <p>Accedez au catalogue, a votre panier personnel et a vos commandes.</p>
+              <p>Accédez au catalogue, à votre panier personnel et à vos commandes.</p>
               <div className="client-actions-inline">
                 <Link to="/profil" className="client-action client-action-primary">
                   Mon profil
@@ -41,8 +46,8 @@ export function PageEspaceClient() {
           )}
 
           <article className="client-card">
-            <h2>Deja client ?</h2>
-            <p>Connectez-vous pour acceder a votre panier, vos commandes et votre historique.</p>
+            <h2>Déjà client ?</h2>
+            <p>Connectez-vous pour accéder à votre panier, vos commandes et votre historique.</p>
             <Link to="/connexion" className="client-action client-action-primary">
               Se connecter
             </Link>
@@ -50,9 +55,9 @@ export function PageEspaceClient() {
 
           <article className="client-card">
             <h2>Nouveau sur la boutique ?</h2>
-            <p>Creez votre compte en quelques secondes pour commencer vos achats.</p>
+            <p>Créez votre compte en quelques secondes pour commencer vos achats.</p>
             <Link to="/inscription" className="client-action client-action-secondary">
-              Creer un compte
+              Créer un compte
             </Link>
           </article>
         </div>

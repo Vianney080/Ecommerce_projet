@@ -10,12 +10,15 @@ import {
   MSG_MDP_REGLES,
   messageErreurRequeteAuth,
 } from "../utils/authMessages";
+import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
 
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,128}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function PageReinitialiserMotDePasse() {
+  useDocumentTitle("Nouveau mot de passe");
+  useMetaDescription("Choisissez un nouveau mot de passe sécurisé pour votre compte CosmétiShop.");
   const { token } = useParams<{ token?: string }>();
   const navigate = useNavigate();
   const location = useLocation();

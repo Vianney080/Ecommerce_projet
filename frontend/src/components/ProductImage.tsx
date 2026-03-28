@@ -7,6 +7,8 @@ type Props = {
   loading?: "lazy" | "eager";
   decoding?: "async" | "auto" | "sync";
   fetchPriority?: "high" | "low" | "auto";
+  /** Attribut `sizes` pour le navigateur (LCP / bande passante). */
+  sizes?: string;
 };
 
 /** Affiche une image produit ; en cas d’échec (URL cassée, 404, blocage), repli visuel sans texte alt envahissant. */
@@ -17,6 +19,7 @@ export function ProductImage({
   loading = "lazy",
   decoding = "async",
   fetchPriority,
+  sizes,
 }: Props) {
   const [broken, setBroken] = useState(false);
   const ok = Boolean(src?.trim()) && !broken;
@@ -39,6 +42,7 @@ export function ProductImage({
       className={className}
       loading={loading}
       decoding={decoding}
+      {...(sizes ? { sizes } : {})}
       {...(fetchPriority ? { fetchPriority } : {})}
       onError={() => setBroken(true)}
     />
@@ -55,6 +59,7 @@ type CascadeProps = {
   loading?: "lazy" | "eager";
   decoding?: "async" | "auto" | "sync";
   fetchPriority?: "high" | "low" | "auto";
+  sizes?: string;
 };
 
 export function ProductImageCascade({
@@ -65,6 +70,7 @@ export function ProductImageCascade({
   loading = "lazy",
   decoding = "async",
   fetchPriority,
+  sizes,
 }: CascadeProps) {
   const ordreEssai = useMemo(() => {
     const u = urls.map((x) => String(x || "").trim()).filter(Boolean);
@@ -99,6 +105,7 @@ export function ProductImageCascade({
       className={className}
       loading={loading}
       decoding={decoding}
+      {...(sizes ? { sizes } : {})}
       {...(fetchPriority ? { fetchPriority } : {})}
       onError={() => setEchecs((n) => n + 1)}
     />
