@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api, API_ORIGIN } from "../api";
 import { useAuth } from "../AuthContext";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
+import { googleMapsSearchUrlFromAdresse } from "../utils/googleMapsUrl";
 import "../styles.css";
 
 interface ItemCommande {
@@ -346,32 +347,61 @@ export function PageMesCommandes() {
                   ))}
                 </ul>
 
-                <div className="orders-address">
-                  <p className="orders-address-title">Adresse de livraison</p>
-                  {c.adresseLivraison?.nomComplet ? (
-                    <p className="orders-address-line">
-                      {c.adresseLivraison.nomComplet}
-                      {c.adresseLivraison.telephone ? ` - ${c.adresseLivraison.telephone}` : ""}
-                    </p>
+                {(() => {
+                  const urlMaps = googleMapsSearchUrlFromAdresse(c.adresseLivraison);
+                  const contenuAdresse = (
+                    <>
+                      <p className="orders-address-title">Adresse de livraison</p>
+                      {urlMaps ? (
+                        <p className="orders-address-maps-hint">
+                          <span className="orders-maps-hint-icon" aria-hidden>
+                            📍
+                          </span>
+                          <span>
+                            <span className="orders-maps-hint-action">Ouvrir dans Google Maps</span>
+                            <span className="orders-maps-hint-detail"> — cliquez n&apos;importe où dans ce cadre</span>
+                          </span>
+                        </p>
+                      ) : null}
+                      {c.adresseLivraison?.nomComplet ? (
+                        <p className="orders-address-line">
+                          {c.adresseLivraison.nomComplet}
+                          {c.adresseLivraison.telephone ? ` - ${c.adresseLivraison.telephone}` : ""}
+                        </p>
+                      ) : (
+                        <p className="orders-address-line">Adresse non disponible</p>
+                      )}
+                      {c.adresseLivraison?.rue && (
+                        <p className="orders-address-line">{c.adresseLivraison.rue}</p>
+                      )}
+                      {(c.adresseLivraison?.ville ||
+                        c.adresseLivraison?.province ||
+                        c.adresseLivraison?.codePostal) && (
+                        <p className="orders-address-line">
+                          {[c.adresseLivraison?.ville, c.adresseLivraison?.province, c.adresseLivraison?.codePostal]
+                            .filter(Boolean)
+                            .join(", ")}
+                        </p>
+                      )}
+                      {c.adresseLivraison?.pays && (
+                        <p className="orders-address-line">{c.adresseLivraison.pays}</p>
+                      )}
+                    </>
+                  );
+                  return urlMaps ? (
+                    <a
+                      href={urlMaps}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="orders-address orders-address--link-maps"
+                      aria-label="Ouvrir cette adresse dans Google Maps (nouvel onglet)"
+                    >
+                      {contenuAdresse}
+                    </a>
                   ) : (
-                    <p className="orders-address-line">Adresse non disponible</p>
-                  )}
-                  {c.adresseLivraison?.rue && (
-                    <p className="orders-address-line">{c.adresseLivraison.rue}</p>
-                  )}
-                  {(c.adresseLivraison?.ville ||
-                    c.adresseLivraison?.province ||
-                    c.adresseLivraison?.codePostal) && (
-                    <p className="orders-address-line">
-                      {[c.adresseLivraison?.ville, c.adresseLivraison?.province, c.adresseLivraison?.codePostal]
-                        .filter(Boolean)
-                        .join(", ")}
-                    </p>
-                  )}
-                  {c.adresseLivraison?.pays && (
-                    <p className="orders-address-line">{c.adresseLivraison.pays}</p>
-                  )}
-                </div>
+                    <div className="orders-address">{contenuAdresse}</div>
+                  );
+                })()}
 
                 <div className="orders-total">Total: {c.total.toFixed(2)} $</div>
               </article>

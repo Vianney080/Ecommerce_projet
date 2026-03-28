@@ -4345,6 +4345,55 @@ a.auth-submit-primary {
   color: #475569;
 }
 
+a.orders-address--link-maps {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  cursor: pointer;
+  border-left: 3px solid #3b82f6;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease;
+}
+
+a.orders-address--link-maps:hover {
+  border-color: rgba(236, 72, 153, 0.55);
+  border-left-color: #2563eb;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.1);
+}
+
+.orders-address-maps-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin: 0 0 0.45rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.45rem;
+  background: rgba(37, 99, 235, 0.1);
+  border: 1px solid rgba(37, 99, 235, 0.35);
+  font-size: 0.74rem;
+  line-height: 1.35;
+  color: #1e3a8a;
+}
+
+.orders-maps-hint-icon {
+  flex-shrink: 0;
+  line-height: 1.2;
+}
+
+.orders-maps-hint-action {
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.orders-maps-hint-detail {
+  font-weight: 500;
+  color: #334155;
+}
+
 .orders-admin-row {
   display: flex;
   align-items: center;
@@ -6759,6 +6808,37 @@ html.theme-dark .orders-card-id {
 }
 
 html.theme-dark .orders-card-date {
+  color: #94a3b8 !important;
+}
+
+html.theme-dark .orders-address {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+html.theme-dark .orders-address-title,
+html.theme-dark .orders-address-line {
+  color: #cbd5e1 !important;
+}
+
+html.theme-dark a.orders-address--link-maps {
+  border-left-color: #60a5fa !important;
+}
+
+html.theme-dark a.orders-address--link-maps:hover {
+  background: #0f172a !important;
+  border-color: #f472b6 !important;
+  border-left-color: #93c5fd !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35) !important;
+}
+
+html.theme-dark .orders-address-maps-hint {
+  background: rgba(59, 130, 246, 0.18) !important;
+  border-color: rgba(96, 165, 250, 0.45) !important;
+  color: #bfdbfe !important;
+}
+
+html.theme-dark .orders-maps-hint-detail {
   color: #94a3b8 !important;
 }
 
