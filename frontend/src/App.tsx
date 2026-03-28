@@ -9,6 +9,7 @@ import { Breadcrumb } from "./components/Breadcrumb";
 import { useDocumentTitle, useMetaDescription } from "./hooks/useDocumentTitle";
 import { basculerListeSouhaits, estDansListeSouhaits } from "./wishlistInvite";
 import { NB_VIGNETES_IMAGES_PRIORITAIRES, trierUrlsImagesParFiabilite } from "./utils/imageUrlPriority";
+import { buildPaginationItems } from "./utils/pagination";
 import "./styles.css";
 
 type TriAccueil = "recent" | "nom" | "prix_asc" | "prix_desc";
@@ -269,34 +270,7 @@ function App() {
   const pageProduitsCourte = produitsAffichesPageCourante.length > 0 && produitsAffichesPageCourante.length < 4;
   const paginationCompacteProduits = useMemo(() => {
     if (totalPagesProduits <= 0) return [];
-    if (totalPagesProduits <= 7) {
-      return Array.from({ length: totalPagesProduits }, (_, index) => index + 1);
-    }
-
-    const pages = new Set<number>([1, totalPagesProduits]);
-    const debutFenetre = Math.max(2, pageCourante - 1);
-    const finFenetre = Math.min(totalPagesProduits - 1, pageCourante + 1);
-
-    for (let page = debutFenetre; page <= finFenetre; page += 1) {
-      pages.add(page);
-    }
-
-    if (pageCourante <= 3) pages.add(2);
-    if (pageCourante >= totalPagesProduits - 2) pages.add(totalPagesProduits - 1);
-
-    const pagesTriees = Array.from(pages).sort((a, b) => a - b);
-    const resultat: Array<number | "ellipsis"> = [];
-
-    for (let i = 0; i < pagesTriees.length; i += 1) {
-      const page = pagesTriees[i];
-      const pagePrecedente = pagesTriees[i - 1];
-      if (pagePrecedente && page - pagePrecedente > 1) {
-        resultat.push("ellipsis");
-      }
-      resultat.push(page);
-    }
-
-    return resultat;
+    return buildPaginationItems(pageCourante, totalPagesProduits);
   }, [pageCourante, totalPagesProduits]);
 
   const suggestionsRecherche = useMemo(() => {
@@ -1004,8 +978,12 @@ function App() {
               </button>
               {paginationCompacteProduits.map((item, index) =>
                 item === "ellipsis" ? (
-                  <span key={`ellipsis-${index}`} className="products-pagination-ellipsis">
-                    ...
+                  <span
+                    key={`ellipsis-${index}`}
+                    className="products-pagination-ellipsis"
+                    aria-hidden="true"
+                  >
+                    …
                   </span>
                 ) : (
                   <button

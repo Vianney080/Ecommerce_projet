@@ -10,6 +10,7 @@ import {
   NB_VIGNETES_IMAGES_PRIORITAIRES,
   trierUrlsImagesParFiabilite,
 } from "../utils/imageUrlPriority";
+import { buildPaginationItems } from "../utils/pagination";
 import { PrixAvecPromo } from "../components/PrixAvecPromo";
 import "../styles.css";
 
@@ -235,37 +236,10 @@ export function PageCatalogue() {
     return produits.slice(debut, debut + PRODUITS_PAR_PAGE);
   }, [produits, pageCourante]);
   const pageCatalogueCourte = produitsPageCourante.length > 0 && produitsPageCourante.length < 4;
-  const paginationCompacte = useMemo(() => {
-    if (totalPages <= 7) {
-      return Array.from({ length: totalPages }, (_, index) => index + 1);
-    }
-
-    const pages = new Set<number>([1, totalPages]);
-    const debutFenetre = Math.max(2, pageCourante - 1);
-    const finFenetre = Math.min(totalPages - 1, pageCourante + 1);
-
-    for (let page = debutFenetre; page <= finFenetre; page += 1) {
-      pages.add(page);
-    }
-
-    // On force aussi une page proche du début/fin pour une navigation plus fluide.
-    if (pageCourante <= 3) pages.add(2);
-    if (pageCourante >= totalPages - 2) pages.add(totalPages - 1);
-
-    const pagesTriees = Array.from(pages).sort((a, b) => a - b);
-    const resultat: Array<number | "ellipsis"> = [];
-
-    for (let i = 0; i < pagesTriees.length; i += 1) {
-      const page = pagesTriees[i];
-      const pagePrecedente = pagesTriees[i - 1];
-      if (pagePrecedente && page - pagePrecedente > 1) {
-        resultat.push("ellipsis");
-      }
-      resultat.push(page);
-    }
-
-    return resultat;
-  }, [pageCourante, totalPages]);
+  const paginationCompacte = useMemo(
+    () => buildPaginationItems(pageCourante, totalPages),
+    [pageCourante, totalPages]
+  );
 
   const suggestionsRecherche = useMemo(() => {
     const query = normaliserRecherche(rechercheInput).trim();
@@ -576,8 +550,12 @@ export function PageCatalogue() {
                   </button>
                   {paginationCompacte.map((item, index) =>
                     item === "ellipsis" ? (
-                      <span key={`ellipsis-${index}`} className="catalogue-pagination-ellipsis">
-                        ...
+                      <span
+                        key={`ellipsis-${index}`}
+                        className="catalogue-pagination-ellipsis"
+                        aria-hidden="true"
+                      >
+                        …
                       </span>
                     ) : (
                       <button
