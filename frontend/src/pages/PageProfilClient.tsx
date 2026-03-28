@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api, API_ORIGIN } from "../api";
 import { useAuth } from "../AuthContext";
 import { getCountryOptions, getRegionOptions, resolveCountryCode } from "../locationData";
+import { AuthPasswordField } from "../components/AuthFormFields";
 import "../styles.css";
 
 type ProfilForm = {
@@ -497,38 +498,29 @@ export function PageProfilClient() {
         </section>
 
         <section className="profil-card">
-          <h2>Securite du compte</h2>
-          <div className="profil-grid">
-            <label>
-              Mot de passe actuel
-              <input
-                type="password"
-                className="auth-input"
-                value={motDePasseActuel}
-                onChange={(e) => setMotDePasseActuel(e.target.value)}
-                placeholder="Votre mot de passe actuel"
-              />
-            </label>
-            <label>
-              Nouveau mot de passe
-              <input
-                type="password"
-                className="auth-input"
-                value={nouveauMotDePasse}
-                onChange={(e) => setNouveauMotDePasse(e.target.value)}
-                placeholder="Nouveau mot de passe"
-              />
-            </label>
-            <label>
-              Confirmer le mot de passe
-              <input
-                type="password"
-                className="auth-input"
-                value={confirmationMotDePasse}
-                onChange={(e) => setConfirmationMotDePasse(e.target.value)}
-                placeholder="Confirmer"
-              />
-            </label>
+          <h2>Sécurité du compte</h2>
+          <div className="profil-grid profil-grid-mots-de-passe">
+            <AuthPasswordField
+              label="Mot de passe actuel"
+              value={motDePasseActuel}
+              onChange={(e) => setMotDePasseActuel(e.target.value)}
+              autoComplete="current-password"
+              maxLength={128}
+            />
+            <AuthPasswordField
+              label="Nouveau mot de passe"
+              value={nouveauMotDePasse}
+              onChange={(e) => setNouveauMotDePasse(e.target.value)}
+              autoComplete="new-password"
+              maxLength={128}
+            />
+            <AuthPasswordField
+              label="Confirmer le mot de passe"
+              value={confirmationMotDePasse}
+              onChange={(e) => setConfirmationMotDePasse(e.target.value)}
+              autoComplete="new-password"
+              maxLength={128}
+            />
           </div>
           <div className="profil-actions">
             <button

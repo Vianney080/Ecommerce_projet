@@ -3455,7 +3455,8 @@ body {
   outline: none;
 }
 
-.client-page .auth-input-pro {
+.client-page .auth-input-pro,
+.profil-page .auth-input-pro {
   border-radius: 6px;
   min-height: 2.75rem;
   padding: 0.65rem 0.85rem;
@@ -3467,17 +3468,20 @@ body {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.client-page .auth-input-pro:focus {
+.client-page .auth-input-pro:focus,
+.profil-page .auth-input-pro:focus {
   border-color: #e11d48;
   box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.2);
 }
 
-.client-page .auth-input-pro.auth-input-invalid {
+.client-page .auth-input-pro.auth-input-invalid,
+.profil-page .auth-input-pro.auth-input-invalid {
   border-color: #b91c1c;
   box-shadow: 0 0 0 1px rgba(185, 28, 28, 0.25);
 }
 
-.client-page .auth-input-pro.auth-input-invalid:focus {
+.client-page .auth-input-pro.auth-input-invalid:focus,
+.profil-page .auth-input-pro.auth-input-invalid:focus {
   border-color: #b91c1c;
   box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.18);
 }
