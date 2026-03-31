@@ -271,6 +271,26 @@ export function ClientNav({
     setMenuMobileOuvert(false);
   }
 
+  /** Déconnexion dans le menu hamburger (icône + libellé), visible ≤900px */
+  const menuMobileDeconnexion =
+    utilisateur ? (
+      <div className="nav-mobile-user-footer" role="group" aria-label="Déconnexion">
+        <button
+          type="button"
+          className="nav-mobile-auth-tile nav-mobile-auth-tile--logout nav-mobile-auth-tile--row-full"
+          onClick={() => {
+            fermerMenuMobile();
+            deconnexion();
+          }}
+        >
+          <span className="nav-mobile-auth-icon-wrap nav-mobile-auth-icon-wrap--logout" aria-hidden>
+            <NavIconDeconnexion className="nav-mobile-auth-svg" />
+          </span>
+          <span className="nav-mobile-auth-caption">Déconnexion</span>
+        </button>
+      </div>
+    ) : null;
+
   const logoBloc = (
     <Link to="/" className="nav-logo-link" onClick={fermerMenuMobile}>
       <img
@@ -381,6 +401,7 @@ export function ClientNav({
                   </Link>
                 </div>
               )}
+              {menuMobileDeconnexion}
             </>
           ) : (
             <>
@@ -446,6 +467,7 @@ export function ClientNav({
                   </Link>
                 </div>
               )}
+              {menuMobileDeconnexion}
             </>
           )}
         </div>
@@ -508,7 +530,7 @@ export function ClientNav({
                 <span className="nav-auth-desktop-icon-wrap nav-auth-desktop-icon-wrap--on-primary" aria-hidden>
                   <NavIconInscription className="nav-auth-desktop-svg" />
                 </span>
-                <span className="nav-auth-desktop-label">Créer un compte</span>
+                <span className="nav-auth-desktop-label">Inscription</span>
               </Link>
             </div>
           )}
