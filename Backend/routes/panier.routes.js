@@ -56,6 +56,29 @@ function calculerTotal(items) {
   return total;
 }
 
+/** Première image pour affichage panier / header (non persistée en BD). */
+function premiereImageProduit(p) {
+  if (!p) return "";
+  const urls = [...(p.imageUrls || []).map(String), String(p.imageUrl || "")]
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return urls[0] || "";
+}
+
+/** Ajoute imageUrl à chaque ligne pour le front (mini-panier, page panier). */
+async function panierAvecImagesPourJson(panierDoc) {
+  const obj = panierDoc.toObject ? panierDoc.toObject({ flattenMaps: true }) : { ...panierDoc };
+  if (!obj.items?.length) return obj;
+  const ids = obj.items.map((it) => it.produitId).filter(Boolean);
+  const produits = await Produit.find({ _id: { $in: ids } }).select("imageUrl imageUrls").lean();
+  const map = new Map(produits.map((p) => [p._id.toString(), p]));
+  obj.items = obj.items.map((it) => {
+    const p = map.get(String(it.produitId));
+    return { ...it, imageUrl: premiereImageProduit(p) };
+  });
+  return obj;
+}
+
 // ✅ Aligne les infos de panier sur les produits en BD (prix/nom), utile pour corriger d'anciens paniers.
 async function synchroniserItemsPanier(panier) {
   if (!panier?.items?.length) {
@@ -149,7 +172,7 @@ router.get("/", verifierToken, async (req, res) => {
   try {
     const panier = await obtenirPanierActif(req.utilisateur.id);
 
-    return res.json(panier);
+    return res.json(await panierAvecImagesPourJson(panier));
   } catch (e) {
     return res.status(500).json({ message: "Erreur serveur", erreur: e.message });
   }
@@ -212,7 +235,10 @@ router.post("/ajouter", verifierToken, async (req, res) => {
     await panier.save();
     await synchroniserItemsPanier(panier);
 
-    return res.status(200).json({ message: messagePanier, panier });
+    return res.status(200).json({
+      message: messagePanier,
+      panier: await panierAvecImagesPourJson(panier),
+    });
   } catch (e) {
     return res.status(500).json({ message: "Erreur serveur", erreur: e.message });
   }
@@ -257,7 +283,10 @@ router.put("/modifier-quantite", verifierToken, async (req, res) => {
     await panier.save();
     await synchroniserItemsPanier(panier);
 
-    return res.json({ message: "Quantité mise à jour ✅", panier });
+    return res.json({
+      message: "Quantité mise à jour ✅",
+      panier: await panierAvecImagesPourJson(panier),
+    });
   } catch (e) {
     return res.status(500).json({ message: "Erreur serveur", erreur: e.message });
   }
@@ -285,7 +314,10 @@ router.delete("/supprimer/:produitId", verifierToken, async (req, res) => {
     await panier.save();
     await synchroniserItemsPanier(panier);
 
-    return res.json({ message: "Produit supprimé du panier ✅", panier });
+    return res.json({
+      message: "Produit supprimé du panier ✅",
+      panier: await panierAvecImagesPourJson(panier),
+    });
   } catch (e) {
     return res.status(500).json({ message: "Erreur serveur", erreur: e.message });
   }
@@ -305,7 +337,10 @@ router.delete("/vider", verifierToken, async (req, res) => {
     await panier.save();
     await synchroniserItemsPanier(panier);
 
-    return res.json({ message: "Panier vidé ✅", panier });
+    return res.json({
+      message: "Panier vidé ✅",
+      panier: await panierAvecImagesPourJson(panier),
+    });
   } catch (e) {
     return res.status(500).json({ message: "Erreur serveur", erreur: e.message });
   }

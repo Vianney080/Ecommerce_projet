@@ -20,6 +20,8 @@ export type ClientNavItemPanier = {
   nomProduit: string;
   prixUnitaire: number;
   quantite: number;
+  /** Présent quand l’API ou le panier invité fournit une image */
+  imageUrl?: string;
 };
 
 type PanierApi = {
@@ -157,6 +159,7 @@ export function ClientNav({
 
   const itemsPanier = panierExterne?.items ?? interneItems;
   const totalPanier = panierExterne?.total ?? interneTotal;
+  const nbPiecesPanierNav = itemsPanier.reduce((n, it) => n + it.quantite, 0);
   const panierOuvert = panierExterne?.ouvert ?? internePanierOuvert;
   const setPanierOuvert = panierExterne?.setOuvert ?? setInternePanierOuvert;
 
@@ -347,31 +350,50 @@ export function ClientNav({
                 {itemsPanier.reduce((acc, it) => acc + it.quantite, 0)}
               </span>
             )}
-            <span className="nav-cart-info">Mon panier – {formatCAD(totalPanier)}</span>
+            <span className="nav-cart-info">Mon sac – {formatCAD(totalPanier)}</span>
             {panierOuvert && (
               <div className="nav-cart-panel">
                 {itemsPanier.length === 0 ? (
-                  <p className="nav-cart-empty">Votre panier est vide.</p>
+                  <p className="nav-cart-empty">Votre sac est vide.</p>
                 ) : (
                   <>
+                    <div className="nav-cart-panel-head">
+                      <span className="nav-cart-panel-title">Mon sac</span>
+                      <span className="nav-cart-panel-sub">
+                        {nbPiecesPanierNav} article{nbPiecesPanierNav !== 1 ? "s" : ""}
+                      </span>
+                    </div>
                     <ul className="nav-cart-list">
-                      {itemsPanier.map((it) => (
-                        <li key={it.produitId} className="nav-cart-item">
-                          <span className="nav-cart-item-name">
-                            {it.nomProduit} x {it.quantite}
-                          </span>
-                          <span className="nav-cart-item-price">
-                            {formatCAD(it.prixUnitaire * it.quantite)}
-                          </span>
-                        </li>
-                      ))}
+                      {itemsPanier.map((it) => {
+                        const thumb = it.imageUrl ? resolveAssetUrl(it.imageUrl) : "";
+                        return (
+                          <li key={it.produitId} className="nav-cart-item">
+                            {thumb ? (
+                              <span className="nav-cart-item-thumb">
+                                <img src={thumb} alt="" className="nav-cart-item-thumb-img" />
+                              </span>
+                            ) : (
+                              <span className="nav-cart-item-thumb nav-cart-item-thumb--placeholder" aria-hidden />
+                            )}
+                            <span className="nav-cart-item-body">
+                              <span className="nav-cart-item-name">
+                                {it.nomProduit}
+                                <span className="nav-cart-item-qty"> × {it.quantite}</span>
+                              </span>
+                              <span className="nav-cart-item-price">
+                                {formatCAD(it.prixUnitaire * it.quantite)}
+                              </span>
+                            </span>
+                          </li>
+                        );
+                      })}
                     </ul>
                     <div className="nav-cart-total">
-                      <span>Total</span>
+                      <span>Sous-total</span>
                       <span>{formatCAD(totalPanier)}</span>
                     </div>
                     <Link to="/panier" className="nav-cart-cta" onClick={() => setPanierOuvert(false)}>
-                      Voir mon panier
+                      Voir mon sac
                     </Link>
                   </>
                 )}

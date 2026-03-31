@@ -28,6 +28,7 @@ interface ItemPanier {
   nomProduit: string;
   prixUnitaire: number;
   quantite: number;
+  /** Renseigné par l’API (compte) ou le panier invité */
   imageUrl?: string;
 }
 
@@ -379,6 +380,7 @@ export function PagePanier() {
       nomProduit: it.nomProduit,
       prixUnitaire: it.prixUnitaire,
       quantite: it.quantite,
+      imageUrl: it.imageUrl,
     }));
   }, [utilisateur, panier, panierInvite]);
 
@@ -431,6 +433,20 @@ export function PagePanier() {
     setMessage("Adresse remplie depuis votre profil.");
   }
 
+  function urlVignetteLigne(it: ItemPanier): string {
+    const depuisApi = it.imageUrl ? resolveAssetUrl(it.imageUrl) : "";
+    if (depuisApi) return depuisApi;
+    const nomKey = normaliserNomProduit(it.nomProduit);
+    return (
+      imagesProduits[it.produitId] ||
+      imagesProduitsParNom[nomKey] ||
+      FRONTEND_IMAGE_BY_NAME[nomKey] ||
+      ""
+    );
+  }
+
+  const nbArticles = itemsAvecPrix.reduce((n, it) => n + it.quantite, 0);
+
   return (
     <div className="panier-page">
       <ClientNav
@@ -439,7 +455,7 @@ export function PagePanier() {
         onConnexionClick={() => localStorage.setItem(CLE_TRANSFERT_PANIER_INVITE, "1")}
       />
 
-      <main className="panier-shell">
+      <main className="panier-shell panier-shell--pro">
         <div className="breadcrumb-wrap">
           <Breadcrumb
             items={[
@@ -448,58 +464,132 @@ export function PagePanier() {
             ]}
           />
         </div>
-        <section className="panier-hero">
-          <div>
-            <p className="panier-kicker">Votre espace achat</p>
-            <h1 className="panier-title">Mon panier</h1>
-            <p className="panier-subtitle">
-              Finalisez vos articles en quelques clics avec une expérience fluide et sécurisée.
-            </p>
-            <p className="panier-mode">
-              {utilisateur
-                ? "Mode compte actif: panier synchronise avec votre espace client."
-                : "Mode invite: panier enregistre localement sur ce navigateur."}
-            </p>
-            {!utilisateur && (
-              <p className="panier-auth-hint">
-                <button
-                  type="button"
-                  className="panier-auth-hint-btn"
-                  onClick={allerConnexionPourCommanderInvite}
-                >
-                  Connectez-vous
-                </button>{" "}
-                pour commander avec votre compte.
-              </p>
-            )}
-          </div>
-          <div className="panier-summary-card">
-            <p className="panier-summary-label">Total estimé (taxe incluse)</p>
-            <p className="panier-summary-total">{totalTTC.toFixed(2)} $</p>
-            <p className="panier-summary-meta">Sous-total: {total.toFixed(2)} $</p>
-            <p className="panier-summary-meta">Taxe (15%): {taxeEstimee.toFixed(2)} $</p>
-            <p className="panier-summary-meta">{itemsAvecPrix.length} article(s)</p>
-          </div>
-        </section>
 
-        <TrustCheckoutStrip compact />
-
-        {erreur && <div className="panier-alert panier-alert-error">{erreur}</div>}
-        {message && <div className="panier-alert panier-alert-success">{message}</div>}
+        {!loading && erreur && <div className="panier-alert panier-alert-error">{erreur}</div>}
+        {!loading && message && (
+          <div className="panier-alert panier-alert-success">{message}</div>
+        )}
 
         {loading ? (
           <p className="panier-state panier-state--pulse" role="status">
             Chargement du panier…
           </p>
         ) : itemsAvecPrix.length === 0 ? (
-          <div className="panier-empty">
-            <p>Votre panier est vide pour le moment.</p>
-            <Link to="/catalogue" className="panier-btn panier-btn-primary">
-              Découvrir le catalogue
-            </Link>
+          <div className="panier-empty panier-empty--pro" role="status">
+            <div className="panier-empty-visual" aria-hidden="true">
+              <svg viewBox="0 0 64 64" className="panier-empty-icon" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <path d="M16 22h40l-4 28H20L16 22z" strokeLinejoin="round" />
+                <path d="M24 22V14a8 8 0 0 1 16 0v8" strokeLinecap="round" />
+              </svg>
+            </div>
+            <div className="panier-empty-copy">
+              <h2 className="panier-empty-title">Votre sac est vide</h2>
+              <p className="panier-empty-desc">
+                Parfums, soins visage, maquillage : composez votre rituel beauté comme dans les grandes enseignes canadiennes.
+              </p>
+              <div className="panier-empty-actions">
+                <Link to="/catalogue" className="panier-btn panier-btn-primary">
+                  Explorer le catalogue
+                </Link>
+                <Link to="/" className="panier-btn panier-btn-ghost">
+                  Retour à l&apos;accueil
+                </Link>
+              </div>
+            </div>
           </div>
         ) : (
           <>
+            <div className="panier-checkout-layout">
+              <div className="panier-checkout-main">
+                <header className="panier-intro">
+                  <p className="panier-intro-kicker">CosmétiShop — Prix en dollars canadiens (CAD)</p>
+                  <h1 className="panier-intro-title">Sac à achats</h1>
+                  <p className="panier-intro-desc">
+                    {nbArticles} article{nbArticles !== 1 ? "s" : ""}
+                    {utilisateur
+                      ? " · Enregistré sur votre compte."
+                      : " · Sac invité — conservé sur cet appareil."}
+                  </p>
+                  {!utilisateur && (
+                    <p className="panier-intro-auth">
+                      <button
+                        type="button"
+                        className="panier-auth-hint-btn"
+                        onClick={allerConnexionPourCommanderInvite}
+                      >
+                        Se connecter
+                      </button>
+                      <span> pour finaliser comme sur les boutiques beauté en ligne au Canada.</span>
+                    </p>
+                  )}
+                </header>
+                <TrustCheckoutStrip compact />
+                <section className="panier-bag-section" aria-labelledby="panier-bag-heading">
+                  <div className="panier-bag-head">
+                    <h2 id="panier-bag-heading" className="panier-section-title">
+                      Vos articles
+                    </h2>
+                    <span className="panier-bag-count">{nbArticles} pce au total</span>
+                  </div>
+                <div className="panier-list panier-list--pro">
+                  {itemsAvecPrix.map((it) => {
+                    const vignette = urlVignetteLigne(it);
+                    return (
+                <article key={it.produitId} className="panier-item panier-item--pro">
+                  <div className="panier-item-visual" aria-hidden="true">
+                    {vignette ? (
+                      <img
+                        src={vignette}
+                        alt=""
+                        className="panier-item-image"
+                      />
+                    ) : (
+                      <div className="panier-item-image panier-item-image-placeholder" />
+                    )}
+                  </div>
+                  <div className="panier-item-main">
+                    <h3 className="panier-item-name">{it.nomProduit}</h3>
+                    <p className="panier-item-detail">
+                      {it.prixUnitaire.toFixed(2)} $ x {it.quantite} ={" "}
+                      <span>{(it.prixUnitaire * it.quantite).toFixed(2)} $</span>
+                    </p>
+                  </div>
+                  <div className="panier-item-actions">
+                    <div className="panier-qty-box">
+                      <button
+                        type="button"
+                        onClick={() => modifierQuantite(it.produitId, it.quantite - 1)}
+                        className="panier-qty-btn"
+                      >
+                        -
+                      </button>
+                      <span className="panier-qty-value">{it.quantite}</span>
+                      <button
+                        type="button"
+                        onClick={() => modifierQuantite(it.produitId, it.quantite + 1)}
+                        className="panier-qty-btn"
+                        disabled={atteintStockMax(it)}
+                        title={atteintStockMax(it) ? "Stock maximum atteint" : "Augmenter"}
+                      >
+                        +
+                      </button>
+                    </div>
+                    {atteintStockMax(it) && (
+                      <span className="panier-stock-warning">Stock maximum atteint</span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => supprimerProduit(it.produitId)}
+                      className="panier-btn-remove"
+                    >
+                      Retirer
+                    </button>
+                  </div>
+                </article>
+                    );
+                  })}
+                </div>
+                </section>
             {utilisateur && (
               <section className="panier-adresse">
                 <h2 className="panier-adresse-title">Adresse de livraison</h2>
@@ -736,86 +826,40 @@ export function PagePanier() {
               </section>
             )}
 
-            <div className="panier-list">
-              {itemsAvecPrix.map((it) => (
-                <article key={it.produitId} className="panier-item">
-                  <div className="panier-item-visual" aria-hidden="true">
-                    {imagesProduits[it.produitId] ||
-                    imagesProduitsParNom[normaliserNomProduit(it.nomProduit)] ||
-                    FRONTEND_IMAGE_BY_NAME[normaliserNomProduit(it.nomProduit)] ? (
-                      <img
-                        src={
-                          imagesProduits[it.produitId] ||
-                          imagesProduitsParNom[normaliserNomProduit(it.nomProduit)] ||
-                          FRONTEND_IMAGE_BY_NAME[normaliserNomProduit(it.nomProduit)]
-                        }
-                        alt=""
-                        className="panier-item-image"
-                      />
-                    ) : (
-                      <div className="panier-item-image panier-item-image-placeholder" />
-                    )}
+              </div>
+            <aside className="panier-checkout-aside" aria-label="Résumé de commande">
+              <div className="panier-summary-panel">
+                <h2 className="panier-summary-panel-title">Résumé</h2>
+                <dl className="panier-summary-lines">
+                  <div className="panier-summary-line">
+                    <dt>Sous-total</dt>
+                    <dd>{total.toFixed(2)} $</dd>
                   </div>
-                  <div className="panier-item-main">
-                    <h2 className="panier-item-name">{it.nomProduit}</h2>
-                    <p className="panier-item-detail">
-                      {it.prixUnitaire.toFixed(2)} $ x {it.quantite} ={" "}
-                      <span>{(it.prixUnitaire * it.quantite).toFixed(2)} $</span>
-                    </p>
+                  <div className="panier-summary-line panier-summary-line--muted">
+                    <dt>Taxes estimées</dt>
+                    <dd>{taxeEstimee.toFixed(2)} $</dd>
                   </div>
-                  <div className="panier-item-actions">
-                    <div className="panier-qty-box">
-                      <button
-                        type="button"
-                        onClick={() => modifierQuantite(it.produitId, it.quantite - 1)}
-                        className="panier-qty-btn"
-                      >
-                        -
-                      </button>
-                      <span className="panier-qty-value">{it.quantite}</span>
-                      <button
-                        type="button"
-                        onClick={() => modifierQuantite(it.produitId, it.quantite + 1)}
-                        className="panier-qty-btn"
-                        disabled={atteintStockMax(it)}
-                        title={atteintStockMax(it) ? "Stock maximum atteint" : "Augmenter"}
-                      >
-                        +
-                      </button>
-                    </div>
-                    {atteintStockMax(it) && (
-                      <span className="panier-stock-warning">Stock maximum atteint</span>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => supprimerProduit(it.produitId)}
-                      className="panier-btn panier-btn-danger"
-                    >
-                      Supprimer
-                    </button>
-                  </div>
-                </article>
-              ))}
-            </div>
-
-            <section className="panier-footer">
-              <div className="panier-footer-info">
-                <p className="panier-footer-status">
-                  Statut: {utilisateur ? panier?.statut || "actif" : "invite"}
+                </dl>
+                <p className="panier-summary-tax-note">
+                  TPS / TVH et TVQ — taux indicatif 15 % (ajusté à la caisse selon votre province).
                 </p>
-                <p className="panier-footer-status">Sous-total: {total.toFixed(2)} $</p>
-                <p className="panier-footer-status">Taxe (15%): {taxeEstimee.toFixed(2)} $</p>
-                <p className="panier-footer-total">Total a payer: {totalTTC.toFixed(2)} $</p>
-              </div>
-              <div className="panier-footer-actions">
-                <button type="button" onClick={viderPanier} className="panier-btn panier-btn-ghost">
-                  Vider le panier
+                <div className="panier-summary-line panier-summary-line--grand">
+                  <span className="panier-summary-grand-label">Total estimé</span>
+                  <span className="panier-summary-grand-value">{totalTTC.toFixed(2)} $</span>
+                </div>
+                <button type="button" onClick={commander} className="panier-btn panier-btn-primary panier-summary-cta">
+                  {utilisateur ? "Passer à la caisse" : "Se connecter pour commander"}
                 </button>
-                <button type="button" onClick={commander} className="panier-btn panier-btn-primary">
-                  {utilisateur ? "Passer au paiement" : "Se connecter pour commander"}
+                <Link to="/catalogue" className="panier-summary-continue">
+                  Continuer mes achats
+                </Link>
+                <p className="panier-summary-trust">Paiement sécurisé · Livraison au Canada</p>
+                <button type="button" onClick={viderPanier} className="panier-summary-clear">
+                  Vider le sac
                 </button>
               </div>
-            </section>
+            </aside>
+            </div>
           </>
         )}
       </main>

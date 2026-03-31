@@ -38,6 +38,7 @@ type ItemPanier = {
   nomProduit: string;
   prixUnitaire: number;
   quantite: number;
+  imageUrl?: string;
 };
 
 type PanierApi = {
