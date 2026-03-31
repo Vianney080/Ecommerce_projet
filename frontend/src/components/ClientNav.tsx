@@ -13,8 +13,8 @@ import {
 import { Link } from "react-router-dom";
 import { api, resolveAssetUrl } from "../api";
 import { useAuth } from "../AuthContext";
+import { LOGO_COSMETISHOP_PNG } from "../brandAssets";
 import { lirePanierInvite, totalPanierInvite } from "../cartInvite";
-import { LogoCosmetishopMark } from "./LogoCosmetishopMark";
 
 export type ClientNavItemPanier = {
   produitId: string;
@@ -223,13 +223,15 @@ export function ClientNav({
 
   const logoBloc = (
     <Link to="/" className="nav-logo-link" onClick={fermerMenuMobile}>
-      <div className="nav-logo">
-        <LogoCosmetishopMark className="nav-logo-img" aria-hidden />
-        <div className="nav-logo-text">
-          <span className="nav-logo-title">CosmétiShop</span>
-          <span className="nav-logo-subtitle">{logoSubtitle}</span>
-        </div>
-      </div>
+      <img
+        src={LOGO_COSMETISHOP_PNG}
+        alt="CosmétiShop — boutique beauté en ligne"
+        className="nav-logo-png"
+        decoding="async"
+        width={220}
+        height={72}
+      />
+      <span className="sr-only">{logoSubtitle}</span>
     </Link>
   );
 

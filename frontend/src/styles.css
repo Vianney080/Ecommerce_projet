@@ -56,7 +56,7 @@ body {
   flex: 1;
 }
 
-.nav-logo-link .nav-logo {
+.nav-logo-link .nav-logo-png {
   min-width: 0;
 }
 
@@ -77,15 +77,16 @@ body {
   gap: 0.6rem;
 }
 
-.nav-logo-img {
-  width: 2.45rem;
-  height: 2.45rem;
-  flex-shrink: 0;
+/* Logo marque PNG (graphisme + texte inclus dans l’image) */
+.nav-logo-png {
+  height: 2.65rem;
+  width: auto;
+  max-width: min(200px, 52vw);
   display: block;
   object-fit: contain;
-  border-radius: 0.45rem;
-  box-shadow: 0 4px 14px rgba(236, 72, 153, 0.22);
-  overflow: visible;
+  object-position: left center;
+  flex-shrink: 1;
+  filter: drop-shadow(0 2px 8px rgba(236, 72, 153, 0.18));
 }
 
 .nav-logo-text {
@@ -603,16 +604,9 @@ body {
     gap: 0.55rem;
   }
 
-  .nav-logo {
-    width: 100%;
-  }
-
-  .nav-logo-subtitle {
-    display: none;
-  }
-
-  .nav-logo-title {
-    font-size: 1.02rem;
+  .nav-logo-png {
+    max-width: min(180px, 48vw);
+    height: 2.35rem;
   }
 
   .nav-right {
@@ -2074,15 +2068,19 @@ body {
   gap: 0.75rem;
 }
 
-.catalogue-loading-brand-logo {
-  width: 3rem;
-  height: 3rem;
+.catalogue-loading-brand-row--png {
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.catalogue-loading-brand-logo-png {
+  width: auto;
+  height: 4.25rem;
+  max-width: min(260px, 90vw);
   display: block;
   object-fit: contain;
-  border-radius: 0.55rem;
-  flex-shrink: 0;
-  overflow: visible;
-  filter: drop-shadow(0 3px 10px rgba(236, 72, 153, 0.28));
+  filter: drop-shadow(0 4px 14px rgba(236, 72, 153, 0.22));
 }
 
 .catalogue-loading-brand-text {
