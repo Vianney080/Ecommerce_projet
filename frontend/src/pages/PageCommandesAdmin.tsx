@@ -298,10 +298,26 @@ export function PageCommandesAdmin() {
       <AdminLayout
         title="Commandes"
         subtitle="Statuts de commande, paiements, adresses et numéros de suivi."
+        breadcrumb={[
+          { label: "Administration", to: "/admin/dashboard" },
+          { label: "Commandes" },
+        ]}
         navBadgeCommandes={nouvellesCommandes}
         headerExtra={headerExtra}
       >
         <div className="admin-commandes-wrap">
+          <nav className="admin-panel-breadcrumb admin-commandes-breadcrumb" aria-label="Fil d'Ariane">
+            <ol className="admin-breadcrumb-list">
+              <li className="admin-breadcrumb-item">
+                <span className="admin-breadcrumb-segment-muted">Commandes</span>
+              </li>
+              <li className="admin-breadcrumb-item">
+                <span className="admin-breadcrumb-current" aria-current="page">
+                  Liste des dossiers clients
+                </span>
+              </li>
+            </ol>
+          </nav>
           {nouvellesCommandes > 0 && (
             <div className="orders-alert orders-alert-info" role="status">
               <strong>Nouvelles commandes :</strong> {nouvellesCommandes} depuis votre dernière consultation — pensez à

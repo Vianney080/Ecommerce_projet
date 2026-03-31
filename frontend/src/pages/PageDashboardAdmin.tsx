@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { api } from "../api";
+import { api, resolveAssetUrl } from "../api";
 import { AdminLayout } from "../components/AdminLayout";
 import { useAuth } from "../AuthContext";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
@@ -13,6 +13,7 @@ interface UtilisateurAdmin {
   role: "admin" | "client" | string;
   estActif?: boolean;
   createdAt?: string;
+  avatarUrl?: string;
 }
 
 interface StatsAdmin {
@@ -27,6 +28,15 @@ interface ResumeStock {
   totalProduits: number;
   produitsStockBas: number;
   valeurTotaleStock: number;
+}
+
+function initialesDepuisNom(nom: string) {
+  const parts = nom.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  return parts
+    .slice(0, 2)
+    .map((p) => p.charAt(0).toUpperCase())
+    .join("");
 }
 
 interface RoleHistoriqueItem {
@@ -253,6 +263,10 @@ export function PageDashboardAdmin() {
       <AdminLayout
         title="Tableau de bord"
         subtitle="Vue d’ensemble de la boutique — stocks, ventes et comptes."
+        breadcrumb={[
+          { label: "Administration", to: "/admin/dashboard" },
+          { label: "Tableau de bord" },
+        ]}
         headerExtra={headerExtra}
         navBadgeCommandes={nouvellesCommandes}
       >
@@ -451,7 +465,23 @@ export function PageDashboardAdmin() {
                 </div>
               </div>
 
-              <section className="admin-panel admin-panel--section" aria-labelledby="dash-users-heading">
+              <section
+                className="admin-panel admin-panel--section"
+                aria-labelledby="dash-users-heading"
+                id="admin-comptes-utilisateurs"
+              >
+                <nav className="admin-panel-breadcrumb" aria-label="Fil d'Ariane de la section">
+                  <ol className="admin-breadcrumb-list">
+                    <li className="admin-breadcrumb-item">
+                      <span className="admin-breadcrumb-segment-muted">Tableau de bord</span>
+                    </li>
+                    <li className="admin-breadcrumb-item">
+                      <span className="admin-breadcrumb-current" aria-current="page">
+                        Comptes utilisateurs
+                      </span>
+                    </li>
+                  </ol>
+                </nav>
                 <div className="admin-panel-head">
                   <h2 id="dash-users-heading" className="admin-panel-title admin-panel-title--lg">
                     Comptes utilisateurs
@@ -492,22 +522,39 @@ export function PageDashboardAdmin() {
               </div>
             </div>
 
-            <div className="admin-table-wrap">
-              <table className="admin-table">
+            <div className="admin-table-wrap admin-table-wrap--users">
+              <table className="admin-table admin-table--users">
                 <thead>
                   <tr>
-                    <th>Nom</th>
+                    <th>Utilisateur</th>
                     <th>Email</th>
                     <th>Statut</th>
-                    <th>Role actuel</th>
-                    <th>Role</th>
-                    <th>Action</th>
+                    <th>Rôle actuel</th>
+                    <th>Nouveau rôle</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {utilisateursFiltres.map((u) => (
                     <tr key={u._id}>
-                      <td>{u.nom}</td>
+                      <td>
+                        <div className="admin-user-cell">
+                          <span className="admin-user-avatar-wrap">
+                            {u.avatarUrl ? (
+                              <img
+                                src={resolveAssetUrl(u.avatarUrl)}
+                                alt=""
+                                className="admin-user-avatar-img"
+                              />
+                            ) : (
+                              <span className="admin-user-avatar-fallback" aria-hidden>
+                                {initialesDepuisNom(u.nom)}
+                              </span>
+                            )}
+                          </span>
+                          <span className="admin-user-name-text">{u.nom}</span>
+                        </div>
+                      </td>
                       <td className="admin-table-muted">{u.email}</td>
                       <td>
                         <span className={`admin-status-badge ${(u.estActif ?? true) ? "is-active" : "is-inactive"}`}>
@@ -535,7 +582,7 @@ export function PageDashboardAdmin() {
                         </select>
                       </td>
                       <td>
-                        <div className="admin-action-row">
+                        <div className="admin-action-row admin-action-row--tight">
                           <button
                             onClick={() => changerRole(u._id)}
                             disabled={
@@ -593,7 +640,7 @@ export function PageDashboardAdmin() {
                   {utilisateursFiltres.length === 0 && (
                     <tr>
                       <td className="admin-empty" colSpan={6}>
-                        Aucun utilisateur ne correspond a votre recherche.
+                        Aucun utilisateur ne correspond à votre recherche.
                       </td>
                     </tr>
                   )}
@@ -603,6 +650,18 @@ export function PageDashboardAdmin() {
               </section>
 
               <section className="admin-panel admin-panel--section" aria-labelledby="dash-history-heading">
+                <nav className="admin-panel-breadcrumb" aria-label="Fil d'Ariane de la section">
+                  <ol className="admin-breadcrumb-list">
+                    <li className="admin-breadcrumb-item">
+                      <span className="admin-breadcrumb-segment-muted">Tableau de bord</span>
+                    </li>
+                    <li className="admin-breadcrumb-item">
+                      <span className="admin-breadcrumb-current" aria-current="page">
+                        Historique des rôles
+                      </span>
+                    </li>
+                  </ol>
+                </nav>
                 <h2 id="dash-history-heading" className="admin-panel-title admin-panel-title--lg">
                   Historique des changements de rôle
                 </h2>

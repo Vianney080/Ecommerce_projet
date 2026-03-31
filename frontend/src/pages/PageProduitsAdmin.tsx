@@ -459,6 +459,10 @@ export function PageProduitsAdmin() {
     <AdminLayout
       title="Produits & stock"
       subtitle="Création, modification, images, prix, seuils d’alerte et catégories."
+      breadcrumb={[
+        { label: "Administration", to: "/admin/dashboard" },
+        { label: "Produits & stock" },
+      ]}
     >
       <div className="admin-dashboard">
         {erreur && <div className="admin-alert admin-alert-error">{erreur}</div>}

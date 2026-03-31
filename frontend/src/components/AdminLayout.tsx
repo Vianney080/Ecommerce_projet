@@ -2,9 +2,13 @@ import type { ReactNode } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 
+export type AdminBreadcrumbItem = { label: string; to?: string };
+
 export type AdminLayoutProps = {
   title: string;
   subtitle?: string;
+  /** Fil d’Ariane sous la barre système (dernier segment = page courante, sans `to`) */
+  breadcrumb?: AdminBreadcrumbItem[];
   /** Zone à droite du titre (ex. actualiser) */
   headerExtra?: ReactNode;
   /** Badge rouge sur l’entrée « Commandes » du menu (nouvelles commandes) */
@@ -44,7 +48,14 @@ function IconStore({ className }: { className?: string }) {
   );
 }
 
-export function AdminLayout({ title, subtitle, headerExtra, navBadgeCommandes = 0, children }: AdminLayoutProps) {
+export function AdminLayout({
+  title,
+  subtitle,
+  breadcrumb,
+  headerExtra,
+  navBadgeCommandes = 0,
+  children,
+}: AdminLayoutProps) {
   const { utilisateur } = useAuth();
 
   return (
@@ -109,11 +120,32 @@ export function AdminLayout({ title, subtitle, headerExtra, navBadgeCommandes = 
       </aside>
       <div className="admin-main-column">
         <header className="admin-topbar">
-          <div className="admin-topbar-titles">
-            <h1 className="admin-topbar-title">{title}</h1>
-            {subtitle ? <p className="admin-topbar-subtitle">{subtitle}</p> : null}
+          {breadcrumb && breadcrumb.length > 0 ? (
+            <nav className="admin-breadcrumb" aria-label="Fil d'Ariane">
+              <ol className="admin-breadcrumb-list">
+                {breadcrumb.map((item, idx) => (
+                  <li key={`${item.label}-${idx}`} className="admin-breadcrumb-item">
+                    {item.to ? (
+                      <Link to={item.to} className="admin-breadcrumb-link">
+                        {item.label}
+                      </Link>
+                    ) : (
+                      <span className="admin-breadcrumb-current" aria-current="page">
+                        {item.label}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          ) : null}
+          <div className="admin-topbar-row">
+            <div className="admin-topbar-titles">
+              <h1 className="admin-topbar-title">{title}</h1>
+              {subtitle ? <p className="admin-topbar-subtitle">{subtitle}</p> : null}
+            </div>
+            {headerExtra ? <div className="admin-topbar-extra">{headerExtra}</div> : null}
           </div>
-          {headerExtra ? <div className="admin-topbar-extra">{headerExtra}</div> : null}
         </header>
         <main id="admin-main-content" className="admin-main-inner">
           {children}
