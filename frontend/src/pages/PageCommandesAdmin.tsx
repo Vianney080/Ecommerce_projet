@@ -106,6 +106,16 @@ function libelleStatutPaiement(statutPaiement?: string) {
 
 const COMMANDES_PAR_PAGE_ADMIN = 4;
 
+type FiltreStatutTraitementAdmin = "tous" | "en_attente" | "payee" | "livree" | "annulee";
+
+const FILTRES_STATUT_TRAITEMENT: { value: FiltreStatutTraitementAdmin; label: string }[] = [
+  { value: "tous", label: "Toutes" },
+  { value: "en_attente", label: "En attente" },
+  { value: "payee", label: "Payée" },
+  { value: "livree", label: "Livrée" },
+  { value: "annulee", label: "Annulée" },
+];
+
 export function PageCommandesAdmin() {
   useDocumentTitle("Admin · Commandes");
   useMetaDescription("Gestion des commandes CosmétiShop : statuts, paiements et adresses de livraison.");
@@ -126,6 +136,8 @@ export function PageCommandesAdmin() {
   const suiviServeurRef = useRef<Record<string, string>>({});
   const [loadingSuiviId, setLoadingSuiviId] = useState<string | null>(null);
   const [pageCommandes, setPageCommandes] = useState(1);
+  const [filtreStatutTraitement, setFiltreStatutTraitement] =
+    useState<FiltreStatutTraitementAdmin>("tous");
 
   const charger = useCallback(async (options?: { silencieux?: boolean }) => {
     const silencieux = options?.silencieux ?? false;
@@ -190,15 +202,27 @@ export function PageCommandesAdmin() {
     return () => window.clearInterval(intervalId);
   }, [charger]);
 
-  const commandesTriees = useMemo(
-    () =>
-      [...commandes].sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      ),
-    [commandes]
-  );
+  const nombreParStatutTraitement = useMemo(() => {
+    const acc: Record<string, number> = {};
+    for (const c of commandes) {
+      acc[c.statut] = (acc[c.statut] || 0) + 1;
+    }
+    return acc;
+  }, [commandes]);
 
-  const totalPagesCommandes = Math.max(1, Math.ceil(commandesTriees.length / COMMANDES_PAR_PAGE_ADMIN));
+  const commandesFiltrees = useMemo(() => {
+    const triees = [...commandes].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+    if (filtreStatutTraitement === "tous") return triees;
+    return triees.filter((c) => c.statut === filtreStatutTraitement);
+  }, [commandes, filtreStatutTraitement]);
+
+  const totalPagesCommandes = Math.max(1, Math.ceil(commandesFiltrees.length / COMMANDES_PAR_PAGE_ADMIN));
+
+  useEffect(() => {
+    setPageCommandes(1);
+  }, [filtreStatutTraitement]);
 
   useEffect(() => {
     setPageCommandes((prev) => Math.min(prev, totalPagesCommandes));
@@ -206,8 +230,8 @@ export function PageCommandesAdmin() {
 
   const commandesPage = useMemo(() => {
     const start = (pageCommandes - 1) * COMMANDES_PAR_PAGE_ADMIN;
-    return commandesTriees.slice(start, start + COMMANDES_PAR_PAGE_ADMIN);
-  }, [commandesTriees, pageCommandes]);
+    return commandesFiltrees.slice(start, start + COMMANDES_PAR_PAGE_ADMIN);
+  }, [commandesFiltrees, pageCommandes]);
 
   useEffect(() => {
     async function chargerImagesProduits() {
@@ -356,6 +380,50 @@ export function PageCommandesAdmin() {
           ) : commandes.length === 0 ? (
             <p className="orders-empty">Aucune commande enregistree.</p>
           ) : (
+            <>
+            <div className="admin-orders-filter-panel">
+              <div className="admin-orders-filter-head">
+                <p id="admin-orders-filter-heading" className="admin-orders-filter-title">
+                  Filtrer par statut de traitement
+                </p>
+                <p className="admin-orders-filter-hint">
+                  Affinez la liste avant d’agir sur les dossiers (pagination adaptée au filtre).
+                </p>
+              </div>
+              <div
+                className="admin-orders-filter-chips"
+                role="radiogroup"
+                aria-labelledby="admin-orders-filter-heading"
+              >
+                {FILTRES_STATUT_TRAITEMENT.map(({ value, label }) => {
+                  const count =
+                    value === "tous"
+                      ? commandes.length
+                      : nombreParStatutTraitement[value] ?? 0;
+                  const actif = filtreStatutTraitement === value;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      role="radio"
+                      aria-checked={actif}
+                      className={`admin-orders-filter-chip ${actif ? "is-active" : ""} admin-orders-filter-chip--${value}`}
+                      onClick={() => setFiltreStatutTraitement(value)}
+                    >
+                      <span className="admin-orders-filter-chip-label">{label}</span>
+                      <span className="admin-orders-filter-chip-count" aria-hidden>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            {commandesFiltrees.length === 0 ? (
+              <p className="orders-empty admin-orders-filter-empty">
+                Aucune commande avec ce statut. Choisissez un autre filtre ou « Toutes ».
+              </p>
+            ) : (
             <>
             <div className="orders-list">
             {commandesPage.map((c) => (
@@ -538,13 +606,15 @@ export function PageCommandesAdmin() {
             </div>
             <AdminPaginationControls
               pageCourante={pageCommandes}
-              totalItems={commandesTriees.length}
+              totalItems={commandesFiltrees.length}
               pageSize={COMMANDES_PAR_PAGE_ADMIN}
               onPageChange={setPageCommandes}
               ariaLabel="Pagination des commandes"
               entiteSingulier="commande"
               entitePluriel="commandes"
             />
+            </>
+            )}
             </>
           )}
         </div>
