@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { useEffect, useState, type ReactNode } from "react";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 
 export type AdminBreadcrumbItem = { label: string; to?: string };
@@ -57,13 +57,71 @@ export function AdminLayout({
   children,
 }: AdminLayoutProps) {
   const { utilisateur } = useAuth();
+  const location = useLocation();
+  const [menuMobileOuvert, setMenuMobileOuvert] = useState(false);
+
+  useEffect(() => {
+    setMenuMobileOuvert(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(min-width: 961px)");
+    function onWide() {
+      if (mq.matches) setMenuMobileOuvert(false);
+    }
+    mq.addEventListener("change", onWide);
+    return () => mq.removeEventListener("change", onWide);
+  }, []);
+
+  useEffect(() => {
+    function onEscape(e: KeyboardEvent) {
+      if (e.key === "Escape") setMenuMobileOuvert(false);
+    }
+    window.addEventListener("keydown", onEscape);
+    return () => window.removeEventListener("keydown", onEscape);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 960px)");
+    function applyScrollLock() {
+      if (!mq.matches) {
+        document.body.style.overflow = "";
+        return;
+      }
+      document.body.style.overflow = menuMobileOuvert ? "hidden" : "";
+    }
+    applyScrollLock();
+    mq.addEventListener("change", applyScrollLock);
+    return () => {
+      mq.removeEventListener("change", applyScrollLock);
+      document.body.style.overflow = "";
+    };
+  }, [menuMobileOuvert]);
+
+  function fermerMenuMobile() {
+    setMenuMobileOuvert(false);
+  }
 
   return (
     <div className="admin-app">
       <a href="#admin-main-content" className="admin-skip-link">
         Aller au contenu principal
       </a>
-      <aside className="admin-sidebar" aria-label="Menu administration">
+      {menuMobileOuvert ? (
+        <button
+          type="button"
+          className="admin-sidebar-backdrop"
+          aria-label="Fermer le menu administration"
+          onClick={fermerMenuMobile}
+        />
+      ) : null}
+      <aside
+        id="admin-sidebar-nav"
+        className={`admin-sidebar${menuMobileOuvert ? " is-open" : ""}`}
+        aria-label="Menu administration"
+      >
         <div className="admin-sidebar-brand">
           <span className="admin-sidebar-brand-mark" aria-hidden>
             CS
@@ -79,6 +137,7 @@ export function AdminLayout({
             to="/admin/dashboard"
             end
             className={({ isActive }) => `admin-nav-item${isActive ? " is-active" : ""}`}
+            onClick={fermerMenuMobile}
           >
             <IconDashboard className="admin-nav-icon" />
             <span className="admin-nav-label">Tableau de bord</span>
@@ -87,6 +146,7 @@ export function AdminLayout({
           <NavLink
             to="/admin/produits"
             className={({ isActive }) => `admin-nav-item${isActive ? " is-active" : ""}`}
+            onClick={fermerMenuMobile}
           >
             <IconBox className="admin-nav-icon" />
             <span className="admin-nav-label">Produits &amp; stock</span>
@@ -95,6 +155,7 @@ export function AdminLayout({
           <NavLink
             to="/admin/commandes"
             className={({ isActive }) => `admin-nav-item${isActive ? " is-active" : ""}`}
+            onClick={fermerMenuMobile}
           >
             <IconClipboard className="admin-nav-icon" />
             <span className="admin-nav-label">Commandes</span>
@@ -107,7 +168,7 @@ export function AdminLayout({
           </NavLink>
         </nav>
         <div className="admin-sidebar-divider" role="presentation" />
-        <Link to="/" className="admin-nav-item admin-nav-item--ghost">
+        <Link to="/" className="admin-nav-item admin-nav-item--ghost" onClick={fermerMenuMobile}>
           <IconStore className="admin-nav-icon" />
           <span className="admin-nav-label">Retour à la boutique</span>
           <span className="admin-nav-desc">Site public (clients)</span>
@@ -119,6 +180,31 @@ export function AdminLayout({
         </div>
       </aside>
       <div className="admin-main-column">
+        <div className="admin-mobile-bar">
+          <button
+            type="button"
+            className="admin-mobile-menu-btn"
+            aria-expanded={menuMobileOuvert}
+            aria-controls="admin-sidebar-nav"
+            onClick={() => setMenuMobileOuvert((o) => !o)}
+          >
+            <span className="admin-mobile-menu-bars" aria-hidden>
+              <span />
+              <span />
+              <span />
+            </span>
+            <span className="sr-only">{menuMobileOuvert ? "Fermer le menu" : "Ouvrir le menu"}</span>
+          </button>
+          <div className="admin-mobile-bar-text">
+            <span className="admin-mobile-bar-kicker">CosmétiShop</span>
+            <span className="admin-mobile-bar-title">Administration</span>
+          </div>
+          {navBadgeCommandes > 0 ? (
+            <span className="admin-mobile-bar-badge" title={`${navBadgeCommandes} nouvelle(s) commande(s)`}>
+              {navBadgeCommandes > 99 ? "99+" : navBadgeCommandes}
+            </span>
+          ) : null}
+        </div>
         <header className="admin-topbar">
           {breadcrumb && breadcrumb.length > 0 ? (
             <nav className="admin-breadcrumb" aria-label="Fil d'Ariane">
