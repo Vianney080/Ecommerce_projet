@@ -85,6 +85,7 @@ body {
   object-fit: contain;
   border-radius: 0.45rem;
   box-shadow: 0 4px 14px rgba(236, 72, 153, 0.22);
+  overflow: visible;
 }
 
 .nav-logo-text {
@@ -2080,6 +2081,7 @@ body {
   object-fit: contain;
   border-radius: 0.55rem;
   flex-shrink: 0;
+  overflow: visible;
   filter: drop-shadow(0 3px 10px rgba(236, 72, 153, 0.28));
 }
 

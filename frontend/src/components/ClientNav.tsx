@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 import { api, resolveAssetUrl } from "../api";
 import { useAuth } from "../AuthContext";
 import { lirePanierInvite, totalPanierInvite } from "../cartInvite";
+import { LogoCosmetishopMark } from "./LogoCosmetishopMark";
 
 export type ClientNavItemPanier = {
   produitId: string;
@@ -49,9 +50,6 @@ export type ClientNavProps = {
   /** Ex. panier invité : marquer la fusion au clic sur connexion */
   onConnexionClick?: () => void;
 };
-
-/** Référence / inspiration du logo (partage ChatGPT) */
-const LOGO_REFERENCE_URL = "https://chatgpt.com/s/m_69cba38828208191b2b74b7a4ef8a5c2";
 
 function formatCAD(montant: number) {
   return `${montant.toFixed(2)} $`;
@@ -224,29 +222,15 @@ export function ClientNav({
   }
 
   const logoBloc = (
-    <a
-      href={LOGO_REFERENCE_URL}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="nav-logo-link"
-      onClick={fermerMenuMobile}
-      aria-label="CosmétiShop — référence du logo (s’ouvre dans un nouvel onglet)"
-    >
+    <Link to="/" className="nav-logo-link" onClick={fermerMenuMobile}>
       <div className="nav-logo">
-        <img
-          src="/logo-cosmetishop.svg"
-          alt=""
-          width={44}
-          height={44}
-          className="nav-logo-img"
-          decoding="async"
-        />
+        <LogoCosmetishopMark className="nav-logo-img" aria-hidden />
         <div className="nav-logo-text">
           <span className="nav-logo-title">CosmétiShop</span>
           <span className="nav-logo-subtitle">{logoSubtitle}</span>
         </div>
       </div>
-    </a>
+    </Link>
   );
 
   return (
