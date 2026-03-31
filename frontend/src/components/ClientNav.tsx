@@ -118,6 +118,27 @@ function NavIconInscription({ className }: { className?: string }) {
   );
 }
 
+/** Icône déconnexion (sortie) */
+function NavIconDeconnexion({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      aria-hidden
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"
+      />
+    </svg>
+  );
+}
+
 export function ClientNav({
   variant,
   logoSubtitle = "Boutique de produits cosmétiques",
@@ -430,8 +451,12 @@ export function ClientNav({
         </div>
         <div className="nav-right">
           {utilisateur ? (
-            <>
-              <Link to="/profil" className="nav-user-pill nav-user-pill-link" title={utilisateur.email}>
+            <div className="nav-auth-user-cluster">
+              <Link
+                to="/profil"
+                className="nav-user-pill nav-user-pill-link nav-user-pill--desktop-pro"
+                title={utilisateur.email}
+              >
                 <span className="nav-user-avatar">
                   {avatarUtilisateur ? (
                     <img src={avatarUtilisateur} alt={utilisateur.nom} className="nav-user-avatar-image" />
@@ -444,33 +469,46 @@ export function ClientNav({
                   <span className="nav-user-role">{utilisateur.role}</span>
                 </span>
               </Link>
-              <button type="button" className="nav-auth-btn nav-auth-btn-logout" onClick={deconnexion}>
-                Deconnexion
+              <button
+                type="button"
+                className="nav-auth-desktop-btn nav-auth-desktop-btn--logout"
+                onClick={deconnexion}
+              >
+                <span className="nav-auth-desktop-icon-wrap nav-auth-desktop-icon-wrap--logout" aria-hidden>
+                  <NavIconDeconnexion className="nav-auth-desktop-svg" />
+                </span>
+                <span className="nav-auth-desktop-label">Déconnexion</span>
               </button>
-            </>
+            </div>
           ) : (
             <div className="nav-auth-guest-desktop">
               <Link
                 to="/connexion"
                 state={connexionLinkState ? { from: connexionLinkState.from } : undefined}
-                className="nav-auth-btn nav-auth-link"
+                className="nav-auth-desktop-btn nav-auth-desktop-btn--outline"
                 onClick={() => {
                   onConnexionClick?.();
                   fermerMenuMobile();
                 }}
               >
-                Se connecter
+                <span className="nav-auth-desktop-icon-wrap" aria-hidden>
+                  <NavIconConnexion className="nav-auth-desktop-svg" />
+                </span>
+                <span className="nav-auth-desktop-label">Connexion</span>
               </Link>
               <Link
                 to="/inscription"
                 state={connexionLinkState ? { from: connexionLinkState.from } : undefined}
-                className="nav-auth-btn nav-auth-btn-primary nav-auth-link"
+                className="nav-auth-desktop-btn nav-auth-desktop-btn--primary"
                 onClick={() => {
                   onConnexionClick?.();
                   fermerMenuMobile();
                 }}
               >
-                Créer un compte
+                <span className="nav-auth-desktop-icon-wrap nav-auth-desktop-icon-wrap--on-primary" aria-hidden>
+                  <NavIconInscription className="nav-auth-desktop-svg" />
+                </span>
+                <span className="nav-auth-desktop-label">Créer un compte</span>
               </Link>
             </div>
           )}
