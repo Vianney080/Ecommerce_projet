@@ -76,6 +76,26 @@ function NavIconConnexion({ className }: { className?: string }) {
   );
 }
 
+/** Icône panier (contour, style e-commerce) */
+function NavIconPanier({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M6 7h15l-1.5 9.5a2 2 0 0 1-2 1.7H8.5a2 2 0 0 1-2-1.4L4.5 4.5H2" />
+      <path d="M9 11V6a3 3 0 0 1 6 0v5" />
+    </svg>
+  );
+}
+
 /** Icône inscription (utilisateur +) */
 function NavIconInscription({ className }: { className?: string }) {
   return (
@@ -239,7 +259,6 @@ export function ClientNav({
     <nav className="nav" ref={assignNavRef}>
       <div className="nav-inner">
         <div className="nav-left">
-          {logoBloc}
           <button
             type="button"
             className="nav-mobile-toggle"
@@ -251,6 +270,7 @@ export function ClientNav({
             <span />
             <span />
           </button>
+          {logoBloc}
         </div>
         <div className={`nav-center ${menuMobileOuvert ? "is-open" : ""}`}>
           {variant === "home" ? (
@@ -448,14 +468,28 @@ export function ClientNav({
           <div
             className={`nav-cart ${itemsPanier.length > 0 ? "nav-cart-has-items" : ""}`}
             onClick={() => setPanierOuvert((o) => !o)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setPanierOuvert((o) => !o);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label={`Panier, ${nbPiecesPanierNav} article${nbPiecesPanierNav !== 1 ? "s" : ""}, total ${formatCAD(totalPanier)}`}
           >
-            <span className="nav-cart-icon">🛒</span>
-            {itemsPanier.length > 0 && (
-              <span className="nav-cart-badge">
-                {itemsPanier.reduce((acc, it) => acc + it.quantite, 0)}
+            <span className="nav-cart-icon-wrap">
+              <NavIconPanier className="nav-cart-svg-icon" />
+              <span
+                className={`nav-cart-badge${nbPiecesPanierNav === 0 ? " nav-cart-badge--zero" : ""}`}
+                aria-hidden
+              >
+                {nbPiecesPanierNav}
               </span>
-            )}
-            <span className="nav-cart-info">Mon sac – {formatCAD(totalPanier)}</span>
+            </span>
+            <span className="nav-cart-info nav-cart-info--desktop">
+              Mon sac – {formatCAD(totalPanier)}
+            </span>
             {panierOuvert && (
               <div className="nav-cart-panel">
                 {itemsPanier.length === 0 ? (
