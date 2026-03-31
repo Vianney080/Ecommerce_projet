@@ -18,6 +18,7 @@ import {
   type ChampsAdresseErreurs,
 } from "../utils/checkoutValidation";
 import { Breadcrumb } from "../components/Breadcrumb";
+import { ClientNav } from "../components/ClientNav";
 import { TrustCheckoutStrip } from "../components/TrustCheckoutStrip";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
@@ -122,7 +123,7 @@ function extraireAdresseDepuisProfil(utilisateur: { nom?: string; adresse?: stri
 }
 
 export function PagePanier() {
-  const { utilisateur, deconnexion } = useAuth();
+  const { utilisateur } = useAuth();
   const navigate = useNavigate();
   useDocumentTitle("Panier");
   useMetaDescription("Votre panier CosmétiShop : articles, adresse de livraison et passage en caisse.");
@@ -409,15 +410,6 @@ export function PagePanier() {
     return item.quantite >= stock;
   }
 
-  const initialesUtilisateur = useMemo(() => {
-    if (!utilisateur?.nom) return "U";
-    const parts = utilisateur.nom.trim().split(/\s+/).filter(Boolean);
-    return parts
-      .slice(0, 2)
-      .map((p) => p.charAt(0).toUpperCase())
-      .join("");
-  }, [utilisateur]);
-  const avatarUtilisateur = resolveAssetUrl(utilisateur?.avatarUrl);
   const profilAdressePrefill = useMemo(() => extraireAdresseDepuisProfil(utilisateur), [utilisateur]);
   const paysOptions = useMemo(() => getCountryOptions("fr-CA"), []);
   const provinceOptions = useMemo(() => getRegionOptions(adresse.pays), [adresse.pays]);
@@ -441,83 +433,11 @@ export function PagePanier() {
 
   return (
     <div className="panier-page">
-      <nav className="nav">
-        <div className="nav-inner">
-          <div className="nav-left">
-            <div className="nav-logo">
-              <span className="nav-logo-icon">💄</span>
-              <div className="nav-logo-text">
-                <span className="nav-logo-title">CosmétiShop</span>
-                <span className="nav-logo-subtitle">Boutique de produits cosmétiques</span>
-              </div>
-            </div>
-          </div>
-          <div className="nav-center">
-            <Link to="/" className="nav-link">
-              Accueil
-            </Link>
-            <Link to="/catalogue" className="nav-link">
-              Catalogue
-            </Link>
-            <Link to="/panier" className="nav-link">
-              Panier
-            </Link>
-            <Link to="/liste-souhaits" className="nav-link">
-              Liste d&apos;envies
-            </Link>
-            {utilisateur && (
-              <Link to="/commandes" className="nav-link">
-                Commandes
-              </Link>
-            )}
-          </div>
-          <div className="nav-right">
-            {utilisateur ? (
-              <>
-                <Link to="/profil" className="nav-user-pill nav-user-pill-link" title={utilisateur.email}>
-                  <span className="nav-user-avatar">
-                    {avatarUtilisateur ? (
-                      <img src={avatarUtilisateur} alt={utilisateur.nom} className="nav-user-avatar-image" />
-                    ) : (
-                      initialesUtilisateur
-                    )}
-                  </span>
-                  <span className="nav-user-meta">
-                    <span className="nav-user-name">{utilisateur.nom}</span>
-                    <span className="nav-user-role">{utilisateur.role}</span>
-                  </span>
-                </Link>
-                <button
-                  type="button"
-                  className="nav-auth-btn nav-auth-btn-logout"
-                  onClick={deconnexion}
-                >
-                  Deconnexion
-                </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/connexion"
-                  state={{ from: "/panier" }}
-                  onClick={() => localStorage.setItem(CLE_TRANSFERT_PANIER_INVITE, "1")}
-                  className="nav-auth-btn nav-auth-link"
-                >
-                  Se connecter
-                </Link>
-                <Link
-                  to="/inscription"
-                  state={{ from: "/panier" }}
-                  onClick={() => localStorage.setItem(CLE_TRANSFERT_PANIER_INVITE, "1")}
-                  className="nav-auth-btn nav-auth-btn-primary nav-auth-link"
-                >
-                  Créer un compte
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
+      <ClientNav
+        variant="default"
+        connexionLinkState={{ from: "/panier" }}
+        onConnexionClick={() => localStorage.setItem(CLE_TRANSFERT_PANIER_INVITE, "1")}
+      />
 
       <main className="panier-shell">
         <div className="breadcrumb-wrap">

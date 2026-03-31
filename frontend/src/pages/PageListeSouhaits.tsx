@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, resolveAssetUrl } from "../api";
 import { ProductImageCascade } from "../components/ProductImage";
-import { useAuth } from "../AuthContext";
 import { Breadcrumb } from "../components/Breadcrumb";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import { lireListeSouhaits, retirerListeSouhaits } from "../wishlistInvite";
@@ -11,6 +10,7 @@ import {
   trierUrlsImagesParFiabilite,
 } from "../utils/imageUrlPriority";
 import { PrixAvecPromo } from "../components/PrixAvecPromo";
+import { ClientNav } from "../components/ClientNav";
 import "../styles.css";
 
 const SIZES_VIGNETTE_CATALOGUE = "(max-width: 640px) 50vw, (max-width: 1100px) 33vw, 280px";
@@ -27,7 +27,6 @@ type ProduitApi = {
 };
 
 export function PageListeSouhaits() {
-  const { utilisateur } = useAuth();
   const [produits, setProduits] = useState<ProduitApi[]>([]);
   const [loading, setLoading] = useState(true);
   const [tick, setTick] = useState(0);
@@ -65,35 +64,7 @@ export function PageListeSouhaits() {
 
   return (
     <div className="catalogue-page">
-      <nav className="nav">
-        <div className="nav-inner">
-          <div className="nav-left">
-            <Link to="/" className="nav-logo" style={{ textDecoration: "none", color: "inherit" }}>
-              <span className="nav-logo-icon">💄</span>
-              <div className="nav-logo-text">
-                <span className="nav-logo-title">CosmétiShop</span>
-                <span className="nav-logo-subtitle">Liste d&apos;envies</span>
-              </div>
-            </Link>
-          </div>
-          <div className="nav-center">
-            <Link to="/" className="nav-link">
-              Accueil
-            </Link>
-            <Link to="/catalogue" className="nav-link">
-              Catalogue
-            </Link>
-            <Link to="/panier" className="nav-link">
-              Panier
-            </Link>
-            {utilisateur && (
-              <Link to="/commandes" className="nav-link">
-                Commandes
-              </Link>
-            )}
-          </div>
-        </div>
-      </nav>
+      <ClientNav variant="default" logoSubtitle="Liste d&apos;envies" />
 
       <main className="catalogue-shell">
         <div className="breadcrumb-wrap">

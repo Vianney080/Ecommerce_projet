@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, resolveAssetUrl } from "../api";
 import { ProductImageCascade } from "../components/ProductImage";
@@ -13,6 +13,7 @@ import {
 import { buildPaginationItems } from "../utils/pagination";
 import { PrixAvecPromo } from "../components/PrixAvecPromo";
 import { CatalogueLoadingBrand } from "../components/CatalogueLoadingBrand";
+import { ClientNav } from "../components/ClientNav";
 import "../styles.css";
 
 const SIZES_VIGNETTE_CATALOGUE = "(max-width: 640px) 50vw, (max-width: 1100px) 33vw, 280px";
@@ -110,7 +111,8 @@ function FeedbackIcon({ type }: { type: "success" | "error" }) {
 const PRODUITS_PAR_PAGE = 8;
 
 export function PageCatalogue() {
-  const { utilisateur, deconnexion } = useAuth();
+  const { utilisateur } = useAuth();
+  const navRef = useRef<HTMLElement | null>(null);
   useDocumentTitle("Catalogue");
   useMetaDescription(
     "Catalogue CosmétiShop : parcourez les cosmétiques par catégorie, filtrez et ajoutez au panier."
@@ -218,17 +220,6 @@ export function PageCatalogue() {
     }
   }
 
-  const initialesUtilisateur = utilisateur?.nom
-    ? utilisateur.nom
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((p) => p.charAt(0).toUpperCase())
-        .join("")
-    : "U";
-  const avatarUtilisateur = resolveAssetUrl(utilisateur?.avatarUrl);
-
   const totalProduits = useMemo(() => produits.length, [produits]);
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil(produits.length / PRODUITS_PAR_PAGE)),
@@ -275,75 +266,30 @@ export function PageCatalogue() {
     setPageCourante((page) => Math.min(page, totalPages));
   }, [totalPages]);
 
+  useLayoutEffect(() => {
+    const el = navRef.current;
+    if (!el) return;
+    const root = document.documentElement;
+    const apply = () => {
+      root.style.setProperty(
+        "--catalogue-sticky-nav-h",
+        `${Math.ceil(el.getBoundingClientRect().height)}px`
+      );
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    window.addEventListener("resize", apply);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", apply);
+      root.style.removeProperty("--catalogue-sticky-nav-h");
+    };
+  }, []);
+
   return (
     <div className="catalogue-page">
-      <nav className="nav">
-        <div className="nav-inner">
-          <div className="nav-left">
-            <div className="nav-logo">
-              <span className="nav-logo-icon">💄</span>
-              <div className="nav-logo-text">
-                <span className="nav-logo-title">CosmétiShop</span>
-                <span className="nav-logo-subtitle">Boutique de produits cosmétiques</span>
-              </div>
-            </div>
-          </div>
-          <div className="nav-center">
-            <Link to="/" className="nav-link">
-              Accueil
-            </Link>
-            <Link to="/catalogue" className="nav-link">
-              Catalogue
-            </Link>
-            <Link to="/panier" className="nav-link">
-              Panier
-            </Link>
-            <Link to="/liste-souhaits" className="nav-link">
-              Liste d&apos;envies
-            </Link>
-            {utilisateur && (
-              <Link to="/commandes" className="nav-link">
-                Commandes
-              </Link>
-            )}
-          </div>
-          <div className="nav-right">
-            {utilisateur ? (
-              <>
-                <Link to="/profil" className="nav-user-pill nav-user-pill-link" title={utilisateur.email}>
-                  <span className="nav-user-avatar">
-                    {avatarUtilisateur ? (
-                      <img src={avatarUtilisateur} alt={utilisateur.nom} className="nav-user-avatar-image" />
-                    ) : (
-                      initialesUtilisateur
-                    )}
-                  </span>
-                  <span className="nav-user-meta">
-                    <span className="nav-user-name">{utilisateur.nom}</span>
-                    <span className="nav-user-role">{utilisateur.role}</span>
-                  </span>
-                </Link>
-                <button
-                  type="button"
-                  className="nav-auth-btn nav-auth-btn-logout"
-                  onClick={deconnexion}
-                >
-                  Deconnexion
-                </button>
-              </>
-            ) : (
-              <>
-                <Link to="/connexion" className="nav-auth-btn nav-auth-link">
-                  Se connecter
-                </Link>
-                <Link to="/inscription" className="nav-auth-btn nav-auth-btn-primary nav-auth-link">
-                  Créer un compte
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
+      <ClientNav variant="default" navRef={navRef} />
 
       {messagePanier && (
         <div className="top-feedback-wrap is-right is-floating">

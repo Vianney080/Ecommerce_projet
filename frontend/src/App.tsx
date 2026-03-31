@@ -11,6 +11,7 @@ import { basculerListeSouhaits, estDansListeSouhaits } from "./wishlistInvite";
 import { NB_VIGNETES_IMAGES_PRIORITAIRES, trierUrlsImagesParFiabilite } from "./utils/imageUrlPriority";
 import { buildPaginationItems } from "./utils/pagination";
 import { CatalogueLoadingBrand } from "./components/CatalogueLoadingBrand";
+import { ClientNav } from "./components/ClientNav";
 import "./styles.css";
 
 type TriAccueil = "recent" | "nom" | "prix_asc" | "prix_desc";
@@ -169,7 +170,7 @@ const PRODUITS_PAR_PAGE = 8;
 const SIZES_VIGNETTE_CATALOGUE = "(max-width: 640px) 50vw, (max-width: 1100px) 33vw, 280px";
 
 function App() {
-  const { utilisateur, deconnexion } = useAuth();
+  const { utilisateur } = useAuth();
   const [recherche, setRecherche] = useState("");
   const [categorie, setCategorie] = useState("Toutes");
   const [produitsBackend, setProduitsBackend] = useState<Produit[]>([]);
@@ -181,7 +182,6 @@ function App() {
   const [totalPanier, setTotalPanier] = useState(0);
   const [slideActif, setSlideActif] = useState(0);
   const [panierOuvert, setPanierOuvert] = useState(false);
-  const [menuMobileOuvert, setMenuMobileOuvert] = useState(false);
   const [messagePanier, setMessagePanier] = useState<PanierFeedback | null>(null);
   const [pageCourante, setPageCourante] = useState(1);
   const [triAccueil, setTriAccueil] = useState<TriAccueil>("recent");
@@ -452,10 +452,6 @@ function App() {
     }
   }
 
-  const formatCAD = useMemo(() => {
-    return (montant: number) => `${montant.toFixed(2)} $`;
-  }, []);
-
   useEffect(() => {
     const id = window.setInterval(() => {
       setSlideActif((i) => (i + 1) % SLIDES.length);
@@ -514,11 +510,6 @@ function App() {
     setRecherche("");
     setCategorie("Toutes");
     setPageCourante(1);
-    setMenuMobileOuvert(false);
-  }
-
-  function fermerMenuMobile() {
-    setMenuMobileOuvert(false);
   }
 
   function appliquerSuggestionRecherche(valeur: string) {
@@ -527,206 +518,72 @@ function App() {
     setSuggestionsRechercheOuvertes(false);
   }
 
-  const initialesUtilisateur = useMemo(() => {
-    if (!utilisateur?.nom) return "U";
-    const parts = utilisateur.nom.trim().split(/\s+/).filter(Boolean);
-    return parts
-      .slice(0, 2)
-      .map((p) => p.charAt(0).toUpperCase())
-      .join("");
-  }, [utilisateur]);
-  const avatarUtilisateur = resolveAssetUrl(utilisateur?.avatarUrl);
-
   return (
     <div className="app" id="accueil">
-      {/* Barre de navigation */}
-      <nav className="nav">
-        <div className="nav-inner">
-          <div className="nav-left">
-            <div className="nav-logo">
-              <span className="nav-logo-icon">💄</span>
-              <div className="nav-logo-text">
-                <span className="nav-logo-title">CosmétiShop</span>
-                <span className="nav-logo-subtitle">Boutique de produits cosmétiques</span>
-              </div>
-            </div>
-            <button
-              type="button"
-              className="nav-mobile-toggle"
-              aria-label={menuMobileOuvert ? "Fermer le menu" : "Ouvrir le menu"}
-              aria-expanded={menuMobileOuvert}
-              onClick={() => setMenuMobileOuvert((ouvert) => !ouvert)}
-            >
-              <span />
-              <span />
-              <span />
-            </button>
-          </div>
-          <div className={`nav-center ${menuMobileOuvert ? "is-open" : ""}`}>
-            <a href="#accueil" className="nav-link" onClick={allerAccueil}>
-              Accueil
-            </a>
-            <a href="#produits" className="nav-link" onClick={fermerMenuMobile}>
-              Produits
-            </a>
-            <Link to="/espace-client" className="nav-link" onClick={fermerMenuMobile}>
-              Espace client
-            </Link>
-            <Link to="/catalogue" className="nav-link" onClick={fermerMenuMobile}>
-              Catalogue
-            </Link>
-            <Link to="/liste-souhaits" className="nav-link" onClick={fermerMenuMobile}>
-              Liste d&apos;envies
-            </Link>
-            {utilisateur && (
-              <Link to="/commandes" className="nav-link" onClick={fermerMenuMobile}>
-                Commandes
-              </Link>
-            )}
-            {utilisateur?.role === "admin" && (
-              <>
-                <Link to="/admin/dashboard" className="nav-link" onClick={fermerMenuMobile}>
-                  Admin
-                </Link>
-                <Link to="/admin/commandes" className="nav-link" onClick={fermerMenuMobile}>
-                  Cmd admin
-                </Link>
-              </>
-            )}
-          </div>
-          <div className="nav-right">
-            {utilisateur ? (
-              <>
-                <Link to="/profil" className="nav-user-pill nav-user-pill-link" title={utilisateur.email}>
-                  <span className="nav-user-avatar">
-                    {avatarUtilisateur ? (
-                      <img src={avatarUtilisateur} alt={utilisateur.nom} className="nav-user-avatar-image" />
-                    ) : (
-                      initialesUtilisateur
-                    )}
-                  </span>
-                  <span className="nav-user-meta">
-                    <span className="nav-user-name">{utilisateur.nom}</span>
-                    <span className="nav-user-role">{utilisateur.role}</span>
-                  </span>
-                </Link>
-                <button
-                  type="button"
-                  className="nav-auth-btn nav-auth-btn-logout"
-                  onClick={deconnexion}
-                >
-                  Deconnexion
-                </button>
-              </>
-            ) : (
-              <>
-                <Link to="/connexion" className="nav-auth-btn nav-auth-link">
-                  Se connecter
-                </Link>
-                <Link to="/inscription" className="nav-auth-btn nav-auth-btn-primary nav-auth-link">
-                  Créer un compte
-                </Link>
-              </>
-            )}
-            <div
-              className={`nav-cart ${itemsPanier.length > 0 ? "nav-cart-has-items" : ""}`}
-              onClick={() => setPanierOuvert((ouvert) => !ouvert)}
-            >
-              <span className="nav-cart-icon">🛒</span>
-              {itemsPanier.length > 0 && (
-                <span className="nav-cart-badge">
-                  {itemsPanier.reduce((acc, it) => acc + it.quantite, 0)}
-                </span>
-              )}
-              <span className="nav-cart-info">
-                Mon panier – {formatCAD(totalPanier)}
-              </span>
-              {panierOuvert && (
-                <div className="nav-cart-panel">
-                  {itemsPanier.length === 0 ? (
-                    <p className="nav-cart-empty">Votre panier est vide.</p>
-                  ) : (
-                    <>
-                      <ul className="nav-cart-list">
-                        {itemsPanier.map((it) => (
-                          <li key={it.produitId} className="nav-cart-item">
-                            <span className="nav-cart-item-name">
-                              {it.nomProduit} x {it.quantite}
-                            </span>
-                            <span className="nav-cart-item-price">
-                              {formatCAD(it.prixUnitaire * it.quantite)}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                      <div className="nav-cart-total">
-                        <span>Total</span>
-                        <span>{formatCAD(totalPanier)}</span>
-                      </div>
-                      <Link to="/panier" className="nav-cart-cta">
-                        Voir mon panier
-                      </Link>
-                    </>
-                  )}
+      <ClientNav
+        variant="home"
+        onNavAccueil={allerAccueil}
+        panierExterne={{
+          items: itemsPanier,
+          total: totalPanier,
+          ouvert: panierOuvert,
+          setOuvert: setPanierOuvert,
+        }}
+        accueilFilters={
+          <div className="nav-filters">
+            <div className="search-autocomplete">
+              <input
+                type="text"
+                placeholder="Rechercher un produit..."
+                value={recherche}
+                onChange={(e) => {
+                  setRecherche(e.target.value);
+                  setSuggestionsRechercheOuvertes(true);
+                }}
+                onFocus={() => setSuggestionsRechercheOuvertes(true)}
+                onBlur={() => window.setTimeout(() => setSuggestionsRechercheOuvertes(false), 120)}
+                className="products-search"
+              />
+              {suggestionsRechercheOuvertes && suggestionsRecherche.length > 0 && (
+                <div className="search-autocomplete-menu">
+                  {suggestionsRecherche.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      className="search-autocomplete-item"
+                      onClick={() => appliquerSuggestionRecherche(s)}
+                    >
+                      {s}
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
+            <select
+              value={categorie}
+              onChange={(e) => setCategorie(e.target.value)}
+              className="products-select"
+            >
+              {categoriesDisponibles.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+            <select
+              value={triAccueil}
+              onChange={(e) => setTriAccueil(e.target.value as TriAccueil)}
+              className="products-select products-select-tri"
+              aria-label="Trier les produits"
+            >
+              <option value="recent">Plus récents</option>
+              <option value="nom">Nom (A-Z)</option>
+              <option value="prix_asc">Prix croissant</option>
+              <option value="prix_desc">Prix décroissant</option>
+            </select>
           </div>
-        </div>
-        {/* Barre de recherche + filtre catégorie intégrées au navbar */}
-        <div className="nav-filters">
-          <div className="search-autocomplete">
-            <input
-              type="text"
-              placeholder="Rechercher un produit..."
-              value={recherche}
-              onChange={(e) => {
-                setRecherche(e.target.value);
-                setSuggestionsRechercheOuvertes(true);
-              }}
-              onFocus={() => setSuggestionsRechercheOuvertes(true)}
-              onBlur={() => window.setTimeout(() => setSuggestionsRechercheOuvertes(false), 120)}
-              className="products-search"
-            />
-            {suggestionsRechercheOuvertes && suggestionsRecherche.length > 0 && (
-              <div className="search-autocomplete-menu">
-                {suggestionsRecherche.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    className="search-autocomplete-item"
-                    onClick={() => appliquerSuggestionRecherche(s)}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <select
-            value={categorie}
-            onChange={(e) => setCategorie(e.target.value)}
-            className="products-select"
-          >
-            {categoriesDisponibles.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
-          <select
-            value={triAccueil}
-            onChange={(e) => setTriAccueil(e.target.value as TriAccueil)}
-            className="products-select products-select-tri"
-            aria-label="Trier les produits"
-          >
-            <option value="recent">Plus récents</option>
-            <option value="nom">Nom (A-Z)</option>
-            <option value="prix_asc">Prix croissant</option>
-            <option value="prix_desc">Prix décroissant</option>
-          </select>
-        </div>
-      </nav>
+        }
+      />
 
       <div className="breadcrumb-wrap">
         <Breadcrumb

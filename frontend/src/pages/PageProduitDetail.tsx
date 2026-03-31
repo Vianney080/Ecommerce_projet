@@ -13,6 +13,7 @@ import { ProductImageCascade } from "../components/ProductImage";
 import { useAuth } from "../AuthContext";
 import { ajouterAuPanierInvite, lirePanierInvite } from "../cartInvite";
 import { Breadcrumb } from "../components/Breadcrumb";
+import { ClientNav } from "../components/ClientNav";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import { basculerListeSouhaits, estDansListeSouhaits } from "../wishlistInvite";
 import {
@@ -447,41 +448,7 @@ export function PageProduitDetail() {
 
   return (
     <div className="produit-page">
-      <nav className="nav">
-        <div className="nav-inner">
-          <div className="nav-left">
-            <div className="nav-logo">
-              <span className="nav-logo-icon">💄</span>
-              <div className="nav-logo-text">
-                <span className="nav-logo-title">CosmétiShop</span>
-                <span className="nav-logo-subtitle">Détails du produit</span>
-              </div>
-            </div>
-          </div>
-          <div className="nav-center">
-            <Link to="/" className="nav-link">
-              Accueil
-            </Link>
-            <Link to="/catalogue" className="nav-link">
-              Catalogue
-            </Link>
-            <Link to="/liste-souhaits" className="nav-link">
-              Liste d&apos;envies
-            </Link>
-          </div>
-          <div className="nav-right">
-            {utilisateur ? (
-              <Link to="/panier" className="nav-auth-btn nav-auth-link">
-                Voir panier
-              </Link>
-            ) : (
-              <Link to="/connexion" className="nav-auth-btn nav-auth-link">
-                Se connecter
-              </Link>
-            )}
-          </div>
-        </div>
-      </nav>
+      <ClientNav variant="default" logoSubtitle="Détails du produit" />
 
       {!loading && produit && (
         <div className="breadcrumb-wrap">

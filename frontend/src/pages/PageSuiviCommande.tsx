@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { api } from "../api";
 import { useAuth } from "../AuthContext";
 import { Breadcrumb } from "../components/Breadcrumb";
+import { ClientNav } from "../components/ClientNav";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
 
@@ -148,35 +149,7 @@ export function PageSuiviCommande() {
 
   return (
     <div className="catalogue-page">
-      <nav className="nav">
-        <div className="nav-inner">
-          <div className="nav-left">
-            <Link to="/" className="nav-logo" style={{ textDecoration: "none", color: "inherit" }}>
-              <span className="nav-logo-icon">💄</span>
-              <div className="nav-logo-text">
-                <span className="nav-logo-title">CosmétiShop</span>
-                <span className="nav-logo-subtitle">Suivi de commande</span>
-              </div>
-            </Link>
-          </div>
-          <div className="nav-center">
-            <Link to="/" className="nav-link">
-              Accueil
-            </Link>
-            <Link to="/catalogue" className="nav-link">
-              Catalogue
-            </Link>
-            <Link to="/panier" className="nav-link">
-              Panier
-            </Link>
-            {utilisateur && (
-              <Link to="/commandes" className="nav-link">
-                Mes commandes
-              </Link>
-            )}
-          </div>
-        </div>
-      </nav>
+      <ClientNav variant="default" logoSubtitle="Suivi de commande" />
 
       <main className="catalogue-shell suivi-commande-shell">
         <div className="breadcrumb-wrap">

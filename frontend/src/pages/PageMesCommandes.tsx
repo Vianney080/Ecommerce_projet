@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, API_ORIGIN } from "../api";
 import { useAuth } from "../AuthContext";
+import { ClientNav } from "../components/ClientNav";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import { googleMapsSearchUrlFromAdresse } from "../utils/googleMapsUrl";
 import "../styles.css";
@@ -101,7 +102,7 @@ function libelleStatutPaiement(statutPaiement?: string) {
 export function PageMesCommandes() {
   useDocumentTitle("Mes commandes");
   useMetaDescription("Historique et détail de vos commandes CosmétiShop, numéros de facture et suivi.");
-  const { utilisateur, deconnexion } = useAuth();
+  const { utilisateur } = useAuth();
   const [commandes, setCommandes] = useState<CommandeClient[]>([]);
   const [loading, setLoading] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -158,87 +159,9 @@ export function PageMesCommandes() {
     void chargerImagesProduits();
   }, []);
 
-  const initialesUtilisateur = utilisateur?.nom
-    ? utilisateur.nom
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((p) => p.charAt(0).toUpperCase())
-        .join("")
-    : "U";
-  const avatarUtilisateur = utilisateur?.avatarUrl
-    ? utilisateur.avatarUrl.startsWith("http://") || utilisateur.avatarUrl.startsWith("https://")
-      ? utilisateur.avatarUrl
-      : utilisateur.avatarUrl.startsWith("/")
-        ? `${API_ORIGIN}${utilisateur.avatarUrl}`
-        : `${API_ORIGIN}/${utilisateur.avatarUrl}`
-    : "";
-
   return (
     <div className="orders-page">
-      <nav className="nav">
-        <div className="nav-inner">
-          <div className="nav-left">
-            <div className="nav-logo">
-              <span className="nav-logo-icon">💄</span>
-              <div className="nav-logo-text">
-                <span className="nav-logo-title">CosmétiShop</span>
-                <span className="nav-logo-subtitle">Boutique de produits cosmétiques</span>
-              </div>
-            </div>
-          </div>
-          <div className="nav-center">
-            <Link to="/" className="nav-link">
-              Accueil
-            </Link>
-            <Link to="/catalogue" className="nav-link">
-              Catalogue
-            </Link>
-            <Link to="/panier" className="nav-link">
-              Panier
-            </Link>
-            <Link to="/commandes" className="nav-link">
-              Commandes
-            </Link>
-          </div>
-          <div className="nav-right">
-            {utilisateur ? (
-              <>
-                <Link to="/profil" className="nav-user-pill nav-user-pill-link" title={utilisateur.email}>
-                  <span className="nav-user-avatar">
-                    {avatarUtilisateur ? (
-                      <img src={avatarUtilisateur} alt={utilisateur.nom} className="nav-user-avatar-image" />
-                    ) : (
-                      initialesUtilisateur
-                    )}
-                  </span>
-                  <span className="nav-user-meta">
-                    <span className="nav-user-name">{utilisateur.nom}</span>
-                    <span className="nav-user-role">{utilisateur.role}</span>
-                  </span>
-                </Link>
-                <button
-                  type="button"
-                  className="nav-auth-btn nav-auth-btn-logout"
-                  onClick={deconnexion}
-                >
-                  Deconnexion
-                </button>
-              </>
-            ) : (
-              <>
-                <Link to="/connexion" className="nav-auth-btn nav-auth-link">
-                  Se connecter
-                </Link>
-                <Link to="/inscription" className="nav-auth-btn nav-auth-btn-primary nav-auth-link">
-                  Créer un compte
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
+      <ClientNav variant="default" />
 
       <div className="orders-shell">
         <div className="orders-header">

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { api, API_ORIGIN } from "../api";
+import { api } from "../api";
 import { useAuth } from "../AuthContext";
 import { getCountryOptions, getRegionOptions, resolveCountryCode } from "../locationData";
 import {
@@ -14,6 +14,7 @@ import {
   type ChampsAdresseErreurs,
   type ErreursPaiementCarte,
 } from "../utils/checkoutValidation";
+import { ClientNav } from "../components/ClientNav";
 import { TrustCheckoutStrip } from "../components/TrustCheckoutStrip";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
@@ -89,7 +90,7 @@ function adresseDepuisProfil(utilisateur: {
 }
 
 export function PagePaiement() {
-  const { utilisateur, deconnexion } = useAuth();
+  const { utilisateur } = useAuth();
   const navigate = useNavigate();
   useDocumentTitle("Paiement");
   useMetaDescription(
@@ -109,21 +110,6 @@ export function PagePaiement() {
   const [erreursAdresse, setErreursAdresse] = useState<ChampsAdresseErreurs>({});
   const [erreursCarte, setErreursCarte] = useState<ErreursPaiementCarte>({});
 
-  const initialesUtilisateur = useMemo(() => {
-    if (!utilisateur?.nom) return "U";
-    const parts = utilisateur.nom.trim().split(/\s+/).filter(Boolean);
-    return parts
-      .slice(0, 2)
-      .map((p) => p.charAt(0).toUpperCase())
-      .join("");
-  }, [utilisateur]);
-  const avatarUtilisateur = utilisateur?.avatarUrl
-    ? utilisateur.avatarUrl.startsWith("http://") || utilisateur.avatarUrl.startsWith("https://")
-      ? utilisateur.avatarUrl
-      : utilisateur.avatarUrl.startsWith("/")
-        ? `${API_ORIGIN}${utilisateur.avatarUrl}`
-        : `${API_ORIGIN}/${utilisateur.avatarUrl}`
-    : "";
   const profilAdressePrefill = useMemo(() => adresseDepuisProfil(utilisateur), [utilisateur]);
   const paysOptions = useMemo(() => getCountryOptions("fr-CA"), []);
   const provinceOptions = useMemo(() => getRegionOptions(adresse.pays), [adresse.pays]);
@@ -266,55 +252,7 @@ export function PagePaiement() {
 
   return (
     <div className="panier-page">
-      <nav className="nav">
-        <div className="nav-inner">
-          <div className="nav-left">
-            <div className="nav-logo">
-              <span className="nav-logo-icon">💄</span>
-              <div className="nav-logo-text">
-                <span className="nav-logo-title">CosmétiShop</span>
-                <span className="nav-logo-subtitle">Boutique de produits cosmétiques</span>
-              </div>
-            </div>
-          </div>
-          <div className="nav-center">
-            <Link to="/" className="nav-link">
-              Accueil
-            </Link>
-            <Link to="/catalogue" className="nav-link">
-              Catalogue
-            </Link>
-            <Link to="/panier" className="nav-link">
-              Panier
-            </Link>
-            <Link to="/commandes" className="nav-link">
-              Commandes
-            </Link>
-          </div>
-          <div className="nav-right">
-            <Link to="/profil" className="nav-user-pill nav-user-pill-link" title={utilisateur?.email}>
-              <span className="nav-user-avatar">
-                {avatarUtilisateur ? (
-                  <img
-                    src={avatarUtilisateur}
-                    alt={utilisateur?.nom || "Client"}
-                    className="nav-user-avatar-image"
-                  />
-                ) : (
-                  initialesUtilisateur
-                )}
-              </span>
-              <span className="nav-user-meta">
-                <span className="nav-user-name">{utilisateur?.nom || "Client"}</span>
-                <span className="nav-user-role">{utilisateur?.role || "client"}</span>
-              </span>
-            </Link>
-            <button type="button" className="nav-auth-btn nav-auth-btn-logout" onClick={deconnexion}>
-              Déconnexion
-            </button>
-          </div>
-        </div>
-      </nav>
+      <ClientNav variant="default" />
 
       <main className="panier-shell">
         <section className="panier-hero">
