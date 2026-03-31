@@ -17,6 +17,7 @@ import {
 import { ClientNav } from "../components/ClientNav";
 import { TrustCheckoutStrip } from "../components/TrustCheckoutStrip";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
+import { notifierChangementPanier } from "../panierEvents";
 import "../styles.css";
 
 interface ItemPanier {
@@ -234,6 +235,7 @@ export function PagePaiement() {
         couponCode: couponNormalise || undefined,
       });
       setMessage(res.data?.message || "Paiement validé et commande créée.");
+      notifierChangementPanier();
       navigate("/commande/succes", {
         state: {
           commande: res.data.commande,

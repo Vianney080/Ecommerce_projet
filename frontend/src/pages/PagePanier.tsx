@@ -21,6 +21,7 @@ import { Breadcrumb } from "../components/Breadcrumb";
 import { ClientNav } from "../components/ClientNav";
 import { TrustCheckoutStrip } from "../components/TrustCheckoutStrip";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
+import { notifierChangementPanier } from "../panierEvents";
 import "../styles.css";
 
 interface ItemPanier {
@@ -294,6 +295,7 @@ export function PagePanier() {
         quantite,
       });
       setPanier(res.data.panier);
+      notifierChangementPanier();
       setMessage("Quantité mise à jour");
     } catch (err: unknown) {
       const msg =
@@ -314,6 +316,7 @@ export function PagePanier() {
     try {
       const res = await api.delete<{ panier: Panier }>(`/panier/supprimer/${produitId}`);
       setPanier(res.data.panier);
+      notifierChangementPanier();
       setMessage("Produit supprimé du panier");
     } catch (err: unknown) {
       const msg =
@@ -334,6 +337,7 @@ export function PagePanier() {
     try {
       const res = await api.delete<{ panier: Panier }>("/panier/vider");
       setPanier(res.data.panier);
+      notifierChangementPanier();
       setMessage("Panier vidé");
     } catch (err: unknown) {
       const msg =

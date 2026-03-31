@@ -15,6 +15,7 @@ import { api, resolveAssetUrl } from "../api";
 import { useAuth } from "../AuthContext";
 import { LOGO_COSMETISHOP_PNG } from "../brandAssets";
 import { lirePanierInvite, totalPanierInvite } from "../cartInvite";
+import { PANIER_CHANGE_EVENT } from "../panierEvents";
 
 export type ClientNavItemPanier = {
   produitId: string;
@@ -169,6 +170,14 @@ export function ClientNav({
 
   useEffect(() => {
     chargerPanier();
+  }, [chargerPanier]);
+
+  useEffect(() => {
+    function onPanierChange() {
+      void chargerPanier();
+    }
+    window.addEventListener(PANIER_CHANGE_EVENT, onPanierChange);
+    return () => window.removeEventListener(PANIER_CHANGE_EVENT, onPanierChange);
   }, [chargerPanier]);
 
   /**

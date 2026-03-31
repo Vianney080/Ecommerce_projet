@@ -14,6 +14,7 @@ import { buildPaginationItems } from "../utils/pagination";
 import { PrixAvecPromo } from "../components/PrixAvecPromo";
 import { CatalogueLoadingBrand } from "../components/CatalogueLoadingBrand";
 import { ClientNav } from "../components/ClientNav";
+import { notifierChangementPanier } from "../panierEvents";
 import "../styles.css";
 
 const SIZES_VIGNETTE_CATALOGUE = "(max-width: 640px) 50vw, (max-width: 1100px) 33vw, 280px";
@@ -210,6 +211,7 @@ export function PageCatalogue() {
 
     try {
       const res = await api.post("/panier/ajouter", { produitId, quantite: 1 });
+      notifierChangementPanier();
       setMessagePanier({
         texte: res.data?.message || "Article ajouté au panier avec succès.",
         type: "success",

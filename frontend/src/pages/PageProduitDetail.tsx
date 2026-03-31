@@ -21,6 +21,7 @@ import {
   trierUrlsImagesParFiabilite,
 } from "../utils/imageUrlPriority";
 import { PrixAvecPromo } from "../components/PrixAvecPromo";
+import { notifierChangementPanier } from "../panierEvents";
 import "../styles.css";
 
 /** `sizes` pour vignettes catalogue / grille (évite de télécharger trop large). */
@@ -356,6 +357,7 @@ export function PageProduitDetail() {
 
     try {
       const res = await api.post("/panier/ajouter", { produitId: cible._id, quantite: 1 });
+      notifierChangementPanier();
       setMessagePanier({
         texte: res.data?.message || "Article ajouté au panier avec succès.",
         type: "success",

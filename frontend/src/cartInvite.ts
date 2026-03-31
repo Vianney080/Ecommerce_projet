@@ -1,4 +1,5 @@
 import type { AxiosInstance } from "axios";
+import { notifierChangementPanier } from "./panierEvents";
 
 /** Marqueur localStorage : fusionner le panier invité au backend après connexion (parcours panier / paiement). */
 export const CLE_TRANSFERT_PANIER_INVITE = "cosmetishop_panier_invite_transfer";
@@ -50,6 +51,7 @@ export function lirePanierInvite(): ItemPanierInvite[] {
 
 export function enregistrerPanierInvite(items: ItemPanierInvite[]) {
   localStorage.setItem(PANIER_INVITE_KEY, JSON.stringify(items));
+  notifierChangementPanier();
 }
 
 export function ajouterAuPanierInvite(
