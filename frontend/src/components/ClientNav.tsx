@@ -1,7 +1,9 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
+  useRef,
   useState,
   type Dispatch,
   type ReactNode,
@@ -62,6 +64,21 @@ export function ClientNav({
   onConnexionClick,
 }: ClientNavProps) {
   const { utilisateur, deconnexion } = useAuth();
+  const navNodeRef = useRef<HTMLElement | null>(null);
+
+  const assignNavRef = useCallback(
+    (el: HTMLElement | null) => {
+      navNodeRef.current = el;
+      if (navRef == null) return;
+      if (typeof navRef === "function") {
+        navRef(el);
+      } else {
+        (navRef as { current: HTMLElement | null }).current = el;
+      }
+    },
+    [navRef]
+  );
+
   const [menuMobileOuvert, setMenuMobileOuvert] = useState(false);
   const [interneItems, setInterneItems] = useState<ClientNavItemPanier[]>([]);
   const [interneTotal, setInterneTotal] = useState(0);
@@ -88,6 +105,45 @@ export function ClientNav({
   useEffect(() => {
     chargerPanier();
   }, [chargerPanier]);
+
+  /**
+   * Le footer est en dehors du bloc route (.app, .catalogue-page, etc.) : en sticky, la nav
+   * disparaissait en bas de page. En ≤900px (hamburger), nav en fixed + padding body mesuré.
+   */
+  useLayoutEffect(() => {
+    const el = navNodeRef.current;
+    if (!el) return;
+    const root = document.documentElement;
+    const mq = window.matchMedia("(max-width: 900px)");
+
+    function clearFixed() {
+      root.classList.remove("client-nav-fixed");
+      root.style.removeProperty("--client-nav-fixed-h");
+    }
+
+    function apply() {
+      const node = navNodeRef.current;
+      if (!mq.matches || !node) {
+        clearFixed();
+        return;
+      }
+      root.classList.add("client-nav-fixed");
+      root.style.setProperty(
+        "--client-nav-fixed-h",
+        `${Math.ceil(node.getBoundingClientRect().height)}px`
+      );
+    }
+
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    mq.addEventListener("change", apply);
+    return () => {
+      ro.disconnect();
+      mq.removeEventListener("change", apply);
+      clearFixed();
+    };
+  }, []);
 
   useEffect(() => {
     function onStorage(e: StorageEvent) {
@@ -130,7 +186,7 @@ export function ClientNav({
   );
 
   return (
-    <nav className="nav" ref={navRef}>
+    <nav className="nav" ref={assignNavRef}>
       <div className="nav-inner">
         <div className="nav-left">
           {variant === "default" ? (
