@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, API_ORIGIN } from "../api";
 import { AdminLayout } from "../components/AdminLayout";
+import { AdminPaginationControls } from "../components/AdminPaginationControls";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import { googleMapsSearchUrlFromAdresse } from "../utils/googleMapsUrl";
 import "../styles.css";
@@ -103,6 +104,8 @@ function libelleStatutPaiement(statutPaiement?: string) {
   return statutPaiement || "En attente";
 }
 
+const COMMANDES_PAR_PAGE_ADMIN = 4;
+
 export function PageCommandesAdmin() {
   useDocumentTitle("Admin · Commandes");
   useMetaDescription("Gestion des commandes CosmétiShop : statuts, paiements et adresses de livraison.");
@@ -122,6 +125,7 @@ export function PageCommandesAdmin() {
   const [suiviTexte, setSuiviTexte] = useState<Record<string, string>>({});
   const suiviServeurRef = useRef<Record<string, string>>({});
   const [loadingSuiviId, setLoadingSuiviId] = useState<string | null>(null);
+  const [pageCommandes, setPageCommandes] = useState(1);
 
   const charger = useCallback(async (options?: { silencieux?: boolean }) => {
     const silencieux = options?.silencieux ?? false;
@@ -185,6 +189,25 @@ export function PageCommandesAdmin() {
     }, 15000);
     return () => window.clearInterval(intervalId);
   }, [charger]);
+
+  const commandesTriees = useMemo(
+    () =>
+      [...commandes].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      ),
+    [commandes]
+  );
+
+  const totalPagesCommandes = Math.max(1, Math.ceil(commandesTriees.length / COMMANDES_PAR_PAGE_ADMIN));
+
+  useEffect(() => {
+    setPageCommandes((prev) => Math.min(prev, totalPagesCommandes));
+  }, [totalPagesCommandes]);
+
+  const commandesPage = useMemo(() => {
+    const start = (pageCommandes - 1) * COMMANDES_PAR_PAGE_ADMIN;
+    return commandesTriees.slice(start, start + COMMANDES_PAR_PAGE_ADMIN);
+  }, [commandesTriees, pageCommandes]);
 
   useEffect(() => {
     async function chargerImagesProduits() {
@@ -333,8 +356,9 @@ export function PageCommandesAdmin() {
           ) : commandes.length === 0 ? (
             <p className="orders-empty">Aucune commande enregistree.</p>
           ) : (
+            <>
             <div className="orders-list">
-            {commandes.map((c) => (
+            {commandesPage.map((c) => (
               <article key={c._id} className="orders-card">
                 <div className="orders-card-head">
                   <div>
@@ -512,6 +536,16 @@ export function PageCommandesAdmin() {
               </article>
             ))}
             </div>
+            <AdminPaginationControls
+              pageCourante={pageCommandes}
+              totalItems={commandesTriees.length}
+              pageSize={COMMANDES_PAR_PAGE_ADMIN}
+              onPageChange={setPageCommandes}
+              ariaLabel="Pagination des commandes"
+              entiteSingulier="commande"
+              entitePluriel="commandes"
+            />
+            </>
           )}
         </div>
       </AdminLayout>

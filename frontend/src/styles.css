@@ -3906,6 +3906,75 @@ body {
   margin-bottom: 0.15rem;
 }
 
+.admin-pagination {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(226, 232, 240, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.admin-pagination-info {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.admin-pagination-info strong {
+  color: #334155;
+  font-weight: 700;
+}
+
+.admin-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.admin-pagination-btn {
+  min-width: 2rem;
+  border: 1px solid rgba(148, 163, 184, 0.65);
+  background: #ffffff;
+  color: #0f172a;
+  border-radius: 999px;
+  padding: 0.36rem 0.65rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease, background-color 120ms ease;
+}
+
+.admin-pagination-btn:hover:not(:disabled) {
+  border-color: rgba(236, 72, 153, 0.75);
+  color: #be185d;
+}
+
+.admin-pagination-btn.is-active {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-color: transparent;
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.28);
+}
+
+.admin-pagination-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.admin-pagination-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
 @media (max-width: 960px) {
   .admin-app {
     flex-direction: column;
@@ -7997,6 +8066,39 @@ html.theme-dark .admin-user-avatar-wrap {
 
 html.theme-dark .admin-user-avatar-fallback {
   color: #e9d5ff !important;
+}
+
+html.theme-dark .admin-pagination {
+  border-top-color: #334155 !important;
+}
+
+html.theme-dark .admin-pagination-info {
+  color: #94a3b8 !important;
+}
+
+html.theme-dark .admin-pagination-info strong {
+  color: #e5e7eb !important;
+}
+
+html.theme-dark .admin-pagination-btn {
+  background: #1e293b !important;
+  border-color: #475569 !important;
+  color: #e5e7eb !important;
+}
+
+html.theme-dark .admin-pagination-btn:hover:not(:disabled) {
+  border-color: #f472b6 !important;
+  color: #fda4af !important;
+}
+
+html.theme-dark .admin-pagination-btn.is-active {
+  background: linear-gradient(135deg, #7c3aed, #db2777) !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35) !important;
+}
+
+html.theme-dark .admin-pagination-ellipsis {
+  color: #64748b !important;
 }
 
 html.theme-dark .admin-dashboard-lead {

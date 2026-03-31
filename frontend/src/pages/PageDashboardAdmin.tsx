@@ -2,9 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, resolveAssetUrl } from "../api";
 import { AdminLayout } from "../components/AdminLayout";
+import { AdminPaginationControls } from "../components/AdminPaginationControls";
 import { useAuth } from "../AuthContext";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
+
+const UTILISATEURS_PAR_PAGE_ADMIN = 8;
 
 interface UtilisateurAdmin {
   _id: string;
@@ -70,6 +73,7 @@ export function PageDashboardAdmin() {
   const [filtreStatut, setFiltreStatut] = useState<"tous" | "actif" | "inactif">("tous");
   const [nouvellesCommandes, setNouvellesCommandes] = useState(0);
   const [lastRefreshAt, setLastRefreshAt] = useState<Date | null>(null);
+  const [pageUtilisateurs, setPageUtilisateurs] = useState(1);
   const toastTimerRef = useRef<number | null>(null);
   const requeteCouranteRef = useRef(0);
   const precedentTotalCommandesRef = useRef<number | null>(null);
@@ -231,6 +235,21 @@ export function PageDashboardAdmin() {
       })
       .sort((a, b) => a.nom.localeCompare(b.nom, "fr"));
   }, [utilisateurs, rechercheUtilisateur, filtreRole, filtreStatut]);
+
+  const totalPagesUtilisateurs = Math.max(1, Math.ceil(utilisateursFiltres.length / UTILISATEURS_PAR_PAGE_ADMIN));
+
+  useEffect(() => {
+    setPageUtilisateurs(1);
+  }, [rechercheUtilisateur, filtreRole, filtreStatut]);
+
+  useEffect(() => {
+    setPageUtilisateurs((prev) => Math.min(prev, totalPagesUtilisateurs));
+  }, [totalPagesUtilisateurs]);
+
+  const utilisateursPage = useMemo(() => {
+    const start = (pageUtilisateurs - 1) * UTILISATEURS_PAR_PAGE_ADMIN;
+    return utilisateursFiltres.slice(start, start + UTILISATEURS_PAR_PAGE_ADMIN);
+  }, [utilisateursFiltres, pageUtilisateurs]);
 
   const headerExtra = (
     <div className="admin-refresh-box">
@@ -535,7 +554,7 @@ export function PageDashboardAdmin() {
                   </tr>
                 </thead>
                 <tbody>
-                  {utilisateursFiltres.map((u) => (
+                  {utilisateursPage.map((u) => (
                     <tr key={u._id}>
                       <td>
                         <div className="admin-user-cell">
@@ -647,6 +666,15 @@ export function PageDashboardAdmin() {
                 </tbody>
               </table>
             </div>
+            <AdminPaginationControls
+              pageCourante={pageUtilisateurs}
+              totalItems={utilisateursFiltres.length}
+              pageSize={UTILISATEURS_PAR_PAGE_ADMIN}
+              onPageChange={setPageUtilisateurs}
+              ariaLabel="Pagination des comptes utilisateurs"
+              entiteSingulier="utilisateur"
+              entitePluriel="utilisateurs"
+            />
               </section>
 
               <section className="admin-panel admin-panel--section" aria-labelledby="dash-history-heading">

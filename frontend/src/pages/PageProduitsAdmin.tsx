@@ -10,6 +10,7 @@ import {
 import { useSearchParams } from "react-router-dom";
 import { api, resolveAssetUrl } from "../api";
 import { AdminLayout } from "../components/AdminLayout";
+import { AdminPaginationControls } from "../components/AdminPaginationControls";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
 
@@ -53,6 +54,8 @@ interface AdminImagePreview {
   file?: File;
 }
 
+const PRODUITS_PAR_PAGE_ADMIN = 8;
+
 const FORM_INIT: ProduitForm = {
   nom: "",
   description: "",
@@ -83,6 +86,7 @@ export function PageProduitsAdmin() {
   const [dragPreviewId, setDragPreviewId] = useState<string | null>(null);
   const objectUrlsRef = useRef<string[]>([]);
   const [fileInputKey, setFileInputKey] = useState(0);
+  const [pageProduits, setPageProduits] = useState(1);
 
   const nomsNouveauxFichiers = useMemo(
     () =>
@@ -455,6 +459,21 @@ export function PageProduitsAdmin() {
     });
   }, [produits, recherche, filtreStockBas]);
 
+  const totalPagesProduits = Math.max(1, Math.ceil(produitsFiltres.length / PRODUITS_PAR_PAGE_ADMIN));
+
+  useEffect(() => {
+    setPageProduits(1);
+  }, [recherche, filtreStockBas]);
+
+  useEffect(() => {
+    setPageProduits((prev) => Math.min(prev, totalPagesProduits));
+  }, [totalPagesProduits]);
+
+  const produitsPage = useMemo(() => {
+    const start = (pageProduits - 1) * PRODUITS_PAR_PAGE_ADMIN;
+    return produitsFiltres.slice(start, start + PRODUITS_PAR_PAGE_ADMIN);
+  }, [produitsFiltres, pageProduits]);
+
   return (
     <AdminLayout
       title="Produits & stock"
@@ -739,6 +758,7 @@ export function PageProduitsAdmin() {
           {loading ? (
             <p className="admin-loading">Chargement des produits...</p>
           ) : (
+            <>
             <div className="admin-table-wrap">
               <table className="admin-table">
                 <thead>
@@ -753,7 +773,7 @@ export function PageProduitsAdmin() {
                   </tr>
                 </thead>
                 <tbody>
-                  {produitsFiltres.map((p) => {
+                  {produitsPage.map((p) => {
                     const stockBas = p.quantite < p.seuilMinimum;
                     return (
                       <tr key={p._id}>
@@ -808,6 +828,16 @@ export function PageProduitsAdmin() {
                 </tbody>
               </table>
             </div>
+            <AdminPaginationControls
+              pageCourante={pageProduits}
+              totalItems={produitsFiltres.length}
+              pageSize={PRODUITS_PAR_PAGE_ADMIN}
+              onPageChange={setPageProduits}
+              ariaLabel="Pagination du catalogue produits"
+              entiteSingulier="produit"
+              entitePluriel="produits"
+            />
+            </>
           )}
         </section>
       </div>
