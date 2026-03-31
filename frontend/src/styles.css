@@ -184,6 +184,18 @@ body {
   background: #fecaca;
 }
 
+.nav-auth-guest-desktop {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Invité : tuiles connexion / inscription uniquement dans le menu ≤900px (pas dans la barre) */
+.nav-mobile-auth-guest {
+  display: none;
+}
+
 .nav-user-pill {
   display: inline-flex;
   align-items: center;
@@ -478,6 +490,83 @@ body {
   .nav-center .nav-link:hover {
     background: #fdf2f8;
     color: #be185d;
+  }
+
+  .nav-auth-guest-desktop {
+    display: none !important;
+  }
+
+  .nav-mobile-auth-guest {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.55rem;
+    margin-top: 0.4rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid rgba(226, 232, 240, 0.95);
+  }
+
+  .nav-mobile-auth-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.65rem 0.5rem;
+    border-radius: 0.65rem;
+    border: 1px solid rgba(203, 213, 225, 0.95);
+    background: #ffffff;
+    text-decoration: none;
+    color: #334155;
+    font-weight: 600;
+    transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+  }
+
+  .nav-mobile-auth-tile:hover {
+    background: #f8fafc;
+    border-color: rgba(236, 72, 153, 0.35);
+    color: #9f1239;
+  }
+
+  .nav-mobile-auth-tile--primary {
+    border-color: rgba(236, 72, 153, 0.28);
+    background: linear-gradient(165deg, rgba(255, 255, 255, 1) 0%, rgba(253, 242, 248, 0.65) 100%);
+    color: #9f1239;
+  }
+
+  .nav-mobile-auth-tile--primary:hover {
+    border-color: rgba(236, 72, 153, 0.5);
+    background: linear-gradient(165deg, #fff 0%, rgba(252, 231, 243, 0.9) 100%);
+  }
+
+  .nav-mobile-auth-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.55rem;
+    height: 2.55rem;
+    border-radius: 0.55rem;
+    background: rgba(241, 245, 249, 0.95);
+    color: #475569;
+  }
+
+  .nav-mobile-auth-tile--primary .nav-mobile-auth-icon-wrap {
+    background: rgba(255, 255, 255, 0.9);
+    color: #be185d;
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.15);
+  }
+
+  .nav-mobile-auth-svg {
+    width: 1.38rem;
+    height: 1.38rem;
+  }
+
+  .nav-mobile-auth-caption {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 1.2;
   }
 
   .nav-right {
@@ -7127,6 +7216,47 @@ html.theme-dark .nav-cart-cta:hover {
 
   html.theme-dark .nav-mobile-toggle span {
     background: #e5e7eb !important;
+  }
+
+  html.theme-dark .nav-mobile-auth-guest {
+    border-top-color: #334155 !important;
+  }
+
+  html.theme-dark .nav-mobile-auth-tile {
+    background: #0f172a !important;
+    border-color: #475569 !important;
+    color: #e5e7eb !important;
+  }
+
+  html.theme-dark .nav-mobile-auth-tile:hover {
+    background: #334155 !important;
+    border-color: rgba(244, 114, 182, 0.4) !important;
+    color: #fda4af !important;
+  }
+
+  html.theme-dark .nav-mobile-auth-tile--primary {
+    background: linear-gradient(165deg, #1e293b 0%, rgba(131, 24, 67, 0.4) 100%) !important;
+    border-color: rgba(244, 114, 182, 0.35) !important;
+    color: #fda4af !important;
+  }
+
+  html.theme-dark .nav-mobile-auth-tile--primary:hover {
+    border-color: rgba(244, 114, 182, 0.55) !important;
+  }
+
+  html.theme-dark .nav-mobile-auth-icon-wrap {
+    background: #111827 !important;
+    color: #94a3b8 !important;
+  }
+
+  html.theme-dark .nav-mobile-auth-tile--primary .nav-mobile-auth-icon-wrap {
+    background: #0f172a !important;
+    color: #f472b6 !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
+  }
+
+  html.theme-dark .nav-mobile-auth-caption {
+    color: #e5e7eb !important;
   }
 }
 

@@ -54,6 +54,48 @@ function formatCAD(montant: number) {
   return `${montant.toFixed(2)} $`;
 }
 
+/** Icône « entrer » / connexion (stroke Heroicons) */
+function NavIconConnexion({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      aria-hidden
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"
+      />
+    </svg>
+  );
+}
+
+/** Icône inscription (utilisateur +) */
+function NavIconInscription({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      aria-hidden
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z"
+      />
+    </svg>
+  );
+}
+
 export function ClientNav({
   variant,
   logoSubtitle = "Boutique de produits cosmétiques",
@@ -258,6 +300,38 @@ export function ClientNav({
                   </Link>
                 </>
               )}
+              {!utilisateur && (
+                <div className="nav-mobile-auth-guest" role="group" aria-label="Compte">
+                  <Link
+                    to="/connexion"
+                    state={connexionLinkState ? { from: connexionLinkState.from } : undefined}
+                    className="nav-mobile-auth-tile"
+                    onClick={() => {
+                      onConnexionClick?.();
+                      fermerMenuMobile();
+                    }}
+                  >
+                    <span className="nav-mobile-auth-icon-wrap" aria-hidden>
+                      <NavIconConnexion className="nav-mobile-auth-svg" />
+                    </span>
+                    <span className="nav-mobile-auth-caption">Connexion</span>
+                  </Link>
+                  <Link
+                    to="/inscription"
+                    state={connexionLinkState ? { from: connexionLinkState.from } : undefined}
+                    className="nav-mobile-auth-tile nav-mobile-auth-tile--primary"
+                    onClick={() => {
+                      onConnexionClick?.();
+                      fermerMenuMobile();
+                    }}
+                  >
+                    <span className="nav-mobile-auth-icon-wrap" aria-hidden>
+                      <NavIconInscription className="nav-mobile-auth-svg" />
+                    </span>
+                    <span className="nav-mobile-auth-caption">Inscription</span>
+                  </Link>
+                </div>
+              )}
             </>
           ) : (
             <>
@@ -291,6 +365,38 @@ export function ClientNav({
                   </Link>
                 </>
               )}
+              {!utilisateur && (
+                <div className="nav-mobile-auth-guest" role="group" aria-label="Compte">
+                  <Link
+                    to="/connexion"
+                    state={connexionLinkState ? { from: connexionLinkState.from } : undefined}
+                    className="nav-mobile-auth-tile"
+                    onClick={() => {
+                      onConnexionClick?.();
+                      fermerMenuMobile();
+                    }}
+                  >
+                    <span className="nav-mobile-auth-icon-wrap" aria-hidden>
+                      <NavIconConnexion className="nav-mobile-auth-svg" />
+                    </span>
+                    <span className="nav-mobile-auth-caption">Connexion</span>
+                  </Link>
+                  <Link
+                    to="/inscription"
+                    state={connexionLinkState ? { from: connexionLinkState.from } : undefined}
+                    className="nav-mobile-auth-tile nav-mobile-auth-tile--primary"
+                    onClick={() => {
+                      onConnexionClick?.();
+                      fermerMenuMobile();
+                    }}
+                  >
+                    <span className="nav-mobile-auth-icon-wrap" aria-hidden>
+                      <NavIconInscription className="nav-mobile-auth-svg" />
+                    </span>
+                    <span className="nav-mobile-auth-caption">Inscription</span>
+                  </Link>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -315,7 +421,7 @@ export function ClientNav({
               </button>
             </>
           ) : (
-            <>
+            <div className="nav-auth-guest-desktop">
               <Link
                 to="/connexion"
                 state={connexionLinkState ? { from: connexionLinkState.from } : undefined}
@@ -338,7 +444,7 @@ export function ClientNav({
               >
                 Créer un compte
               </Link>
-            </>
+            </div>
           )}
           <div
             className={`nav-cart ${itemsPanier.length > 0 ? "nav-cart-has-items" : ""}`}
