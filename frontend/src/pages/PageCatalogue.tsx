@@ -12,6 +12,7 @@ import {
 } from "../utils/imageUrlPriority";
 import { buildPaginationItems } from "../utils/pagination";
 import { PrixAvecPromo } from "../components/PrixAvecPromo";
+import { CatalogueLoadingBrand } from "../components/CatalogueLoadingBrand";
 import "../styles.css";
 
 const SIZES_VIGNETTE_CATALOGUE = "(max-width: 640px) 50vw, (max-width: 1100px) 33vw, 280px";
@@ -121,7 +122,7 @@ export function PageCatalogue() {
   const [categorie, setCategorie] = useState("");
   const [stockBas, setStockBas] = useState(false);
   const [tri, setTri] = useState<"" | "nom" | "quantite" | "categorie" | "prix_asc" | "prix_desc">("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [erreur, setErreur] = useState<string | null>(null);
   const [messagePanier, setMessagePanier] = useState<PanierFeedback | null>(null);
   const [pageCourante, setPageCourante] = useState(1);
@@ -456,7 +457,9 @@ export function PageCatalogue() {
 
         {erreur && <div className="catalogue-alert catalogue-alert-error">{erreur}</div>}
         {loading ? (
-          <p className="catalogue-state">Chargement des produits...</p>
+          <div className="catalogue-loading-host catalogue-loading-host--page">
+            <CatalogueLoadingBrand />
+          </div>
         ) : (
           <>
             <section className={`catalogue-grid ${pageCatalogueCourte ? "is-short-page" : ""}`}>

@@ -1832,6 +1832,109 @@ body {
   align-items: stretch;
 }
 
+/* Chargement catalogue (accueil) : zone produits + overlay marque */
+.catalogue-products-host {
+  position: relative;
+}
+
+.catalogue-products-host--loading {
+  min-height: min(28rem, 58vh);
+}
+
+.catalogue-loading-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(8px);
+  border-radius: 0.75rem;
+}
+
+/* Page catalogue dédiée : bloc centré */
+.catalogue-loading-host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+}
+
+.catalogue-loading-host--page {
+  min-height: min(22rem, 50vh);
+}
+
+.catalogue-loading-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.35rem;
+  text-align: center;
+  max-width: 20rem;
+}
+
+.catalogue-loading-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.catalogue-loading-brand-icon {
+  font-size: 2rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 6px rgba(236, 72, 153, 0.25));
+}
+
+.catalogue-loading-brand-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  text-align: left;
+}
+
+.catalogue-loading-brand-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+.catalogue-loading-brand-sub {
+  font-size: 0.88rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.catalogue-loading-spinner-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.catalogue-loading-spinner {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  border: 3px solid rgba(236, 72, 153, 0.2);
+  border-top-color: #ec4899;
+  animation: catalogue-spin 0.75s linear infinite;
+}
+
+@keyframes catalogue-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catalogue-loading-spinner {
+    animation: none;
+    border-top-color: rgba(236, 72, 153, 0.55);
+  }
+}
+
 @keyframes product-skeleton-shimmer {
   0% {
     background-position: 100% 0;
@@ -6433,6 +6536,23 @@ html.theme-dark .products-empty-title {
 
 html.theme-dark .products-empty-hint {
   color: #94a3b8 !important;
+}
+
+html.theme-dark .catalogue-loading-layer {
+  background: rgba(17, 24, 39, 0.92) !important;
+}
+
+html.theme-dark .catalogue-loading-brand-title {
+  color: #f8fafc !important;
+}
+
+html.theme-dark .catalogue-loading-brand-sub {
+  color: #94a3b8 !important;
+}
+
+html.theme-dark .catalogue-loading-spinner {
+  border-color: rgba(244, 114, 182, 0.25) !important;
+  border-top-color: #f472b6 !important;
 }
 
 html.theme-dark .auth-input,

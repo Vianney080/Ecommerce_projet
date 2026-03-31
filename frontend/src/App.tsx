@@ -10,6 +10,7 @@ import { useDocumentTitle, useMetaDescription } from "./hooks/useDocumentTitle";
 import { basculerListeSouhaits, estDansListeSouhaits } from "./wishlistInvite";
 import { NB_VIGNETES_IMAGES_PRIORITAIRES, trierUrlsImagesParFiabilite } from "./utils/imageUrlPriority";
 import { buildPaginationItems } from "./utils/pagination";
+import { CatalogueLoadingBrand } from "./components/CatalogueLoadingBrand";
 import "./styles.css";
 
 type TriAccueil = "recent" | "nom" | "prix_asc" | "prix_desc";
@@ -819,29 +820,18 @@ function App() {
           </p>
         </div>
         <div
-          className={`products-grid ${pageProduitsCourte ? "is-short-page" : ""}${chargementInitialCatalogue ? " products-grid--skeleton" : ""}`}
-          aria-busy={chargementInitialCatalogue}
+          className={`catalogue-products-host${chargementInitialCatalogue ? " catalogue-products-host--loading" : ""}`}
         >
-          {chargementInitialCatalogue
-            ? Array.from({ length: PRODUITS_PAR_PAGE }, (_, sk) => (
-                <article
-                  key={`catalogue-skeleton-${sk}`}
-                  className="product-card product-card--skeleton"
-                  aria-hidden="true"
-                >
-                  <div className="product-card-skeleton-image" />
-                  <div className="product-card-skeleton-body">
-                    <div className="product-card-skeleton-line product-card-skeleton-line--cat" />
-                    <div className="product-card-skeleton-line product-card-skeleton-line--title" />
-                    <div className="product-card-skeleton-line product-card-skeleton-line--price" />
-                    <div className="product-card-skeleton-actions">
-                      <span className="product-card-skeleton-btn" />
-                      <span className="product-card-skeleton-btn product-card-skeleton-btn--ghost" />
-                    </div>
-                  </div>
-                </article>
-              ))
-            : null}
+          {chargementInitialCatalogue ? (
+            <div className="catalogue-loading-layer">
+              <CatalogueLoadingBrand />
+            </div>
+          ) : null}
+          <div
+            className={`products-grid ${pageProduitsCourte ? "is-short-page" : ""}`}
+            aria-busy={chargementInitialCatalogue}
+            aria-hidden={chargementInitialCatalogue}
+          >
           {!chargementInitialCatalogue &&
             produitsAffichesPageCourante.map((produit, index) => {
             const imagesCarte = trierUrlsImagesParFiabilite(
@@ -985,6 +975,7 @@ function App() {
           produitsFiltres.length === 0 ? (
             <p className="products-empty">Aucun produit ne correspond à votre recherche ou à ce filtre.</p>
           ) : null}
+          </div>
         </div>
         {!chargementInitialCatalogue && produitsFiltres.length > 0 && totalPagesProduits > 1 ? (
           <div className="products-pagination">
