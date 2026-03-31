@@ -222,7 +222,14 @@ export function ClientNav({
 
   const logoBloc = (
     <div className="nav-logo">
-      <span className="nav-logo-icon">💄</span>
+      <img
+        src="/logo-cosmetishop.svg"
+        alt=""
+        width={44}
+        height={44}
+        className="nav-logo-img"
+        decoding="async"
+      />
       <div className="nav-logo-text">
         <span className="nav-logo-title">CosmétiShop</span>
         <span className="nav-logo-subtitle">{logoSubtitle}</span>

@@ -8,9 +8,15 @@ export function CatalogueLoadingBrand() {
       aria-busy="true"
     >
       <div className="catalogue-loading-brand-row">
-        <span className="catalogue-loading-brand-icon" aria-hidden>
-          💄
-        </span>
+        <img
+          src="/logo-cosmetishop.svg"
+          alt=""
+          width={48}
+          height={48}
+          className="catalogue-loading-brand-logo"
+          decoding="async"
+          aria-hidden
+        />
         <div className="catalogue-loading-brand-text">
           <span className="catalogue-loading-brand-title">CosmétiShop</span>
           <span className="catalogue-loading-brand-sub">Chargement des produits…</span>
