@@ -305,6 +305,11 @@ body {
   display: none;
 }
 
+/* Connecté : bloc déconnexion du menu hamburger — masqué sur desktop (évite la grosse tuile dans la barre) */
+.nav-mobile-user-footer {
+  display: none;
+}
+
 .nav-user-pill {
   display: inline-flex;
   align-items: center;
@@ -731,6 +736,7 @@ body {
   }
 
   .nav-mobile-user-footer {
+    display: block;
     margin-top: 0.35rem;
     padding-top: 0.65rem;
     border-top: 1px solid rgba(226, 232, 240, 0.95);
