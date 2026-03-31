@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import { api, API_ORIGIN } from "../api";
+import { AdminLayout } from "../components/AdminLayout";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import { googleMapsSearchUrlFromAdresse } from "../utils/googleMapsUrl";
 import "../styles.css";
@@ -280,48 +280,44 @@ export function PageCommandesAdmin() {
     }
   }
 
+  const headerExtra = (
+    <button
+      type="button"
+      className="admin-topbar-refresh-btn"
+      onClick={() => {
+        setNouvellesCommandes(0);
+        charger();
+      }}
+    >
+      Actualiser la liste
+    </button>
+  );
+
   return (
-    <div className="orders-page">
-      <div className="orders-shell">
-        <div className="orders-header">
-          <h1 className="orders-title">
-            Gestion des commandes
-            {nouvellesCommandes > 0 && <span className="orders-badge-count">{nouvellesCommandes}</span>}
-          </h1>
-          <div className="orders-actions">
-            <Link to="/admin/dashboard" className="orders-link-btn">
-              Retour dashboard
-            </Link>
-            <Link to="/admin/produits" className="orders-link-btn">
-              Gestion des produits
-            </Link>
-            <button
-              type="button"
-              className="orders-link-btn"
-              onClick={() => {
-                setNouvellesCommandes(0);
-                charger();
-              }}
-            >
-              Actualiser
-            </button>
-          </div>
-        </div>
-        {nouvellesCommandes > 0 && (
-          <div className="orders-alert orders-alert-info">
-            {nouvellesCommandes} nouvelle(s) commande(s) détectée(s) récemment.
-          </div>
-        )}
+    <>
+      <AdminLayout
+        title="Commandes"
+        subtitle="Statuts de commande, paiements, adresses et numéros de suivi."
+        navBadgeCommandes={nouvellesCommandes}
+        headerExtra={headerExtra}
+      >
+        <div className="admin-commandes-wrap">
+          {nouvellesCommandes > 0 && (
+            <div className="orders-alert orders-alert-info" role="status">
+              <strong>Nouvelles commandes :</strong> {nouvellesCommandes} depuis votre dernière consultation — pensez à
+              traiter les dossiers en attente.
+            </div>
+          )}
 
-        {erreur && <div className="orders-alert orders-alert-error">{erreur}</div>}
-        {message && <div className="orders-alert orders-alert-info">{message}</div>}
+          {erreur && <div className="orders-alert orders-alert-error">{erreur}</div>}
+          {message && <div className="orders-alert orders-alert-info">{message}</div>}
 
-        {loading ? (
-          <p className="orders-empty">Chargement des commandes...</p>
-        ) : commandes.length === 0 ? (
-          <p className="orders-empty">Aucune commande enregistree.</p>
-        ) : (
-          <div className="orders-list">
+          {loading ? (
+            <p className="orders-empty">Chargement des commandes...</p>
+          ) : commandes.length === 0 ? (
+            <p className="orders-empty">Aucune commande enregistree.</p>
+          ) : (
+            <div className="orders-list">
             {commandes.map((c) => (
               <article key={c._id} className="orders-card">
                 <div className="orders-card-head">
@@ -499,9 +495,10 @@ export function PageCommandesAdmin() {
                 </div>
               </article>
             ))}
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+        </div>
+      </AdminLayout>
 
       {imagePreview && (
         <button
@@ -516,7 +513,7 @@ export function PageCommandesAdmin() {
           </div>
         </button>
       )}
-    </div>
+    </>
   );
 }
 

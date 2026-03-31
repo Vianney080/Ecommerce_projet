@@ -7,8 +7,9 @@ import {
   type DragEvent,
   type FormEvent
 } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { api, resolveAssetUrl } from "../api";
+import { AdminLayout } from "../components/AdminLayout";
 import { useDocumentTitle, useMetaDescription } from "../hooks/useDocumentTitle";
 import "../styles.css";
 
@@ -455,23 +456,11 @@ export function PageProduitsAdmin() {
   }, [produits, recherche, filtreStockBas]);
 
   return (
-    <div className="admin-page">
-      <div className="admin-shell">
-        <div className="admin-header">
-          <div>
-            <h1 className="admin-title">Gestion des produits</h1>
-            <p className="admin-subtitle">Ajout, modification, suppression, stock et categories.</p>
-          </div>
-          <div className="orders-actions">
-            <Link to="/admin/dashboard" className="orders-link-btn">
-              Retour dashboard
-            </Link>
-            <Link to="/admin/commandes" className="orders-link-btn">
-              Voir commandes
-            </Link>
-          </div>
-        </div>
-
+    <AdminLayout
+      title="Produits & stock"
+      subtitle="Création, modification, images, prix, seuils d’alerte et catégories."
+    >
+      <div className="admin-dashboard">
         {erreur && <div className="admin-alert admin-alert-error">{erreur}</div>}
         {toast && <div className="admin-alert admin-alert-neutral">{toast}</div>}
 
@@ -818,6 +807,6 @@ export function PageProduitsAdmin() {
           )}
         </section>
       </div>
-    </div>
+    </AdminLayout>
   );
 }
