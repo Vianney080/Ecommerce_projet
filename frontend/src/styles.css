@@ -273,8 +273,9 @@ body {
 .nav-cart {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.34rem 0.64rem;
+  justify-content: center;
+  gap: 0;
+  padding: 0.38rem 0.5rem;
   margin-left: 0;
   border: 1px solid rgba(226, 232, 240, 0.95);
   border-radius: 999px;
@@ -310,16 +311,6 @@ body {
   width: 1.28rem;
   height: 1.28rem;
   display: block;
-}
-
-.nav-cart-info {
-  font-size: 0.76rem;
-  font-weight: 500;
-  color: #64748b;
-}
-
-.nav-cart-has-items .nav-cart-info {
-  color: #9f1239;
 }
 
 .nav-cart-badge {
@@ -636,10 +627,6 @@ body {
     text-transform: uppercase;
     text-align: center;
     line-height: 1.2;
-  }
-
-  .nav-cart-info--desktop {
-    display: none !important;
   }
 
   .nav-cart {
@@ -7229,10 +7216,6 @@ html.theme-dark .nav-cart-badge {
 html.theme-dark .nav-cart-badge--zero {
   background: #facc15 !important;
   color: #0f172a !important;
-}
-
-html.theme-dark .nav-cart-info {
-  color: #94a3b8 !important;
 }
 
 /* Panier header : le panneau gardait un fond blanc avec du texte hérité clair (illisible) */

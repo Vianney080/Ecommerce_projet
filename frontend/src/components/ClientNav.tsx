@@ -487,9 +487,6 @@ export function ClientNav({
                 {nbPiecesPanierNav}
               </span>
             </span>
-            <span className="nav-cart-info nav-cart-info--desktop">
-              Mon sac – {formatCAD(totalPanier)}
-            </span>
             {panierOuvert && (
               <div className="nav-cart-panel">
                 {itemsPanier.length === 0 ? (
